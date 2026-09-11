@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { dataMode, isDemo } from "./api";
 const link = (path: string, demo: unknown) =>
   demo ? path + "?demo=" + encodeURIComponent(String(demo)) : path;
+const viewKey = computed(
+  () => location.pathname + `|${isDemo() ? "demo" : "api"}`,
+);
 </script>
 <template>
   <header>
@@ -19,8 +23,11 @@ const link = (path: string, demo: unknown) =>
       >演示模式</RouterLink
     ><RouterLink v-else :to="$route.path" class="switch">连接服务</RouterLink>
   </header>
-  <p v-if="isDemo() || dataMode === 'fixture'" class="demo" role="note">
-    演示数据：仅用于界面体验，不代表真实新闻、回答或采集记录。
+  <p v-if="isDemo()" class="demo" role="note">
+    前端模拟：仅用于交互演示，不代表真实服务结果。
   </p>
-  <main><RouterView /></main>
+  <p v-else-if="dataMode === 'fixture'" class="demo" role="note">
+    后端合成数据：服务端返回的 fixture，不代表真实新闻或采集结果。
+  </p>
+  <main><RouterView :key="viewKey" /></main>
 </template>

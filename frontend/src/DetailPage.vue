@@ -60,6 +60,12 @@ onBeforeUnmount(() => {
     </p>
     <h1>{{ item.title_zh }}</h1>
     <p>{{ item.summary_zh }}</p>
+    <h2>相关实体</h2>
+    <p class="row">
+      <span v-for="entity in item.entities" :key="entity" class="pill">{{
+        entity
+      }}</span>
+    </p>
     <h2>来源与摘录</h2>
     <p v-if="isDemo()" class="demo">以下摘录为合成演示。</p>
     <p v-if="!item.evidence_count" class="meta">此事件没有关联证据。</p>
