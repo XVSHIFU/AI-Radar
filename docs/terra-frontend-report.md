@@ -31,3 +31,5 @@ AskPage 实际接入修订：真实响应调用 askView、使用原始 citations
 本轮返修：RouterView key 改为响应式 route.path 与 route.query.demo；样式重构为单一主题变量集，移除旧 padding/状态覆盖重复规则，补标题正文间距和侧栏 align-self:start。仅执行 typecheck/build，均通过。
 
 QueryPlan UI：问答页直接展示成功 query_plan_public 或错误 details.query_plan_public 的业务日期、时区、分类、日期、实体数量、澄清候选与警告；新请求清空旧计划。解析测试覆盖成功和错误包装。本轮 typecheck、13项测试和 build 通过。
+
+QueryPlan 审查返修：范围卡片为 data-testid=query-plan，回答为 data-testid=ask-answer；分类转换中文、日期显示起止均包含、实体 all/any 显示同时/任一匹配，warnings 与 free_text 未理解限制可见。现有解析测试继续覆盖成功、503 details 计划与澄清包装；no_answer 由 ask-result 业务状态测试覆盖。

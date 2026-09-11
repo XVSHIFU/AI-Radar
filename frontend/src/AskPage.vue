@@ -35,6 +35,14 @@ const question = ref(""),
   >(),
   expanded = ref<number>(),
   plan = ref<QueryPlan>();
+const categoryName: Record<string, string> = {
+  model_release: "模型发布",
+  agent_tool: "智能体工具",
+  framework_sdk: "框架与 SDK",
+  research: "研究",
+  product: "产品",
+  industry: "产业",
+};
 let timers: number[] = [];
 const validUrl = (url: string) => /^https?:\/\//i.test(url);
 const invalid = () => Boolean(from.value && to.value && from.value > to.value);
@@ -204,7 +212,7 @@ onBeforeUnmount(() => {
         <li v-for="warning in plan.warnings" :key="warning">{{ warning }}</li>
       </ul>
     </article>
-    <article v-if="tokens || result" class="card">
+    <article v-if="tokens || result" class="card" data-testid="ask-answer">
       <p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p>
       <h2>回答</h2>
       <p>{{ tokens || result?.answer }}</p>
