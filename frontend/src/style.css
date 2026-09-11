@@ -11,6 +11,20 @@
   --brand: #087f75;
   --danger: #b42318;
   --warning: #946200;
+  --demo-bg: var(--demo-bg);
+  --demo-text: var(--demo-text);
+  --demo-line: var(--demo-line);
+  --focus: var(--focus);
+  --pill-bg: var(--pill-bg);
+  --pill-text: var(--pill-text);
+  --error-line: var(--error-line);
+  --loading-bg: var(--loading-bg);
+  --danger-bg: var(--danger-bg);
+  --font-meta: 12px;
+  --font-nav: 14px;
+  --font-h2: 20px;
+  --font-h1-min: 28px;
+  --font-h1-max: 36px;
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -76,20 +90,20 @@ button {
 .demo {
   margin-top: var(--s2);
   padding: var(--s2) var(--s3);
-  background: #fff8e7;
-  color: #674b00;
-  border: 1px solid #f1d396;
+  background: var(--demo-bg);
+  color: var(--demo-text);
+  border: 1px solid var(--demo-line);
   border-radius: 8px;
 }
 main {
   padding-block: var(--s6);
 }
 h1 {
-  font-size: clamp(28px, 4vw, 36px);
+  font-size: clamp(var(--font-h1-min), 4vw, var(--font-h1-max));
   margin: 0 0 var(--s2);
 }
 h2 {
-  font-size: 20px;
+  font-size: var(--font-h2);
   margin: var(--s4) 0 var(--s2);
 }
 p {
@@ -100,7 +114,7 @@ p {
   color: var(--muted);
 }
 .meta {
-  font-size: 12px;
+  font-size: var(--font-meta);
 }
 .grid,
 .two {
@@ -141,7 +155,7 @@ p {
   border-left: 4px solid var(--brand);
 }
 .error {
-  border-color: #efb0aa;
+  border-color: var(--error-line);
   color: var(--danger);
 }
 .empty {
@@ -154,25 +168,25 @@ input:focus,
 textarea:focus,
 select:focus,
 a:focus {
-  outline: 3px solid #8bd3cb;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 .pill {
   padding: var(--s1) var(--s2);
   border-radius: 999px;
-  background: #e8f5f3;
-  color: #06675f;
-  font-size: 12px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  font-size: var(--font-meta);
 }
 .status {
   padding: var(--s2) var(--s3);
   border-radius: 8px;
 }
 .loading {
-  background: #eaf4ff;
+  background: var(--loading-bg);
 }
 .danger {
-  background: #fff0ef;
+  background: var(--danger-bg);
   color: var(--danger);
 }
 blockquote {
@@ -185,7 +199,7 @@ blockquote {
   nav {
     order: 3;
     width: 100%;
-    font-size: 14px;
+    font-size: var(--font-nav);
   }
   .desktop {
     display: none;
@@ -195,4 +209,8 @@ blockquote {
   .mobile {
     display: none;
   }
+}
+
+nav a {
+  white-space: nowrap;
 }
