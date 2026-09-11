@@ -27,3 +27,5 @@ SSE 终态修订：sawError 后仅允许 done.status=failed；新增 error-befor
 问答结果提取修订：新增 ask-result 强类型校验，服务端 index 原样呈现；缺失、非正、重复索引成为协议错误。新增 index=2、索引缺失/重复、no_answer/partial/failed/cancelled 业务状态测试。pnpm test 共12项通过。
 
 AskPage 实际接入修订：真实响应调用 askView、使用原始 citations 与其 index、状态取 view.status；页面显示 no_answer 与 partial 提示。AskPage rg 已确认无数组重编号或 ref<any；问答结果测试覆盖零/负/小数索引。
+
+本轮返修：RouterView key 改为响应式 route.path 与 route.query.demo；样式重构为单一主题变量集，移除旧 padding/状态覆盖重复规则，补标题正文间距和侧栏 align-self:start。仅执行 typecheck/build，均通过。
