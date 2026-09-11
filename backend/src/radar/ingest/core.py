@@ -26,6 +26,8 @@ def canonicalize_url(value: str) -> str:
     parts = urlsplit(value)
     if parts.scheme not in {"http", "https"} or not parts.hostname:
         raise UnsafeUrl("only absolute http(s) URLs are allowed")
+    if parts.username is not None or parts.password is not None:
+        raise UnsafeUrl("URL userinfo is not allowed")
     query = [
         (key, item)
         for key, item in parse_qsl(parts.query, keep_blank_values=True)
