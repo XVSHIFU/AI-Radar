@@ -36,7 +36,8 @@ export type Evidence = {
 };
 export type Article = { title: string; source_url: string; language?: string };
 export type ApiError = {
-  details?: { query_plan_public?: unknown };
+  data_mode?: string;
+  details?: { query_plan_public?: { data_mode?: string } | unknown };
   code: string;
   message: string;
   retryable?: boolean;
@@ -61,9 +62,25 @@ export type EventResult = {
   data_revision: string;
   request_id: string;
 };
-const demo = () => new URLSearchParams(location.search).get("demo") === "1";
+const demo = () =>
+  typeof location !== "undefined" &&
+  new URLSearchParams(location.search).get("demo") === "1";
 export const dataMode = ref(demo() ? "fixture" : "live");
 export const isDemo = () => demo();
+type ModeResponse = {
+  data_mode?: unknown;
+  details?: { query_plan_public?: { data_mode?: unknown } | unknown };
+};
+export function updateDataMode(response: ModeResponse) {
+  const plan = response.details?.query_plan_public;
+  const planMode =
+    plan && typeof plan === "object" && "data_mode" in plan
+      ? plan.data_mode
+      : undefined;
+  const mode = response.data_mode ?? planMode;
+  if (mode === "fixture") dataMode.value = "fixture";
+  else if (mode === "postgres") dataMode.value = "live";
+}
 function err(e: unknown): ApiError {
   return typeof e === "object" && e && "code" in e
     ? (e as ApiError)
@@ -84,11 +101,11 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
     try {
       body = { ...body, ...(await response.json()) };
     } catch {}
+    updateDataMode(body);
     throw body;
   }
   const result = (await response.json()) as T & { data_mode?: string };
-  if (result.data_mode === "fixture") dataMode.value = "fixture";
-  else if (result.data_mode === "postgres") dataMode.value = "live";
+  updateDataMode(result);
   return result;
 }
 function filter(q: EventQuery) {

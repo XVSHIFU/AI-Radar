@@ -43,6 +43,15 @@ const categoryName: Record<string, string> = {
   product: "产品",
   industry: "产业",
 };
+const errorGuidance: Record<string, string> = {
+  MODEL_UNAVAILABLE: "生成模型尚未配置，已显示可用的检索范围。",
+  QUERY_UNSUPPORTED: "当前问题包含暂不支持的检索表达。",
+  CLARIFICATION_REQUIRED: "需要先澄清检索条件后才能继续。",
+};
+const errorDescription = (value: ReturnType<typeof err>) =>
+  errorGuidance[value.code]
+    ? `${errorGuidance[value.code]} ${value.message}`
+    : value.message;
 let timers: number[] = [];
 const validUrl = (url: string) => /^https?:\/\//i.test(url);
 const invalid = () => Boolean(from.value && to.value && from.value > to.value);
@@ -193,7 +202,9 @@ onBeforeUnmount(() => {
       ><button v-if="running" @click="cancel">取消</button>
     </div>
     <p aria-live="polite">{{ status }}</p>
-    <div v-if="error" class="card error">{{ error.message }}</div>
+    <div v-if="error" class="card error" role="alert">
+      <strong>{{ error.code }}</strong>：{{ errorDescription(error) }}
+    </div>
     <section
       v-if="plan"
       class="card"
