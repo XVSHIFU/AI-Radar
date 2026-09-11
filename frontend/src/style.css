@@ -170,3 +170,29 @@ a:focus {
     display: none;
   }
 }
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+select:focus {
+  outline: 3px solid #8bd3cb;
+  outline-offset: 2px;
+}
+a,
+p,
+blockquote {
+  overflow-wrap: anywhere;
+}
+nav a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}

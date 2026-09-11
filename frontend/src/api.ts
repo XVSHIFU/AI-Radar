@@ -87,6 +87,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   }
   const result = (await response.json()) as T & { data_mode?: string };
   if (result.data_mode === "fixture") dataMode.value = "fixture";
+  else if (result.data_mode === "postgres") dataMode.value = "live";
   return result;
 }
 function filter(q: EventQuery) {
