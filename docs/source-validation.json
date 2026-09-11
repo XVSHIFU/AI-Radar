@@ -1,0 +1,139 @@
+{
+  "observed_at": "2026-09-11T16:10:50.473098+00:00",
+  "layer": "live_feed_probe_only",
+  "sources": [
+    {
+      "name": "Hugging Face",
+      "feed_url": "https://huggingface.co/blog/feed.xml",
+      "feed_status": "parsed",
+      "body_validation": "not_run",
+      "validated_events": 0,
+      "http_status": 200,
+      "entry_count": 861,
+      "samples": [
+        {
+          "title": "Rebuilding AUTOMATIC1111 with Gradio Workflow",
+          "url": "https://huggingface.co/blog/gradio-workflow-1111",
+          "published": "Thu, 10 Sep 2026 00:00:00 GMT"
+        },
+        {
+          "title": "IBM releases SOTA Granite Time Series PatchTST-FM-r2 model with commercial-friendly license",
+          "url": "https://huggingface.co/blog/ibm-research/ibm-releases-sota-granite-time-series",
+          "published": "Wed, 09 Sep 2026 15:36:24 GMT"
+        },
+        {
+          "title": "Safety for Whom? Refusing the Right Subset of a Topic, Not the Whole Topic",
+          "url": "https://huggingface.co/blog/MultiverseComputingCAI/safety-for-whom",
+          "published": "Tue, 08 Sep 2026 14:23:07 GMT"
+        }
+      ]
+    },
+    {
+      "name": "arXiv cs.AI",
+      "feed_url": "https://rss.arxiv.org/rss/cs.AI",
+      "feed_status": "parsed",
+      "body_validation": "not_run",
+      "validated_events": 0,
+      "http_status": 200,
+      "entry_count": 245,
+      "samples": [
+        {
+          "title": "OpenDiscoveryTrace: Process Traces for Evaluating AI Scientist Workflows",
+          "url": "https://arxiv.org/abs/2609.09203",
+          "published": "Fri, 11 Sep 2026 00:00:00 -0400"
+        },
+        {
+          "title": "Adaptive Entangled Game Modules in Artificial General Intelligence",
+          "url": "https://arxiv.org/abs/2609.09226",
+          "published": "Fri, 11 Sep 2026 00:00:00 -0400"
+        },
+        {
+          "title": "Subagents vs Agent Skills: Executing Reusable Knowledge for Long-Horizon Agentic Tasks",
+          "url": "https://arxiv.org/abs/2609.09233",
+          "published": "Fri, 11 Sep 2026 00:00:00 -0400"
+        }
+      ]
+    },
+    {
+      "name": "Google Research",
+      "feed_url": "https://research.google/blog/rss/",
+      "feed_status": "parsed",
+      "body_validation": "not_run",
+      "validated_events": 0,
+      "http_status": 200,
+      "entry_count": 100,
+      "samples": [
+        {
+          "title": "ToolGrad: Efficient tool-use dataset generation with textual \"gradients\"",
+          "url": "https://research.google/blog/toolgrad-efficient-tool-use-dataset-generation-with-textual-gradients/",
+          "published": "Thu, 10 Sep 2026 22:50:22 +0000"
+        },
+        {
+          "title": "Transfer learning for genomic prediction in underrepresented populations",
+          "url": "https://research.google/blog/transfer-learning-for-genomic-prediction-in-underrepresented-populations/",
+          "published": "Thu, 03 Sep 2026 18:20:31 +0000"
+        },
+        {
+          "title": "A connectomics milestone: Mapping the complete male fruit fly brain",
+          "url": "https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/",
+          "published": "Thu, 03 Sep 2026 16:00:03 +0000"
+        }
+      ]
+    },
+    {
+      "name": "AWS Machine Learning",
+      "feed_url": "https://aws.amazon.com/blogs/machine-learning/feed/",
+      "feed_status": "parsed",
+      "body_validation": "not_run",
+      "validated_events": 0,
+      "http_status": 200,
+      "entry_count": 20,
+      "samples": [
+        {
+          "title": "Reduce LLM latency with prefix-aware routing on Amazon SageMaker Inference",
+          "url": "https://aws.amazon.com/blogs/machine-learning/reduce-llm-latency-with-prefix-aware-routing-on-amazon-sagemaker-inference/",
+          "published": "Thu, 10 Sep 2026 21:58:09 +0000"
+        },
+        {
+          "title": "Reduce inference cold starts on Amazon SageMaker HyperPod with model caching",
+          "url": "https://aws.amazon.com/blogs/machine-learning/reduce-inference-cold-starts-on-amazon-sagemaker-hyperpod-with-model-caching/",
+          "published": "Thu, 10 Sep 2026 21:37:49 +0000"
+        },
+        {
+          "title": "Video and image search in Amazon Bedrock Knowledge Base using Marengo 3.0",
+          "url": "https://aws.amazon.com/blogs/machine-learning/video-and-image-search-in-amazon-bedrock-knowledge-base-using-marengo-3-0/",
+          "published": "Thu, 10 Sep 2026 21:15:39 +0000"
+        }
+      ]
+    },
+    {
+      "name": "NVIDIA Technical Blog",
+      "feed_url": "https://developer.nvidia.com/blog/feed/",
+      "feed_status": "parsed",
+      "body_validation": "not_run",
+      "validated_events": 0,
+      "http_status": 200,
+      "entry_count": 100,
+      "samples": [
+        {
+          "title": "How Full-Stack NIM Optimizations Deliver 2.5x More Users on Nemotron 3 Ultra",
+          "url": "https://developer.nvidia.com/blog/how-full-stack-nim-optimizations-deliver-2-5x-more-users-on-nemotron-3-ultra/",
+          "published": "2026-09-10T16:55:32Z"
+        },
+        {
+          "title": "High-Throughput Structure Prediction with BioNeMo Inference Runtime",
+          "url": "https://developer.nvidia.com/blog/high-throughput-structure-prediction-with-bionemo-inference-runtime/",
+          "published": "2026-09-10T15:00:00Z"
+        },
+        {
+          "title": "From Wafer-Out to First Token: Codifying Supply Chain Expertise with Nemotron and Palantir Foundry",
+          "url": "https://developer.nvidia.com/blog/from-wafer-out-to-first-token-codifying-supply-chain-expertise-with-nemotron-and-palantir-foundry/",
+          "published": "2026-09-10T09:00:00Z"
+        }
+      ]
+    }
+  ],
+  "parsed_feeds": 5,
+  "fully_validated_sources": 0,
+  "real_standard_events": 0
+}
