@@ -1,105 +1,179 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { ask, err, isDemo, type AskResult } from "./api";
+import { nextTick, onBeforeUnmount, ref } from "vue";
+import { ask, err, isDemo, type AskResult, type Category } from "./api";
 import { parseSse } from "./sse";
 let generation = 0;
 const question = ref(""),
+  category = ref<Category | "">(""),
+  from = ref(""),
+  to = ref(""),
   running = ref(false),
   controller = ref<AbortController>(),
   result = ref<AskResult>(),
   error = ref<ReturnType<typeof err>>(),
   status = ref(""),
   tokens = ref(""),
-  sources = ref<
-    { index: number; title: string; source_url: string; quote_text: string }[]
-  >([]),
+  sources = ref<any[]>([]),
+  metrics = ref<any>(),
   expanded = ref<number>();
-const stream = () =>
-  new ReadableStream<Uint8Array>({
+let timers: number[] = [];
+const validUrl = (url: string) => /^https?:\/\//i.test(url);
+const invalid = () => Boolean(from.value && to.value && from.value > to.value);
+function slowStream() {
+  let control: ReadableStreamDefaultController<Uint8Array>;
+  const emit = (x: string, ms: number) =>
+    timers.push(
+      window.setTimeout(() => control.enqueue(new TextEncoder().encode(x)), ms),
+    );
+  return new ReadableStream<Uint8Array>({
     start(c) {
-      const text =
-        'event: status\ndata: {"phase":"retrieving"}\n\nevent: token\ndata: {"text":"这是明确标注的模拟问答回答。[2]"}\n\nevent: sources\ndata: {"items":[{"index":2,"title":"合成演示来源","source_url":"https://example.invalid/demo","quote_text":"合成段落摘录"}]}\n\nevent: done\ndata: {"status":"completed","scope_total":1,"retrieved_count":1,"summarized_count":1,"coverage":"demo"}\n\n';
-      for (const x of [text.slice(0, 47), text.slice(47)])
-        setTimeout(() => c.enqueue(new TextEncoder().encode(x)), 20);
-      setTimeout(() => c.close(), 60);
+      control = c;
+      emit('event: status\ndata: {"phase":"retrieving"}\n\n', 150);
+      emit('event: token\ndata: {"text":"这是"}\n\n', 450);
+      emit('event: token\ndata: {"text":"明确标注的模拟回答。[2]"}\n\n', 850);
+      emit(
+        'event: sources\ndata: {"items":[{"index":2,"title":"合成演示来源","source_url":"https://example.invalid/demo","quote_text":"合成段落摘录","paragraph_id":"demo-p-001"}]}\n\n',
+        1150,
+      );
+      emit(
+        'event: done\ndata: {"status":"completed","scope_total":1,"retrieved_count":1,"summarized_count":1,"citation_count":1,"coverage":"complete"}\n\n',
+        1450,
+      );
+      timers.push(window.setTimeout(() => c.close(), 1600));
+    },
+    cancel() {
+      timers.forEach(clearTimeout);
+      timers = [];
     },
   });
+}
 async function submit() {
   const current = ++generation;
   controller.value?.abort();
+  timers.forEach(clearTimeout);
+  if (invalid()) {
+    error.value = { code: "INVALID_DATE", message: "起始日期不能晚于截止日期" };
+    return;
+  }
   controller.value = new AbortController();
   result.value = undefined;
   error.value = undefined;
   tokens.value = "";
   sources.value = [];
+  metrics.value = undefined;
   running.value = true;
+  const filters = {
+    category: category.value || undefined,
+    date_from: from.value || undefined,
+    date_to: to.value || undefined,
+  };
   try {
     if (isDemo()) {
-      for await (const e of parseSse(stream(), controller.value.signal)) {
+      for await (const e of parseSse(slowStream(), controller.value.signal)) {
+        if (current !== generation) return;
         if (e.event === "status") status.value = "模拟流：正在检索";
         if (e.event === "token") tokens.value += JSON.parse(e.data).text;
         if (e.event === "sources") sources.value = JSON.parse(e.data).items;
-        if (e.event === "done")
+        if (e.event === "done") {
+          metrics.value = JSON.parse(e.data);
           status.value =
-            JSON.parse(e.data).status === "completed"
+            metrics.value.status === "completed"
               ? "模拟流已完成"
               : "模拟流失败";
+        }
       }
-      return;
+    } else {
+      status.value = "正在检索并汇总…";
+      const x = await ask(
+        {
+          question: question.value,
+          filters,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          answer_mode: "concise",
+          client_request_id: crypto.randomUUID(),
+        },
+        controller.value.signal,
+      );
+      if (current !== generation) return;
+      result.value = x;
+      sources.value = x.citations.map((c: any, i: number) => ({
+        ...c,
+        index: i + 1,
+      }));
+      metrics.value = x;
+      status.value = "已完成";
     }
-    status.value = "正在检索并汇总…";
-    result.value = await ask(
-      {
-        question: question.value,
-        filters: {},
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        answer_mode: "concise",
-        client_request_id: crypto.randomUUID(),
-      },
-      controller.value.signal,
-    );
-    status.value = "已完成";
   } catch (e) {
     if (current !== generation) return;
-    if ((e as Error).name === "AbortError")
-      status.value = "已取消，未自动重试。";
-    else error.value = err(e);
+    status.value =
+      (e as Error).name === "AbortError" ? "已取消，未自动重试。" : "";
+    if ((e as Error).name !== "AbortError") error.value = err(e);
   } finally {
     if (current === generation) running.value = false;
   }
 }
+async function toggle(i: number) {
+  expanded.value = expanded.value === i ? undefined : i;
+  await nextTick();
+  document.getElementById(`citation-${i}`)?.focus();
+}
+onBeforeUnmount(() => {
+  generation++;
+  controller.value?.abort();
+  timers.forEach(clearTimeout);
+});
 </script>
 <template>
   <section>
     <h1>研究问答</h1>
     <label>问题<textarea v-model="question" class="control" rows="4" /></label>
-    <p class="meta">条件：全部分类 · 无日期限制</p>
+    <div class="row">
+      <label
+        >分类<select v-model="category" class="control">
+          <option value="">全部</option>
+          <option value="agent_tool">智能体工具</option>
+          <option value="model_release">模型发布</option>
+        </select></label
+      ><label>从<input v-model="from" type="date" class="control" /></label
+      ><label>至<input v-model="to" type="date" class="control" /></label>
+    </div>
     <div class="row">
       <button :disabled="running || !question" @click="submit">开始分析</button
       ><button v-if="running" @click="controller?.abort()">取消</button>
     </div>
     <p aria-live="polite">{{ status }}</p>
     <div v-if="error" class="card error">{{ error.message }}</div>
-    <article v-if="tokens" class="card">
-      <p v-if="isDemo()" class="demo">模拟流，仅用于演示，不代表模型已验证。</p>
+    <article v-if="tokens || result" class="card">
+      <p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p>
       <h2>回答</h2>
-      <p>{{ tokens }}</p>
+      <p>{{ tokens || result?.answer }}</p>
       <div v-for="s in sources" :key="s.index">
-        <button @click="expanded = expanded === s.index ? undefined : s.index">
+        <button
+          :aria-expanded="expanded === s.index"
+          :aria-controls="`citation-${s.index}`"
+          @click="toggle(s.index)"
+        >
           [{{ s.index }}] {{ s.title }}
         </button>
-        <blockquote v-if="expanded === s.index">{{ s.quote_text }}</blockquote>
-        <a :href="s.source_url" target="_blank" rel="noopener">打开来源</a>
+        <blockquote
+          v-if="expanded === s.index"
+          :id="`citation-${s.index}`"
+          tabindex="-1"
+        >
+          {{ s.quote_text || "无段落摘录" }}
+        </blockquote>
+        <a
+          v-if="validUrl(s.source_url)"
+          :href="s.source_url"
+          target="_blank"
+          rel="noopener"
+          >打开来源</a
+        >
       </div>
-      <p class="meta">完整匹配 1 · 取回 1 · 总结 1 · 覆盖：demo</p>
-    </article>
-    <article v-if="result" class="card">
-      <h2>回答</h2>
-      <p>{{ result.answer || "没有可回答的资料。" }}</p>
-      <p class="meta">
-        完整匹配 {{ result.scope_total }} · 取回 {{ result.retrieved_count }} ·
-        总结 {{ result.summarized_count }} · 引用 {{ result.citation_count }} ·
-        覆盖：{{ result.coverage }}
+      <p v-if="metrics" class="meta">
+        完整匹配 {{ metrics.scope_total }} · 取回
+        {{ metrics.retrieved_count }} · 总结 {{ metrics.summarized_count }} ·
+        引用 {{ metrics.citation_count }} · 覆盖：{{ metrics.coverage }}
       </p>
     </article>
   </section>
