@@ -91,13 +91,21 @@ async def test_transport_connects_validated_ip_but_preserves_host_and_tls_name()
 
 
 @pytest.mark.asyncio
-async def test_mixed_public_private_dns_is_rejected_before_connect() -> None:
+@pytest.mark.parametrize(
+    "addresses",
+    [
+        ["93.184.216.34", "127.0.0.1"],
+        ["93.184.216.34", "100.64.0.1"],
+        ["100.127.255.254"],
+    ],
+)
+async def test_non_public_dns_is_rejected_before_connect(addresses: list[str]) -> None:
     backend = RecordingBackend()
 
-    async def mixed_resolver(_host: str) -> list[str]:
-        return ["93.184.216.34", "127.0.0.1"]
+    async def resolver(_host: str) -> list[str]:
+        return addresses
 
-    transport = PublicAsyncTransport(resolver=mixed_resolver, network_backend=backend)
+    transport = PublicAsyncTransport(resolver=resolver, network_backend=backend)
     async with httpx.AsyncClient(transport=transport, trust_env=False) as client:
         with pytest.raises(httpx.ConnectError, match="non-public"):
             await client.get("https://news.example/story")
@@ -116,7 +124,15 @@ async def test_httpcore_connect_timeout_maps_to_httpx() -> None:
 
 @pytest.mark.parametrize(
     "address",
-    ["127.0.0.1", "10.0.0.1", "169.254.1.1", "::1", "::ffff:8.8.8.8"],
+    [
+        "127.0.0.1",
+        "10.0.0.1",
+        "169.254.1.1",
+        "100.64.0.1",
+        "100.127.255.254",
+        "::1",
+        "::ffff:8.8.8.8",
+    ],
 )
 def test_non_public_and_ipv4_mapped_addresses_are_rejected(address: str) -> None:
     assert is_public_address(address) is False
@@ -129,3 +145,29 @@ def test_non_public_and_ipv4_mapped_addresses_are_rejected(address: str) -> None
 def test_url_userinfo_is_rejected(url: str) -> None:
     with pytest.raises(UnsafeUrl, match="userinfo"):
         canonicalize_url(url)
+
+
+@pytest.mark.asyncio
+async def test_connect_falls_back_across_validated_ips_without_hostname_retry() -> None:
+    class FallbackBackend(RecordingBackend):
+        async def connect_tcp(self, host: str, port: int, **kwargs):
+            self.connections.append((host, port))
+            if len(self.connections) == 1:
+                raise httpcore.ConnectError("first address unavailable")
+            return self.stream
+
+    async def resolver(host: str) -> list[str]:
+        assert host == "news.example"
+        return ["93.184.216.33", "93.184.216.34"]
+
+    backend = FallbackBackend()
+    transport = PublicAsyncTransport(resolver=resolver, network_backend=backend)
+    async with httpx.AsyncClient(transport=transport, trust_env=False) as client:
+        response = await client.get("https://news.example/story")
+        assert await response.aread() == b"ok"
+
+    assert backend.connections == [
+        ("93.184.216.33", 443),
+        ("93.184.216.34", 443),
+    ]
+    assert backend.stream.server_hostname == "news.example"

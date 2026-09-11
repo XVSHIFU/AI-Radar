@@ -1,6 +1,5 @@
 import asyncio
 import hashlib
-import ipaddress
 import socket
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -9,6 +8,8 @@ from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 import feedparser  # type: ignore[import-untyped]
 import httpx
+
+from .public_transport import is_public_address
 
 TRACKING_KEYS = {"fbclid", "gclid", "mc_cid", "mc_eid"}
 MAX_REDIRECTS = 5
@@ -41,15 +42,7 @@ def canonicalize_url(value: str) -> str:
 
 
 def _is_public(address: str) -> bool:
-    ip = ipaddress.ip_address(address)
-    return not (
-        ip.is_private
-        or ip.is_loopback
-        or ip.is_link_local
-        or ip.is_multicast
-        or ip.is_reserved
-        or ip.is_unspecified
-    )
+    return is_public_address(address)
 
 
 async def resolve_public(

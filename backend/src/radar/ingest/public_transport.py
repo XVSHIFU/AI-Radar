@@ -19,14 +19,7 @@ def is_public_address(value: str) -> bool:
     address = ipaddress.ip_address(value)
     if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped is not None:
         return False
-    return not (
-        address.is_private
-        or address.is_loopback
-        or address.is_link_local
-        or address.is_multicast
-        or address.is_reserved
-        or address.is_unspecified
-    )
+    return address.is_global and not address.is_multicast
 
 
 async def system_resolver(host: str) -> list[str]:
@@ -64,13 +57,20 @@ class PublicAsyncNetworkBackend(httpcore.AsyncNetworkBackend):
             raise httpcore.ConnectError(f"DNS returned an invalid address for {host}") from exc
         if not allowed:
             raise httpcore.ConnectError(f"DNS returned a non-public address for {host}")
-        return await self.backend.connect_tcp(
-            addresses[0],
-            port,
-            timeout=timeout,
-            local_address=local_address,
-            socket_options=socket_options,
-        )
+        last_error: httpcore.ConnectError | httpcore.ConnectTimeout | None = None
+        for address in addresses:
+            try:
+                return await self.backend.connect_tcp(
+                    address,
+                    port,
+                    timeout=timeout,
+                    local_address=local_address,
+                    socket_options=socket_options,
+                )
+            except (httpcore.ConnectError, httpcore.ConnectTimeout) as exc:
+                last_error = exc
+        assert last_error is not None
+        raise last_error
 
     async def connect_unix_socket(
         self,
