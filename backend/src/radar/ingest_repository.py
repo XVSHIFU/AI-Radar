@@ -173,7 +173,14 @@ class IngestRepository:
             return bool(cast(CursorResult[Any], result).rowcount)
 
     async def finish(
-        self, job_id: UUID, owner: str, generation: int, success: bool, error: str | None = None
+        self,
+        job_id: UUID,
+        owner: str,
+        generation: int,
+        success: bool,
+        error: str | None = None,
+        *,
+        parser_failure: bool = False,
     ) -> bool:
         now = datetime.now(UTC)
         async with self.sessions() as session, session.begin():
@@ -198,6 +205,20 @@ class IngestRepository:
             job.lease_owner = None
             job.lease_until = None
             job.last_error = error
+            if not success and job.stage == "feed_discovery":
+                source = await session.scalar(
+                    select(SourceRow).where(SourceRow.id == job.source_id).with_for_update()
+                )
+                if source is not None:
+                    source.last_checked_at = now
+                    source.consecutive_failures += 1
+                    source.health = "unhealthy" if source.consecutive_failures >= 3 else "degraded"
+            if not success and parser_failure:
+                await session.execute(
+                    update(IngestRunRow)
+                    .where(IngestRunRow.id == job.run_id)
+                    .values(parser_failures=IngestRunRow.parser_failures + 1)
+                )
             if job.state == "retry_wait":
                 job.not_before = now + timedelta(seconds=min(300, 2**generation))
             await session.flush()

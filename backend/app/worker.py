@@ -6,6 +6,7 @@ import httpx
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from radar.config import get_settings
+from radar.ingest.core import DocumentParseError
 from radar.ingest.public_transport import PublicAsyncTransport
 from radar.ingest.worker_service import LeaseLost, WorkerService
 from radar.ingest_repository import IngestRepository
@@ -57,7 +58,14 @@ async def run() -> None:
                         raise LeaseLost("worker lease was lost during processing")
                     # WorkerService commits business rows and success atomically.
                 except Exception as exc:
-                    await repository.finish(job.id, owner, job.lease_generation, False, str(exc))
+                    await repository.finish(
+                        job.id,
+                        owner,
+                        job.lease_generation,
+                        False,
+                        str(exc),
+                        parser_failure=isinstance(exc, DocumentParseError),
+                    )
                 finally:
                     heartbeat.cancel()
                     await asyncio.gather(heartbeat, return_exceptions=True)

@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .config import get_settings
@@ -110,6 +111,19 @@ async def handle_evidence_error(_request: Request, _exc: EvidenceInvalid) -> JSO
             "code": "EVIDENCE_INVALID",
             "message": "Evidence cannot be located in its frozen article version",
             "retryable": False,
+            "request_id": str(uuid4()),
+        },
+    )
+
+
+@app.exception_handler(SQLAlchemyError)
+async def handle_database_error(_request: Request, _exc: SQLAlchemyError) -> JSONResponse:
+    return JSONResponse(
+        status_code=503,
+        content={
+            "code": "DATABASE_UNAVAILABLE",
+            "message": "Database operation failed",
+            "retryable": True,
             "request_id": str(uuid4()),
         },
     )

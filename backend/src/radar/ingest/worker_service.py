@@ -127,6 +127,7 @@ class WorkerService:
             source_row.last_checked_at = datetime.now(UTC)
             source_row.last_success_at = datetime.now(UTC)
             source_row.consecutive_failures = 0
+            source_row.health = "healthy"
             locked.state = "succeeded"
             locked.lease_owner = None
             locked.lease_until = None

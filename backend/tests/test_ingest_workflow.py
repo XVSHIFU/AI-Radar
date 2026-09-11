@@ -158,6 +158,7 @@ async def test_discovery_persists_all_25_jobs_before_accepting_etag(monkeypatch)
     assert transaction.article_inserts == 25
     assert discoveries[-1].original_url.endswith("?utm_source=feed")
     assert source.etag == '"v2"'
+    assert source.health == "healthy"
     assert run.discovered_urls == 25
     assert job.state == "succeeded"
 
@@ -194,19 +195,29 @@ def test_job_and_discovery_constraints_are_persistent() -> None:
 
 
 class FinishSession:
-    def __init__(self, job, run):
+    def __init__(self, job, run, source):
         self.job = job
         self.run = run
+        self.source = source
+        self.parser_updates = 0
 
     def begin(self):
         return AsyncContext(self)
 
     async def scalar(self, statement):
         sql = str(statement)
-        return self.job if "FROM ingest_jobs" in sql else self.run
+        if "FROM ingest_jobs" in sql:
+            return self.job
+        if "FROM sources" in sql:
+            return self.source
+        return self.run
 
     async def execute(self, statement):
-        assert "GROUP BY ingest_jobs.state" in str(statement)
+        sql = str(statement)
+        if sql.startswith("UPDATE ingest_runs SET parser_failures"):
+            self.parser_updates += 1
+            return Result()
+        assert "GROUP BY ingest_jobs.state" in sql
         return Result(rows=[("failed", 1)])
 
     async def scalars(self, statement):
@@ -219,9 +230,10 @@ class FinishSession:
 
 @pytest.mark.asyncio
 async def test_finish_final_attempt_marks_run_failed_with_summary() -> None:
-    _source, job, run = make_rows()
+    source, job, run = make_rows()
     job.attempts = job.max_attempts
-    repository = IngestRepository(Sessions(FinishSession(job, run)))
+    session = FinishSession(job, run, source)
+    repository = IngestRepository(Sessions(session))
 
     accepted = await repository.finish(
         job.id, str(job.lease_owner), job.lease_generation, False, "boom"
@@ -233,3 +245,28 @@ async def test_finish_final_attempt_marks_run_failed_with_summary() -> None:
     assert run.failed_jobs == 1
     assert run.finished_at is not None
     assert run.error_summary == "boom"
+    assert source.health == "degraded"
+    assert source.consecutive_failures == 1
+    assert session.parser_updates == 0
+
+
+@pytest.mark.asyncio
+async def test_article_parser_failure_is_counted_separately_from_http_failure() -> None:
+    source, job, run = make_rows()
+    job.stage = "article_fetch"
+    job.attempts = job.max_attempts
+    parser_session = FinishSession(job, run, source)
+    repository = IngestRepository(Sessions(parser_session))
+
+    await repository.finish(
+        job.id,
+        str(job.lease_owner),
+        job.lease_generation,
+        False,
+        "document parse failed",
+        parser_failure=True,
+    )
+
+    assert parser_session.parser_updates == 1
+    assert source.consecutive_failures == 0
+    assert source.health == "ok"

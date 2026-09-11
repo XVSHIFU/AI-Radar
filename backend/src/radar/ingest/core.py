@@ -23,6 +23,10 @@ class ResponseTooLarge(ValueError):
     pass
 
 
+class DocumentParseError(ValueError):
+    pass
+
+
 def canonicalize_url(value: str) -> str:
     parts = urlsplit(value)
     if parts.scheme not in {"http", "https"} or not parts.hostname:
@@ -189,7 +193,7 @@ def parse_document(body: bytes) -> ParsedDocument:
     }
     normalized = "\n".join(paragraphs.values())
     if not normalized:
-        raise ValueError("document contains no extractable paragraphs")
+        raise DocumentParseError("document contains no extractable paragraphs")
     return ParsedDocument(paragraphs, hashlib.sha256(normalized.encode()).hexdigest())
 
 

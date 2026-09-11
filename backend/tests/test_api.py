@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import SQLAlchemyError
 
 
 def test_date_bounds_are_inclusive(client: TestClient) -> None:
@@ -177,3 +178,20 @@ def test_ask_rejects_inverted_date_range(client: TestClient) -> None:
     )
     assert response.status_code == 422
     assert response.json()["code"] == "VALIDATION_ERROR"
+
+
+class BrokenIngestRepository:
+    async def runs(self):
+        raise SQLAlchemyError("database offline")
+
+
+def test_ingest_database_error_has_uniform_503_shape(client: TestClient) -> None:
+    client.app.state.settings.admin_token = "secret"
+    client.app.state.ingest_repository = BrokenIngestRepository()
+    response = client.get("/api/v1/ingest/runs", headers={"Authorization": "Bearer secret"})
+
+    assert response.status_code == 503
+    body = response.json()
+    assert body["code"] == "DATABASE_UNAVAILABLE"
+    assert body["retryable"] is True
+    assert body["request_id"]
