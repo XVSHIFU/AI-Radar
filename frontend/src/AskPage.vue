@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref } from "vue";
-import { ask, err, isDemo, type AskResult, type Category } from "./api";
+import {
+  ask,
+  err,
+  isDemo,
+  type AskResult,
+  type Category,
+  type Citation,
+} from "./api";
 import { parseSse } from "./sse";
+import { askView } from "./ask-result";
 let generation = 0;
 const question = ref(""),
   category = ref<Category | "">(""),
@@ -133,6 +141,10 @@ onBeforeUnmount(() => {
           <option value="">全部</option>
           <option value="agent_tool">智能体工具</option>
           <option value="model_release">模型发布</option>
+          <option value="framework_sdk">框架与 SDK</option>
+          <option value="research">研究</option>
+          <option value="product">产品</option>
+          <option value="industry">产业</option>
         </select></label
       ><label>从<input v-model="from" type="date" class="control" /></label
       ><label>至<input v-model="to" type="date" class="control" /></label>

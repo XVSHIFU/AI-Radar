@@ -23,3 +23,5 @@
 审查修订：isDemo 仅由 URL 显式 demo=1 决定，服务端 fixture 仅显示合成标识；SSE 在 error 后拒绝 completed/cancelled done；采集仅在存在启用来源时可提交。
 
 SSE 终态修订：sawError 后仅允许 done.status=failed；新增 error-before-token completed 拒绝、error-after-token completed 拒绝、error+failed 通过三项测试。当前 pnpm test 共9项通过。
+
+问答结果提取修订：新增 ask-result 强类型校验，服务端 index 原样呈现；缺失、非正、重复索引成为协议错误。新增 index=2、索引缺失/重复、no_answer/partial/failed/cancelled 业务状态测试。pnpm test 共12项通过。

@@ -177,9 +177,16 @@ export const ask = (payload: unknown, signal?: AbortSignal) =>
     body: JSON.stringify(payload),
     signal,
   });
+export type Citation = {
+  index: number;
+  source_url: string;
+  title: string;
+  quote_text?: string;
+  paragraph_id?: string;
+};
 export type AskResult = {
   answer: string | null;
-  citations: { source_url: string; title: string; quote_text?: string }[];
+  citations: Citation[];
   execution_status: string;
   answer_status: string;
   scope_total: number;
