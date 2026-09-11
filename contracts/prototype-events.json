@@ -1,0 +1,486 @@
+{
+  "dataset": "synthetic-ui-v1",
+  "synthetic": true,
+  "items": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "title_zh": "示例 Atlas Agent 发布工作流调试器",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "agent_tool",
+      "importance": 5,
+      "event_date": "2026-09-12",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 0,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "title_zh": "示例 DeepSeek 推出研究模型预览",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "model_release",
+      "importance": 4,
+      "event_date": "2026-09-12",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "DeepSeek"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "title_zh": "示例 MCP SDK 增加连接恢复",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "framework_sdk",
+      "importance": 3,
+      "event_date": "2026-09-12",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "title_zh": "示例研究：长上下文引用定位",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "research",
+      "importance": 2,
+      "event_date": "2026-09-12",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "title_zh": "示例协作工具开放团队空间",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "product",
+      "importance": 5,
+      "event_date": "2026-09-12",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "title_zh": "示例行业：开源模型部署观察",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "industry",
+      "importance": 4,
+      "event_date": "2026-09-11",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 0,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "title_zh": "示例 Atlas Agent 发布工作流调试器 · 2",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "agent_tool",
+      "importance": 3,
+      "event_date": "2026-09-11",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "title_zh": "示例 DeepSeek 推出研究模型预览 · 2",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "model_release",
+      "importance": 2,
+      "event_date": "2026-09-11",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "DeepSeek"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "title_zh": "示例 MCP SDK 增加连接恢复 · 2",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "framework_sdk",
+      "importance": 5,
+      "event_date": "2026-09-11",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "title_zh": "示例研究：长上下文引用定位 · 2",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "research",
+      "importance": 4,
+      "event_date": "2026-09-11",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "title_zh": "示例协作工具开放团队空间 · 2",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "product",
+      "importance": 3,
+      "event_date": "2026-09-10",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 0,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "title_zh": "示例行业：开源模型部署观察 · 2",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "industry",
+      "importance": 2,
+      "event_date": "2026-09-10",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013",
+      "title_zh": "示例 Atlas Agent 发布工作流调试器 · 3",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "agent_tool",
+      "importance": 5,
+      "event_date": "2026-09-10",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000014",
+      "title_zh": "示例 DeepSeek 推出研究模型预览 · 3",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "model_release",
+      "importance": 4,
+      "event_date": "2026-09-10",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "DeepSeek"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000015",
+      "title_zh": "示例 MCP SDK 增加连接恢复 · 3",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "framework_sdk",
+      "importance": 3,
+      "event_date": "2026-09-10",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000016",
+      "title_zh": "示例研究：长上下文引用定位 · 3",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "research",
+      "importance": 2,
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 0,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000017",
+      "title_zh": "示例协作工具开放团队空间 · 3",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "product",
+      "importance": 5,
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000018",
+      "title_zh": "示例行业：开源模型部署观察 · 3",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "industry",
+      "importance": 4,
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000019",
+      "title_zh": "示例 Atlas Agent 发布工作流调试器 · 4",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "agent_tool",
+      "importance": 3,
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000020",
+      "title_zh": "示例 DeepSeek 推出研究模型预览 · 4",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "model_release",
+      "importance": 2,
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "DeepSeek"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000021",
+      "title_zh": "示例 MCP SDK 增加连接恢复 · 4",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "framework_sdk",
+      "importance": 5,
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 0,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000022",
+      "title_zh": "示例研究：长上下文引用定位 · 4",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "research",
+      "importance": 4,
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000023",
+      "title_zh": "示例协作工具开放团队空间 · 4",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "product",
+      "importance": 3,
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000024",
+      "title_zh": "示例行业：开源模型部署观察 · 4",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "industry",
+      "importance": 2,
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000025",
+      "title_zh": "示例 Atlas Agent 发布工作流调试器 · 5",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "agent_tool",
+      "importance": 5,
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000026",
+      "title_zh": "示例 DeepSeek 推出研究模型预览 · 5",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "model_release",
+      "importance": 4,
+      "event_date": "2026-09-07",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 0,
+      "entities": [
+        "DeepSeek"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000027",
+      "title_zh": "示例 MCP SDK 增加连接恢复 · 5",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "framework_sdk",
+      "importance": 3,
+      "event_date": "2026-09-07",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000028",
+      "title_zh": "示例研究：长上下文引用定位 · 5",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "research",
+      "importance": 2,
+      "event_date": "2026-09-07",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000029",
+      "title_zh": "示例协作工具开放团队空间 · 5",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "product",
+      "importance": 5,
+      "event_date": "2026-09-07",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000030",
+      "title_zh": "示例行业：开源模型部署观察 · 5",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "industry",
+      "importance": 4,
+      "event_date": "2026-09-07",
+      "date_precision": "day",
+      "source_count": 3,
+      "evidence_count": 1,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000031",
+      "title_zh": "示例 Atlas Agent 发布工作流调试器 · 6",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "agent_tool",
+      "importance": 3,
+      "event_date": "2026-09-06",
+      "date_precision": "day",
+      "source_count": 1,
+      "evidence_count": 0,
+      "entities": [
+        "示例研究团队"
+      ],
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000032",
+      "title_zh": "示例 DeepSeek 推出研究模型预览 · 6",
+      "summary_zh": "这是一条用于界面与筛选回归的合成事件。展示发布日期、分类和来源摘录状态，不代表真实产品发布。",
+      "category": "model_release",
+      "importance": 2,
+      "event_date": "2026-09-06",
+      "date_precision": "day",
+      "source_count": 2,
+      "evidence_count": 1,
+      "entities": [
+        "DeepSeek"
+      ],
+      "content_version": 1
+    }
+  ]
+}
