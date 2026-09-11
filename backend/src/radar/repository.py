@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from .queryplanner import EntityResolution
 from .schemas import Article, Event, Evidence, Filters
 
 
@@ -16,6 +17,8 @@ class Page:
 
 
 class EventRepository(Protocol):
+    async def resolve_entities(self, text: str) -> EntityResolution: ...
+
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page: ...
 
     async def evidence_for(self, event_id: UUID) -> list[Evidence]: ...

@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Annotated, cast
 from uuid import UUID, uuid4
@@ -15,6 +15,7 @@ from .config import get_settings
 from .fixture_repository import FixtureRepository
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
 from .postgres_repository import PostgresRepository
+from .queryplanner import InvalidTimezone, QueryPlanner
 from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
 from .schemas import (
     AskRequest,
@@ -26,19 +27,26 @@ from .schemas import (
     IngestRun,
     IngestRunCreated,
     IngestRunRequest,
+    QueryPlan,
 )
 
 
-def api_error(code: str, message: str, status: int, retryable: bool = False) -> HTTPException:
-    return HTTPException(
-        status_code=status,
-        detail={
-            "code": code,
-            "message": message,
-            "retryable": retryable,
-            "request_id": str(uuid4()),
-        },
-    )
+def api_error(
+    code: str,
+    message: str,
+    status: int,
+    retryable: bool = False,
+    details: dict[str, object] | None = None,
+) -> HTTPException:
+    detail: dict[str, object] = {
+        "code": code,
+        "message": message,
+        "retryable": retryable,
+        "request_id": str(uuid4()),
+    }
+    if details is not None:
+        detail["details"] = details
+    return HTTPException(status_code=status, detail=detail)
 
 
 @asynccontextmanager
@@ -147,6 +155,10 @@ def get_repository(request: Request) -> EventRepository:
     if repository is None:
         raise api_error("DATABASE_UNAVAILABLE", "PostgreSQL is not configured", 503, True)
     return repository
+
+
+def get_clock() -> datetime:
+    return datetime.now(UTC)
 
 
 def data_mode(request: Request) -> str:
@@ -299,50 +311,96 @@ async def sources(
     }
 
 
+async def create_query_plan(
+    payload: AskRequest,
+    request: Request,
+    repository: EventRepository,
+    clock: datetime,
+) -> QueryPlan:
+    try:
+        plan = await QueryPlanner().parse(
+            payload.question, payload.filters, payload.timezone, clock, repository
+        )
+    except InvalidTimezone as exc:
+        raise api_error("VALIDATION_ERROR", "Unknown IANA timezone", 422) from exc
+    except ValueError as exc:
+        raise api_error("QUERY_INVALID", str(exc), 422) from exc
+    return plan.model_copy(update={"data_mode": data_mode(request), "request_id": str(uuid4())})
+
+
+@app.post("/api/v1/query-plan", response_model=QueryPlan)
+async def query_plan(
+    payload: AskRequest,
+    request: Request,
+    repository: Annotated[EventRepository, Depends(get_repository)],
+    clock: Annotated[datetime, Depends(get_clock)],
+) -> QueryPlan:
+    return await create_query_plan(payload, request, repository, clock)
+
+
 @app.post("/api/v1/ask")
 async def ask(
     payload: AskRequest,
     request: Request,
     repository: Annotated[EventRepository, Depends(get_repository)],
+    clock: Annotated[datetime, Depends(get_clock)],
 ) -> dict[str, object]:
-    has_structured_scope = bool(
-        payload.filters.q
-        or payload.filters.category
-        or payload.filters.date_from
-        or payload.filters.date_to
-        or payload.filters.min_importance
-        or payload.filters.entity_ids
-    )
-    if not has_structured_scope:
+    plan = await create_query_plan(payload, request, repository, clock)
+    public_plan = plan.model_dump(mode="json")
+    if plan.requires_clarification:
         raise api_error(
-            "MODEL_UNAVAILABLE",
-            "Question interpretation requires a configured answer model",
+            "CLARIFICATION_REQUIRED",
+            "The query needs clarification before execution",
+            422,
+            details={"query_plan_public": public_plan},
+        )
+    if plan.free_text:
+        raise api_error(
+            "QUERY_UNSUPPORTED",
+            "Some query constraints are not supported deterministically",
             503,
+            details={"query_plan_public": public_plan},
         )
     try:
-        page = await repository.list_events(payload.filters, 1, None)
+        page = await repository.list_events(plan.filters, 1, None)
     except RepositoryUnavailable as exc:
-        raise api_error("RETRIEVAL_FAILED", "Database retrieval failed", 503, True) from exc
+        raise api_error(
+            "RETRIEVAL_FAILED",
+            "Database retrieval failed",
+            503,
+            True,
+            {"query_plan_public": public_plan},
+        ) from exc
     if page.total == 0:
         return {
             "answer": "",
             "citations": [],
             "execution_status": "completed",
             "answer_status": "no_answer",
-            "query_plan_public": payload.filters.model_dump(mode="json"),
+            "query_plan_public": public_plan,
             "scope_total": 0,
             "retrieved_count": 0,
             "summarized_count": 0,
             "citation_count": 0,
             "coverage": "complete",
             "as_of": page.as_of,
-            "filters_applied": payload.filters,
+            "filters_applied": plan.filters,
             "request_id": str(uuid4()),
             "data_mode": data_mode(request),
         }
     if not request.app.state.settings.llm_api_key:
-        raise api_error("MODEL_UNAVAILABLE", "Answer model is not configured", 503)
-    raise api_error("ASK_NOT_IMPLEMENTED", "Answer generation is not implemented", 503)
+        raise api_error(
+            "MODEL_UNAVAILABLE",
+            "Answer model is not configured",
+            503,
+            details={"query_plan_public": public_plan},
+        )
+    raise api_error(
+        "ASK_NOT_IMPLEMENTED",
+        "Answer generation is not implemented",
+        503,
+        details={"query_plan_public": public_plan},
+    )
 
 
 def require_admin(request: Request, authorization: Annotated[str | None, Header()] = None) -> None:

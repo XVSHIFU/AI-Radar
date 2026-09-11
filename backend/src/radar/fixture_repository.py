@@ -7,6 +7,7 @@ from uuid import UUID
 
 from .cursor import decode_cursor, encode_cursor
 from .normalize import normalize_text
+from .queryplanner import EntityResolution, ResolvedEntity, fuzzy_candidates
 from .repository import InvalidCursor, Page
 from .schemas import Article, Event, Evidence, Filters
 
@@ -45,6 +46,26 @@ class FixtureRepository:
 
     def _actual_entity_ids(self, event: Event) -> set[UUID]:
         return {ENTITY_IDS[name] for name in event.entities if name in ENTITY_IDS}
+
+    async def resolve_entities(self, text: str) -> EntityResolution:
+        normalized = normalize_text(text)
+        labels = {DEEPSEEK_ID: "DeepSeek", TEAM_ID: "示例研究团队"}
+        resolved: dict[UUID, ResolvedEntity] = {}
+        ambiguous: list[ResolvedEntity] = []
+        matched_terms: list[str] = []
+        alias_candidates: dict[str, list[ResolvedEntity]] = {}
+        for alias, entity_ids in ALIASES.items():
+            candidates = [ResolvedEntity(labels[item], item) for item in entity_ids]
+            alias_candidates[alias] = candidates
+            if alias in normalized:
+                matched_terms.append(alias)
+                if len(candidates) == 1:
+                    resolved[candidates[0].entity_id] = candidates[0]
+                else:
+                    ambiguous.extend(candidates)
+        if not resolved and not ambiguous and " " not in normalized:
+            ambiguous = fuzzy_candidates(normalized, alias_candidates)
+        return EntityResolution(list(resolved.values()), ambiguous, matched_terms)
 
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
         events = list(self.events)

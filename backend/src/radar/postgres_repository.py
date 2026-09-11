@@ -11,12 +11,14 @@ from .cursor import decode_cursor, encode_cursor
 from .db_schema import SCHEMA_REVISION
 from .models import (
     EntityAliasRow,
+    EntityRow,
     EventEntityRow,
     EventRow,
     EvidenceRow,
     SourceRow,
 )
 from .normalize import normalize_text
+from .queryplanner import EntityResolution, ResolvedEntity, fuzzy_candidates
 from .repository import EvidenceInvalid, Page, RepositoryUnavailable
 from .schemas import Article, Event, Evidence, Filters
 
@@ -79,6 +81,43 @@ class PostgresRepository:
             )
             clauses.append(matches >= (len(entity_ids) if filters.entity_match == "all" else 1))
         return clauses
+
+    async def resolve_entities(self, text: str) -> EntityResolution:
+        normalized = normalize_text(text)
+        try:
+            async with self.sessions() as session:
+                rows = (
+                    (
+                        await session.execute(
+                            select(EntityRow).options(selectinload(EntityRow.aliases))
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+        except Exception as exc:
+            raise RepositoryUnavailable("PostgreSQL entity resolution failed") from exc
+        aliases: dict[str, list[ResolvedEntity]] = {}
+        for row in rows:
+            entity = ResolvedEntity(row.canonical_name, UUID(str(row.id)))
+            aliases.setdefault(normalize_text(row.canonical_name), []).append(entity)
+            for entity_alias in row.aliases:
+                aliases.setdefault(entity_alias.normalized_alias, []).append(entity)
+        resolved: dict[UUID, ResolvedEntity] = {}
+        ambiguous: list[ResolvedEntity] = []
+        matched_terms: list[str] = []
+        for alias, candidates in aliases.items():
+            if alias and alias in normalized:
+                matched_terms.append(alias)
+                distinct = {item.entity_id: item for item in candidates}
+                if len(distinct) == 1:
+                    item = next(iter(distinct.values()))
+                    resolved[item.entity_id] = item
+                else:
+                    ambiguous.extend(distinct.values())
+        if not resolved and not ambiguous and " " not in normalized:
+            ambiguous = fuzzy_candidates(normalized, aliases)
+        return EntityResolution(list(resolved.values()), ambiguous, matched_terms)
 
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
         clauses = self._filters(filters)

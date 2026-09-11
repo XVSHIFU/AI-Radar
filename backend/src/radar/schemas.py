@@ -104,6 +104,27 @@ class AskRequest(BaseModel):
     client_request_id: str
 
 
+class ClarificationCandidate(BaseModel):
+    label: str
+    entity_id: UUID | None
+
+
+class QueryPlan(BaseModel):
+    intent: Literal["structured_list", "summary", "entity_lookup", "semantic_search", "follow_up"]
+    filters: Filters
+    timezone: str
+    business_date: date
+    date_until_exclusive: date | None
+    constraints_origin: dict[str, str]
+    free_text: str
+    requires_clarification: bool
+    clarification_candidates: list[ClarificationCandidate]
+    warnings: list[str]
+    entity_roles: list[Literal["subject", "product"]] = ["subject", "product"]
+    data_mode: Literal["fixture", "postgres"] | None = None
+    request_id: str | None = None
+
+
 class ErrorBody(BaseModel):
     code: str
     message: str

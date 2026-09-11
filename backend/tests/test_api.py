@@ -78,7 +78,7 @@ def test_no_answer_is_distinct_from_model_failure(client: TestClient) -> None:
     no_answer = client.post(
         "/api/v1/ask",
         json={
-            "question": "查这个明确关键词",
+            "question": "绝对不存在的合成事件",
             "filters": {"q": "绝对不存在的合成事件"},
             "client_request_id": "a",
         },
@@ -113,7 +113,7 @@ def test_unparsed_natural_language_is_not_reported_as_no_answer(client: TestClie
         json={"question": "请随便说说最近趋势", "client_request_id": "unparsed"},
     )
     assert response.status_code == 503
-    assert response.json()["code"] == "MODEL_UNAVAILABLE"
+    assert response.json()["code"] == "QUERY_UNSUPPORTED"
 
 
 def test_unknown_evidence_event_returns_404(client: TestClient) -> None:
