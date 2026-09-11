@@ -21,3 +21,5 @@
 问答修订：演示 SSE 在 150–1600ms 分段产生状态、token、来源、done，取消会清除全部 timer；分类与日期条件可见、会校验并随真实请求发送。真实与模拟引用均按 index 展开、受安全 URL 限制，统计来自 done/API 响应；每个 await/帧按 generation 守卫，卸载取消。
 
 审查修订：isDemo 仅由 URL 显式 demo=1 决定，服务端 fixture 仅显示合成标识；SSE 在 error 后拒绝 completed/cancelled done；采集仅在存在启用来源时可提交。
+
+SSE 终态修订：sawError 后仅允许 done.status=failed；新增 error-before-token completed 拒绝、error-after-token completed 拒绝、error+failed 通过三项测试。当前 pnpm test 共9项通过。

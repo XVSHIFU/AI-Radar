@@ -40,6 +40,8 @@ export async function* parseSse(
       if (!["completed", "failed", "cancelled"].includes(status))
         throw new Error("未知 done 状态");
       if (!sawSources) throw new Error("done 前缺少 sources");
+      if (sawError && status !== "failed")
+        throw new Error("error 后 done 必须为 failed");
       sawDone = true;
     }
   };

@@ -105,3 +105,23 @@ test("abort interrupts hanging read, cancels and releases lock", async () => {
   const reader = stream.getReader();
   reader.releaseLock();
 });
+
+test("error before token rejects completed done", async () => {
+  await assert.rejects(
+    () =>
+      collect("event: error\ndata: {}\n\nevent: token\ndata: {}\n\n" + done()),
+    /failed/,
+  );
+});
+test("error after token rejects completed done", async () => {
+  await assert.rejects(
+    () =>
+      collect("event: token\ndata: {}\n\nevent: error\ndata: {}\n\n" + done()),
+    /failed/,
+  );
+});
+test("error with failed done passes", async () => {
+  await assert.doesNotReject(() =>
+    collect("event: error\ndata: {}\n\n" + done("failed")),
+  );
+});
