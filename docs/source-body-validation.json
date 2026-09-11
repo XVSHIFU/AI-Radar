@@ -1,0 +1,58 @@
+{
+  "started_at": "2026-09-11T18:08:14.002443+00:00",
+  "finished_at": "2026-09-11T18:08:14.078506+00:00",
+  "layer": "live_feed_and_body_parser_no_database_no_model",
+  "sources": [
+    {
+      "name": "Hugging Face",
+      "feed_url": "https://huggingface.co/blog/feed.xml",
+      "feed_status": "failed",
+      "body_status": "not_run",
+      "error_type": "UnsafeUrl",
+      "error": "URL resolves to a non-public address"
+    },
+    {
+      "name": "arXiv cs.AI",
+      "feed_url": "https://rss.arxiv.org/rss/cs.AI",
+      "feed_status": "failed",
+      "body_status": "not_run",
+      "error_type": "UnsafeUrl",
+      "error": "URL resolves to a non-public address"
+    },
+    {
+      "name": "Google Research",
+      "feed_url": "https://research.google/blog/rss/",
+      "feed_status": "failed",
+      "body_status": "not_run",
+      "error_type": "UnsafeUrl",
+      "error": "URL resolves to a non-public address"
+    },
+    {
+      "name": "AWS Machine Learning",
+      "feed_url": "https://aws.amazon.com/blogs/machine-learning/feed/",
+      "feed_status": "failed",
+      "body_status": "not_run",
+      "error_type": "UnsafeUrl",
+      "error": "URL resolves to a non-public address"
+    },
+    {
+      "name": "NVIDIA Technical Blog",
+      "feed_url": "https://developer.nvidia.com/blog/feed/",
+      "feed_status": "failed",
+      "body_status": "not_run",
+      "error_type": "UnsafeUrl",
+      "error": "URL resolves to a non-public address"
+    }
+  ],
+  "parsed_feeds": 0,
+  "parsed_body_samples": 0,
+  "database_writes": 0,
+  "model_calls": 0,
+  "real_standard_events": 0,
+  "fully_validated_sources": 0,
+  "limitations": [
+    "One latest article per source; paragraph extraction is not semantic article quality.",
+    "No database persistence, extraction model, event publication, or real Evidence acceptance.",
+    "Article body text is not retained in this report."
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "synthetic": true,
+  "layer": "deterministic_plan_http_contract",
+  "fixed_clock": "2026-09-11T04:00:00Z",
+  "timezone": "Asia/Shanghai",
+  "status": "awaiting_implementation",
+  "cases": [
+    {
+      "id": "today",
+      "question": "今天",
+      "expected_filters": {
+        "date_from": "2026-09-11",
+        "date_to": "2026-09-11"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "yesterday",
+      "question": "昨天",
+      "expected_filters": {
+        "date_from": "2026-09-10",
+        "date_to": "2026-09-10"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "last_seven",
+      "question": "最近7天",
+      "expected_filters": {
+        "date_from": "2026-09-05",
+        "date_to": "2026-09-11"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "last_week_alias",
+      "question": "最近一周",
+      "expected_filters": {
+        "date_from": "2026-09-05",
+        "date_to": "2026-09-11"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "this_week",
+      "question": "本周",
+      "expected_filters": {
+        "date_from": "2026-09-07",
+        "date_to": "2026-09-11"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "previous_week",
+      "question": "上周",
+      "expected_filters": {
+        "date_from": "2026-08-31",
+        "date_to": "2026-09-06"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "historical_range",
+      "question": "2026-09-08 至 09-10 的 agent 工具",
+      "expected_filters": {
+        "date_from": "2026-09-08",
+        "date_to": "2026-09-10",
+        "category": "agent_tool"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "entity_english",
+      "question": "DeepSeek",
+      "expected_filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001"
+        ],
+        "date_from": null,
+        "date_to": null
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "entity_chinese",
+      "question": "深度求索",
+      "expected_filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001"
+        ],
+        "date_from": null,
+        "date_to": null
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "entity_nfkc",
+      "question": "ＤｅｅｐＳｅｅｋ",
+      "expected_filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001"
+        ],
+        "date_from": null,
+        "date_to": null
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "entity_any",
+      "question": "DeepSeek 或 示例研究团队",
+      "expected_filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ],
+        "entity_match": "any"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "entity_all",
+      "question": "DeepSeek 和 示例研究团队",
+      "expected_filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ],
+        "entity_match": "all"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "category_model_release",
+      "question": "model_release",
+      "expected_filters": {
+        "category": "model_release"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "category_agent_tool",
+      "question": "agent_tool",
+      "expected_filters": {
+        "category": "agent_tool"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "category_framework_sdk",
+      "question": "framework_sdk",
+      "expected_filters": {
+        "category": "framework_sdk"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "category_research",
+      "question": "research",
+      "expected_filters": {
+        "category": "research"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "category_product",
+      "question": "product",
+      "expected_filters": {
+        "category": "product"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "category_industry",
+      "question": "industry",
+      "expected_filters": {
+        "category": "industry"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "hour_precision",
+      "question": "过去24小时",
+      "requires_clarification": true
+    },
+    {
+      "id": "request_wins",
+      "question": "2026-09-08 至 09-10",
+      "filters": {
+        "date_from": "2026-09-01",
+        "date_to": "2026-09-02"
+      },
+      "expected_filters": {
+        "date_from": "2026-09-01",
+        "date_to": "2026-09-02"
+      },
+      "warnings_required": true,
+      "requires_clarification": false
+    },
+    {
+      "id": "year_boundary",
+      "question": "昨天",
+      "clock": "2027-01-01T00:00:00Z",
+      "expected_filters": {
+        "date_from": "2026-12-31",
+        "date_to": "2026-12-31"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "business_midnight",
+      "question": "今天",
+      "clock": "2026-09-10T16:30:00Z",
+      "expected_filters": {
+        "date_from": "2026-09-11",
+        "date_to": "2026-09-11"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "utc_midnight",
+      "question": "今天",
+      "clock": "2026-09-10T16:30:00Z",
+      "timezone": "UTC",
+      "expected_filters": {
+        "date_from": "2026-09-10",
+        "date_to": "2026-09-10"
+      },
+      "requires_clarification": false
+    },
+    {
+      "id": "invalid_timezone",
+      "question": "今天",
+      "timezone": "Unknown/Nowhere",
+      "expected_status": 422
+    }
+  ]
+}

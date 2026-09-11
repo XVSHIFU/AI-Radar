@@ -67,3 +67,15 @@ python scripts/validate-sources.py
 详细证据：[原型比较](docs/prototype-comparison.md)、[来源探测](docs/source-validation.json)、[实施记录](docs/execution-log.md)、[验收矩阵](docs/acceptance-matrix.md)。
 
 开发停止规则：仅看用户Pro周额度，起始剩余95%，**剩余到80%即停止所有模型工作**。检查脚本只读本地会话用量记录，未知/过旧记录需要复核；周额度变化不能换算实际现金费用。
+
+## 生产抓取路径的本机网络限制
+
+2026-09-12 的生产 transport 探测中，5 个来源均因 DNS 返回非公网地址而拒绝抓取，正文解析0/5。只读核对示例：huggingface.co 返回198.18.0.113、fdfe:dcba:9876::71；rss.arxiv.org 返回198.18.0.115、fdfe:dcba:9876::70。未改变本机网络配置或降低公网检查。
+
+网络解析恢复真实公网地址后，可运行：
+
+```powershell
+uv run --project backend --frozen python scripts/validate-source-bodies.py
+```
+
+报告为 docs/source-body-validation.json，只取每源1篇正文，不写数据库、不调用模型、不发布事件。此前 urllib RSS入口5/5与本次生产transport结果分开记录。即使正文解析成功，仍需后续完整提取、证据与入库验收。

@@ -29,3 +29,13 @@ QueryPlanner.parse(question, filters, timezone, clock, entity_resolver) -> Query
 T01 和 E01 先验证合成日期边界与完整实体集合；历史原站 ID 与来源支持仍未验收。实体集至少包含主体、中文别名、比较提及负例、无向量正例，all/any 都需正负事件。日期需含未知/月级负例、跨年昨天、UTC午夜时区边界。
 
 N 类通过注入失败 provider/repository 验证错误分型、无证据与虚构引用拦截。RRF/profile 没有实现时，相应主用例保持未实现；不能把 SQL 字符串编译等同真实 PG 行为或语义质量。报告分别列出结构通过、真实证据未验收、尚未实现和 P1/P2 未启用数量。
+
+## 第一实现切片公开接口（主审确认）
+
+新增 POST /api/v1/query-plan，复用 AskRequest 请求结构；响应 QueryPlan 包含：intent、filters（现有Filters）、timezone、business_date、date_until_exclusive（可null）、constraints_origin、free_text、requires_clarification、clarification_candidates（对象列表，含label/entity_id可null）、warnings（字符串列表）、entity_roles（固定subject/product）、data_mode、request_id。
+
+提供可通过FastAPI dependency override注入的 get_clock，返回UTC aware datetime；生产用实际时钟，测试用固定时刻。完整公开计划在 /ask 成功响应 query_plan_public 内返回；需要澄清返回 HTTP422、code=CLARIFICATION_REQUIRED、details.query_plan_public；模型未配置或未实现返回503并同样带details.query_plan_public，已解析约束可见。自由文本语义检索未实现时不能先查一个扩大范围再说无资料，应明确QUERY_UNSUPPORTED或澄清。
+
+实体来自仓储统一的已确认规范名/别名目录，不把生产DeepSeek UUID硬编码为fixture ID。不自动纠正模糊拼写。第一切片允许明确标记未支持的表达，但已识别日期/实体不能被静默丢弃；UI显式字段优先，冲突有warnings。公开独立计划端点不触发模型调用。
+
+此切片不实现模型生成、向量、全文排名或完整集合快照；对应验收仍未完成。结构化查空时必须基于计划过滤；有残余限制未理解时不能输出no_answer。
