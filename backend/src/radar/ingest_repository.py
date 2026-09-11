@@ -1,5 +1,7 @@
 import hashlib
 import json
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any, cast
@@ -7,10 +9,12 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import and_, exists, func, or_, select, update
 from sqlalchemy.engine import CursorResult
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased
 
 from .models import BudgetReservationRow, IngestJobRow, IngestRunRow, SourceRow
+from .repository import RepositoryUnavailable
 
 
 class IdempotencyConflict(ValueError):
@@ -29,6 +33,13 @@ class IngestRepository:
     def __init__(self, sessions: async_sessionmaker[AsyncSession]) -> None:
         self.sessions = sessions
 
+    @asynccontextmanager
+    async def _database_boundary(self) -> AsyncIterator[None]:
+        try:
+            yield
+        except (OSError, SQLAlchemyError) as exc:
+            raise RepositoryUnavailable("Ingest database operation failed") from exc
+
     async def create_run(
         self, source_ids: list[UUID], key: str, trigger_type: str = "manual"
     ) -> tuple[IngestRunRow, bool]:
@@ -36,7 +47,7 @@ class IngestRepository:
         payload_hash = hashlib.sha256(
             json.dumps([str(item) for item in unique_ids]).encode()
         ).hexdigest()
-        async with self.sessions() as session, session.begin():
+        async with self._database_boundary(), self.sessions() as session, session.begin():
             await session.execute(select(func.pg_advisory_xact_lock(func.hashtext(key))))
             existing = await session.scalar(
                 select(IngestRunRow).where(IngestRunRow.idempotency_key == key)
@@ -81,7 +92,7 @@ class IngestRepository:
         return run, False
 
     async def runs(self) -> list[IngestRunRow]:
-        async with self.sessions() as session:
+        async with self._database_boundary(), self.sessions() as session:
             return list(
                 (
                     await session.scalars(
@@ -92,7 +103,7 @@ class IngestRepository:
 
     async def claim(self, owner: str, lease_seconds: int = 60) -> IngestJobRow | None:
         now = datetime.now(UTC)
-        async with self.sessions() as session, session.begin():
+        async with self._database_boundary(), self.sessions() as session, session.begin():
             expired_jobs = list(
                 (
                     await session.scalars(
@@ -158,7 +169,7 @@ class IngestRepository:
         self, job_id: UUID, owner: str, generation: int, lease_seconds: int = 60
     ) -> bool:
         now = datetime.now(UTC)
-        async with self.sessions() as session, session.begin():
+        async with self._database_boundary(), self.sessions() as session, session.begin():
             result = await session.execute(
                 update(IngestJobRow)
                 .where(
@@ -183,7 +194,7 @@ class IngestRepository:
         parser_failure: bool = False,
     ) -> bool:
         now = datetime.now(UTC)
-        async with self.sessions() as session, session.begin():
+        async with self._database_boundary(), self.sessions() as session, session.begin():
             job = await session.scalar(
                 select(IngestJobRow)
                 .where(
@@ -273,7 +284,7 @@ class IngestRepository:
             raise BudgetUnavailable("budget scope must include a bounded period")
         if limit is None or limit <= 0:
             raise BudgetUnavailable("budget is not configured")
-        async with self.sessions() as session, session.begin():
+        async with self._database_boundary(), self.sessions() as session, session.begin():
             await session.execute(select(func.pg_advisory_xact_lock(func.hashtext(scope))))
             existing = await session.scalar(
                 select(BudgetReservationRow).where(
