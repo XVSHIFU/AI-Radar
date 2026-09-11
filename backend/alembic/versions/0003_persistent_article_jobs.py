@@ -19,6 +19,38 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     op.execute("UPDATE ingest_jobs SET stage = 'feed_discovery' WHERE stage = 'rss_fetch'")
+    op.execute(
+        """
+        UPDATE ingest_runs AS run
+        SET status = CASE
+                WHEN jobs.failed_jobs > 0 AND jobs.succeeded_jobs > 0 THEN 'partial'
+                WHEN jobs.failed_jobs > 0 THEN 'failed'
+                WHEN jobs.cancelled_jobs = jobs.total_jobs THEN 'cancelled'
+                ELSE 'success'
+            END,
+            finished_at = COALESCE(run.finished_at, now()),
+            failed_jobs = jobs.failed_jobs,
+            error_summary = COALESCE(run.error_summary, jobs.error_summary)
+        FROM (
+            SELECT run_id,
+                   count(*) AS total_jobs,
+                   count(*) FILTER (WHERE state = 'succeeded') AS succeeded_jobs,
+                   count(*) FILTER (WHERE state = 'failed') AS failed_jobs,
+                   count(*) FILTER (WHERE state = 'cancelled') AS cancelled_jobs,
+                   count(*) FILTER (
+                       WHERE state IN ('queued', 'retry_wait', 'running')
+                   ) AS active_jobs,
+                   string_agg(last_error, '; ' ORDER BY id)
+                       FILTER (WHERE state = 'failed' AND last_error IS NOT NULL)
+                       AS error_summary
+            FROM ingest_jobs
+            GROUP BY run_id
+        ) AS jobs
+        WHERE run.id = jobs.run_id
+          AND jobs.active_jobs = 0
+          AND run.status IN ('queued', 'running')
+        """
+    )
     op.add_column("ingest_jobs", sa.Column("job_key", sa.String(160)))
     op.execute("UPDATE ingest_jobs SET job_key = 'legacy:' || id::text")
     op.alter_column("ingest_jobs", "job_key", nullable=False)
