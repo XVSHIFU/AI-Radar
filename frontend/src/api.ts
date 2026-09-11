@@ -234,8 +234,12 @@ export type Run = {
   started_at: string;
   finished_at: string | null;
   found: number;
+  candidates: number;
+  versions: number;
   kept: number;
-  cost: number | null;
+  parser_failures: number;
+  failed_jobs: number;
+  cost: string | number | null;
   cost_status: "actual" | "estimated" | "unknown";
   error_summary: string | null;
 };

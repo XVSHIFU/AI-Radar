@@ -126,8 +126,16 @@ async function start() {
       </div>
       <p v-else-if="!runs.length" class="meta">尚未读取运行记录。</p>
       <p v-for="r in runs" :key="r.id">
-        {{ r.status }} · 发现 {{ r.found }} / 保留 {{ r.kept }} · 成本
-        {{ r.cost_status === "unknown" ? "未知" : r.cost }}
+        {{ r.status }} · 发现URL {{ r.found }} · 候选报道 {{ r.candidates }} ·
+        正文版本 {{ r.versions }} · 已发布事件 {{ r.kept }} · 解析失败
+        {{ r.parser_failures }} / 任务失败 {{ r.failed_jobs }} · 成本
+        {{
+          r.cost_status === "actual"
+            ? "实际"
+            : r.cost_status === "estimated"
+              ? "估算"
+              : "未知"
+        }}{{ r.cost_status === "unknown" ? "" : ` ${r.cost ?? "未提供"}` }}
         <span v-if="r.error_summary">· {{ r.error_summary }}</span>
       </p>
     </div>
