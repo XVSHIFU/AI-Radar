@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
 from .cursor import decode_cursor, encode_cursor
+from .db_schema import SCHEMA_REVISION
 from .models import (
     EntityAliasRow,
     EventEntityRow,
@@ -315,6 +316,6 @@ class PostgresRepository:
                 vector = await session.scalar(
                     text("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='vector')")
                 )
-            return revision == "0002_ingest_pipeline" and bool(vector)
+            return revision == SCHEMA_REVISION and bool(vector)
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL readiness check failed") from exc

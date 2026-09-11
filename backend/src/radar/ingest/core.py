@@ -128,6 +128,7 @@ async def fetch_public(
 class FeedEntry:
     title: str
     url: str
+    original_url: str
     published: str | None
 
 
@@ -139,6 +140,7 @@ def parse_feed(body: bytes) -> list[FeedEntry]:
         FeedEntry(
             str(entry.get("title", "")).strip(),
             canonicalize_url(str(entry.link)),
+            str(entry.link),
             entry.get("published"),
         )
         for entry in parsed.entries

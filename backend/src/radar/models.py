@@ -179,6 +179,7 @@ class IngestJobRow(Base):
         ForeignKey("ingest_runs.id", ondelete="CASCADE"), index=True
     )
     source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
+    job_key: Mapped[str] = mapped_column(String(160), unique=True)
     stage: Mapped[str] = mapped_column(String(32), default="rss_fetch")
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
     state: Mapped[str] = mapped_column(String(24), default="queued")
@@ -205,6 +206,28 @@ class ArticleCandidateRow(Base):
     )
     __table_args__ = (
         UniqueConstraint("source_id", "canonical_url", name="uq_candidate_source_url"),
+    )
+
+
+class ArticleDiscoveryRow(Base):
+    __tablename__ = "article_discoveries"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ingest_runs.id", ondelete="CASCADE"))
+    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
+    canonical_url: Mapped[str] = mapped_column(Text)
+    original_url: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(Text)
+    published: Mapped[str | None] = mapped_column(Text)
+    article_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("articles.id", ondelete="SET NULL")
+    )
+    discovered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    __table_args__ = (
+        UniqueConstraint(
+            "run_id", "source_id", "canonical_url", name="uq_discovery_run_source_url"
+        ),
     )
 
 
