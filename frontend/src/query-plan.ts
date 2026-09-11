@@ -12,11 +12,11 @@ export type QueryPlan = {
   business_date: string;
   date_until_exclusive: string | null;
   constraints_origin?: unknown;
-  free_text?: string[];
+  free_text?: string;
   requires_clarification: boolean;
   clarification_candidates: { label: string; entity_id: string | null }[];
   warnings: string[];
-  entity_roles?: Record<string, "subject" | "product">;
+  entity_roles?: ("subject" | "product")[];
   data_mode?: string;
   request_id: string;
 };

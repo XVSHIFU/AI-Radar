@@ -185,19 +185,27 @@ onBeforeUnmount(() => {
     </div>
     <p aria-live="polite">{{ status }}</p>
     <div v-if="error" class="card error">{{ error.message }}</div>
-    <article v-if="plan" class="card" aria-label="检索范围">
+    <section
+      v-if="plan"
+      class="card"
+      aria-label="检索范围"
+      data-testid="query-plan"
+    >
       <h2>检索范围</h2>
       <p>业务日期：{{ plan.business_date }} · 时区：{{ plan.timezone }}</p>
       <p>
-        分类：{{ plan.filters.category || "全部分类" }} · 日期：{{
-          plan.filters.date_from || "不限"
+        分类：{{
+          plan.filters.category
+            ? categoryName[plan.filters.category] || plan.filters.category
+            : "全部分类"
         }}
-        至 {{ plan.filters.date_to || "不限" }}
+        · 日期：{{ plan.filters.date_from || "不限" }} 至
+        {{ plan.filters.date_to || "不限" }}（起止日期均包含）
       </p>
       <p>
         实体：{{
           plan.filters.entity_ids?.length
-            ? `已采用 ${plan.filters.entity_ids.length} 个实体条件`
+            ? `已采用 ${plan.filters.entity_ids.length} 个实体条件（${plan.filters.entity_match === "all" ? "同时匹配" : "任一匹配"}）`
             : "未限定实体"
         }}
       </p>
@@ -208,10 +216,14 @@ onBeforeUnmount(() => {
           >{{ c.label }}
         </span>
       </p>
+      <p v-if="plan.free_text">未理解限制：{{ plan.free_text }}</p>
+      <p v-if="plan.entity_roles?.length">
+        实体角色：{{ plan.entity_roles.join("、") }}
+      </p>
       <ul v-if="plan.warnings.length">
         <li v-for="warning in plan.warnings" :key="warning">{{ warning }}</li>
       </ul>
-    </article>
+    </section>
     <article v-if="tokens || result" class="card" data-testid="ask-answer">
       <p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p>
       <h2>回答</h2>
