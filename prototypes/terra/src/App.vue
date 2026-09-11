@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import fixture from '../../../contracts/prototype-events.json'
 
 type Category = 'model_release' | 'agent_tool' | 'framework_sdk' | 'research' | 'product' | 'industry'
@@ -19,6 +19,8 @@ const page = ref(1)
 const pageSize = 6
 const state = ref<ViewState>('loading')
 const simulatedError = ref(false)
+const compact = ref(window.innerWidth < 768)
+const advancedOpen = ref(!compact.value)
 let timer: ReturnType<typeof setTimeout> | undefined
 
 const filtered = computed(() => fixture.items.filter((item) => {
@@ -36,6 +38,7 @@ const activeFilters = computed(() => [
   dateFrom.value && `起始：${dateFrom.value}`,
   dateTo.value && `截止：${dateTo.value}`,
 ].filter(Boolean) as string[])
+const dateError = computed(() => Boolean(dateFrom.value && dateTo.value && dateFrom.value > dateTo.value))
 
 function request() {
   if (timer) clearTimeout(timer)
@@ -46,9 +49,14 @@ function reset() { query.value = ''; category.value = ''; dateFrom.value = ''; d
 function retry() { simulatedError.value = false; request() }
 function formatDate(date: string | null) { return date ? date.replaceAll('-', '.') : '日期待定' }
 function stars(count: number) { return '●'.repeat(count) + '○'.repeat(5 - count) }
+function updateViewport() {
+  compact.value = window.innerWidth < 768
+  if (!compact.value) advancedOpen.value = true
+}
 watch([query, category, dateFrom, dateTo], () => { page.value = 1; request() })
 watch(pageCount, () => { if (page.value > pageCount.value) page.value = pageCount.value })
-onMounted(request)
+onMounted(() => { window.addEventListener('resize', updateViewport); request() })
+onBeforeUnmount(() => window.removeEventListener('resize', updateViewport))
 </script>
 
 <template>
@@ -73,9 +81,11 @@ onMounted(request)
         <aside class="h-fit rounded-xl border border-[var(--line)] bg-white p-4 lg:sticky lg:top-4">
           <div class="mb-4 flex items-center justify-between"><h2 class="font-semibold">检索条件</h2><button class="text-sm text-[var(--brand)] underline-offset-2 hover:underline" @click="reset">清除</button></div>
           <label class="block text-sm font-medium">关键词<input v-model="query" class="control mt-2" placeholder="搜索标题、摘要、实体" /></label>
-          <fieldset class="mt-5"><legend class="text-sm font-medium">分类</legend><div class="mt-2 grid gap-1"> <label v-for="([key, label]) in categories" :key="key" class="choice"><input v-model="category" type="radio" :value="key" name="category" /><span>{{ label }}</span></label><label class="choice"><input v-model="category" type="radio" value="" name="category" /><span>全部分类</span></label></div></fieldset>
-          <fieldset class="mt-5"><legend class="text-sm font-medium">事实日期</legend><label class="mt-2 block text-xs text-[var(--muted)]">从<input v-model="dateFrom" class="control mt-1" type="date" /></label><label class="mt-3 block text-xs text-[var(--muted)]">至<input v-model="dateTo" class="control mt-1" type="date" /></label></fieldset>
-          <button class="mt-5 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]" @click="simulatedError = true; request()">演示加载错误</button>
+          <button v-if="compact" class="mt-4 flex min-h-11 w-full items-center justify-between rounded-lg border border-[var(--line)] px-3 text-left text-sm font-medium" type="button" :aria-expanded="advancedOpen" aria-controls="advanced-filters" @click="advancedOpen = !advancedOpen">分类与日期<span aria-hidden="true">{{ advancedOpen ? '−' : '+' }}</span></button>
+          <div id="advanced-filters" v-show="!compact || advancedOpen">
+            <fieldset class="mt-5"><legend class="text-sm font-medium">分类</legend><div class="mt-2 grid gap-1"> <label v-for="([key, label]) in categories" :key="key" class="choice"><input v-model="category" type="radio" :value="key" name="category" /><span>{{ label }}</span></label><label class="choice"><input v-model="category" type="radio" value="" name="category" /><span>全部分类</span></label></div></fieldset>
+            <fieldset class="mt-5"><legend class="text-sm font-medium">事实日期</legend><label class="mt-2 block text-xs text-[var(--muted)]">从<input v-model="dateFrom" class="control mt-1" type="date" /></label><label class="mt-3 block text-xs text-[var(--muted)]">至<input v-model="dateTo" class="control mt-1" type="date" /></label></fieldset>
+          </div>          <button class="mt-5 w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-[var(--danger)]" @click="simulatedError = true; request()">演示加载错误</button>
         </aside>
 
         <section aria-label="事件结果">
@@ -83,8 +93,8 @@ onMounted(request)
           <div v-if="activeFilters.length" class="mb-4 flex flex-wrap gap-2" aria-label="已采用条件"><span v-for="filter in activeFilters" :key="filter" class="rounded-full bg-teal-50 px-3 py-1 text-xs text-[var(--brand)]">{{ filter }}</span></div>
           <div v-if="state === 'loading'" class="grid gap-3" aria-busy="true"><div v-for="n in 4" :key="n" class="h-36 animate-pulse rounded-xl border border-[var(--line)] bg-white"></div></div>
           <div v-else-if="state === 'error'" class="rounded-xl border border-red-200 bg-white p-7 text-center" role="alert"><p class="text-lg font-semibold">结果暂时无法加载</p><p class="mt-2 text-sm text-[var(--muted)]">已保留你的检索条件。此处是用于验收的模拟服务错误。</p><button class="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white" @click="retry">重新加载</button></div>
-          <div v-else-if="!visible.length" class="rounded-xl border border-[var(--line)] bg-white p-7 text-center"><p class="text-lg font-semibold">这个范围内没有事件</p><p class="mt-2 text-sm text-[var(--muted)]">合成数据覆盖 2026.09.06 至 2026.09.12；可调整日期或清除条件。</p><button class="mt-4 text-sm font-medium text-[var(--brand)] underline" @click="reset">清除全部条件</button></div>
-          <div v-else class="grid gap-3"><article v-for="item in visible" :key="item.id" class="event-card"><div class="flex flex-wrap items-center justify-between gap-2 text-xs"><span class="font-medium text-[var(--brand)]">{{ labels[item.category] }}</span><span class="text-[var(--muted)]">{{ formatDate(item.event_date) }}</span></div><h3 class="mt-2 text-lg font-semibold leading-snug"><a :href="`/events/${item.id}`" class="focus-ring hover:text-[var(--brand)]">{{ item.title_zh }}</a></h3><p class="mt-2 text-sm leading-6 text-[var(--muted)]">{{ item.summary_zh }}</p><div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] pt-3 text-xs text-[var(--muted)]"><span :aria-label="`重要度 ${item.importance} / 5`" class="tracking-widest text-[var(--warning)]">{{ stars(item.importance) }}</span><span>{{ item.source_count }} 个来源 · {{ item.evidence_count ? `${item.evidence_count} 条已核验证据` : '待补证据' }}</span><a :href="`/events/${item.id}`" class="focus-ring font-medium text-[var(--brand)]">查看详情 <span aria-hidden="true">→</span></a></div></article></div>
+          <div v-else-if="dateError" class="rounded-xl border border-red-200 bg-white p-7 text-center" role="alert"><p class="text-lg font-semibold">日期范围无效</p><p class="mt-2 text-sm text-[var(--muted)]">“从”日期不能晚于“至”日期。请调整日期后继续检索。</p></div>          <div v-else-if="!visible.length" class="rounded-xl border border-[var(--line)] bg-white p-7 text-center"><p class="text-lg font-semibold">这个范围内没有事件</p><p class="mt-2 text-sm text-[var(--muted)]">合成数据覆盖 2026.09.06 至 2026.09.12；可调整日期或清除条件。</p><button class="mt-4 text-sm font-medium text-[var(--brand)] underline" @click="reset">清除全部条件</button></div>
+          <div v-else class="grid gap-3"><article v-for="item in visible" :key="item.id" class="event-card"><div class="flex flex-wrap items-center justify-between gap-2 text-xs"><span class="font-medium text-[var(--brand)]">{{ labels[item.category] }}</span><span class="text-[var(--muted)]">{{ formatDate(item.event_date) }}</span></div><h3 class="mt-2 text-lg font-semibold leading-snug"><a :href="`/events/${item.id}`" class="focus-ring hover:text-[var(--brand)]">{{ item.title_zh }}</a></h3><p class="mt-2 text-sm leading-6 text-[var(--muted)]">{{ item.summary_zh }}</p><div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] pt-3 text-xs text-[var(--muted)]"><span :aria-label="`重要度 ${item.importance} / 5`" class="tracking-widest text-[var(--warning)]">{{ stars(item.importance) }}</span><span>{{ item.source_count }} 个来源 · {{ item.evidence_count }} 条关联证据（演示）</span><a :href="`/events/${item.id}`" class="focus-ring font-medium text-[var(--brand)]">查看详情 <span aria-hidden="true">→</span></a></div></article></div>
           <nav v-if="state === 'ready' && filtered.length > pageSize" class="mt-6 flex items-center justify-between border-t border-[var(--line)] pt-4" aria-label="分页"><button class="pager" :disabled="page === 1" @click="page--">← 上一页</button><span class="text-sm text-[var(--muted)]">第 {{ page }} / {{ pageCount }} 页</span><button class="pager" :disabled="page === pageCount" @click="page++">下一页 →</button></nav>
         </section>
 

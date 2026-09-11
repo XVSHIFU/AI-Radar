@@ -32,3 +32,12 @@ Invoke-WebRequest -UseBasicParsing http://127.0.0.1:4173/
 cd E:\AI-AGENT\AI-Radar-Implementation-Spec\codex\.worktrees\terra\prototypes\terra
 npm run dev -- --host 127.0.0.1 --port 4173
 ```
+
+## 修订：移动筛选与数据措辞
+
+- 390px 宽度下保留关键词输入，分类和日期默认折叠到“分类与日期”按钮；按钮最小高度 44px，带 `aria-controls` 与 `aria-expanded`。
+- 日期起始值晚于截止值时显示“日期范围无效”说明，避免将倒置区间误报为无结果。
+- `evidence_count` 统一展示为“条关联证据（演示）”，不再将 fixture 计数描述为已核验。
+- 使用独立本地浏览器会话在 390×844 验收：默认 `expanded=false`；键盘聚焦按钮并按 Space 后变为 `expanded=true` 且分类/日期控件出现；再次按 Space 后恢复 `expanded=false`。
+
+本次修订首次构建因模板中遗留三元表达式而失败（约 9.7 秒），修正后复验在约 8.2 秒通过；失败/重试为 1/1。
