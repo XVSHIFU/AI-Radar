@@ -214,3 +214,8 @@ blockquote {
 nav a {
   white-space: nowrap;
 }
+[data-testid="query-plan"],
+[data-testid="query-plan"] li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
