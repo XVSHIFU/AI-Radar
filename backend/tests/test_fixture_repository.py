@@ -69,3 +69,20 @@ async def test_headlines_rank_all_today_events_before_limit(tmp_path: Path) -> N
     ids = {event.id for event in headlines}
     assert UUID("50000000-0000-4000-8000-000000000001") in ids
     assert len(ids) == 3
+
+
+@pytest.mark.asyncio
+async def test_fixture_counts_match_detail_and_evidence() -> None:
+    repository = FixtureRepository(
+        Path(__file__).resolve().parents[2] / "contracts" / "prototype-events.json",
+        "secret-secret-secret",
+    )
+    page = await repository.list_events(Filters(), 100, None)
+    evidence_id = UUID("00000000-0000-4000-8000-000000000002")
+    for item in page.items:
+        detail = await repository.event(item.id)
+        evidence = await repository.evidence_for(item.id)
+        assert detail is not None
+        expected = 1 if item.id == evidence_id else 0
+        assert item.source_count == detail.source_count == expected
+        assert item.evidence_count == detail.evidence_count == len(evidence) == expected

@@ -31,7 +31,15 @@ class FixtureRepository:
         payload = json.loads(fixture_path.read_text(encoding="utf-8"))
         self.dataset = str(payload["dataset"])
         source_items = items if items is not None else payload["items"]
-        self.events = [Event.model_validate(item) for item in source_items]
+        self.events = [
+            event.model_copy(
+                update={
+                    "source_count": 1 if event.id == EVIDENCE_EVENT_ID else 0,
+                    "evidence_count": 1 if event.id == EVIDENCE_EVENT_ID else 0,
+                }
+            )
+            for event in (Event.model_validate(item) for item in source_items)
+        ]
         self.cursor_secret = cursor_secret
         self.now = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
 
@@ -137,7 +145,7 @@ class FixtureRepository:
                 title="合成来源版本 v1（非真实报道）",
                 verification_status="synthetic_verified",
                 source_published_at=self.now,
-                event_date=self.events[1].event_date,
+                event_date=next(event.event_date for event in self.events if event.id == event_id),
             )
         ]
 

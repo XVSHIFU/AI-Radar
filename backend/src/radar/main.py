@@ -12,9 +12,20 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .config import get_settings
 from .fixture_repository import FixtureRepository
+from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
 from .postgres_repository import PostgresRepository
 from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
-from .schemas import AskRequest, Category, EventDetail, EventPage, EvidencePage, Filters
+from .schemas import (
+    AskRequest,
+    Category,
+    EventDetail,
+    EventPage,
+    EvidencePage,
+    Filters,
+    IngestRun,
+    IngestRunCreated,
+    IngestRunRequest,
+)
 
 
 def api_error(code: str, message: str, status: int, retryable: bool = False) -> HTTPException:
@@ -35,12 +46,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.settings = settings
     app.state.repository = None
     app.state.engine = None
+    app.state.ingest_repository = None
     if settings.radar_data_mode == "fixture":
         path = Path(__file__).resolve().parents[3] / "contracts" / "prototype-events.json"
         app.state.repository = FixtureRepository(path, settings.cursor_secret)
     elif (url := settings.sqlalchemy_url()) is not None:
         engine = create_async_engine(url, pool_pre_ping=True)
         app.state.engine = engine
+        app.state.ingest_repository = IngestRepository(
+            async_sessionmaker(engine, expire_on_commit=False)
+        )
         app.state.repository = PostgresRepository(
             async_sessionmaker(engine, expire_on_commit=False),
             settings.cursor_secret,
@@ -328,11 +343,53 @@ def require_admin(request: Request, authorization: Annotated[str | None, Header(
         raise api_error("UNAUTHORIZED", "Valid administrator credentials are required", 401)
 
 
-@app.get("/api/v1/ingest/runs", dependencies=[Depends(require_admin)])
-async def ingest_runs() -> dict[str, object]:
-    raise api_error("INGEST_NOT_IMPLEMENTED", "Ingest queue is not implemented", 503)
+def ingest_repository(request: Request) -> IngestRepository:
+    repository = cast(IngestRepository | None, request.app.state.ingest_repository)
+    if repository is None:
+        raise api_error(
+            "INGEST_NOT_AVAILABLE",
+            "Persistent ingest is unavailable outside PostgreSQL mode",
+            503,
+        )
+    return repository
 
 
-@app.post("/api/v1/ingest/runs", dependencies=[Depends(require_admin)])
-async def start_ingest() -> dict[str, object]:
-    raise api_error("INGEST_NOT_IMPLEMENTED", "Ingest queue is not implemented", 503)
+@app.get(
+    "/api/v1/ingest/runs",
+    response_model=dict[str, list[IngestRun]],
+    dependencies=[Depends(require_admin)],
+)
+async def ingest_runs(request: Request) -> dict[str, list[IngestRun]]:
+    repository = ingest_repository(request)
+    items = []
+    for item in await repository.runs():
+        response = IngestRun.model_validate(item).model_copy(
+            update={
+                "kept": 0,
+                "candidates": item.event_candidates,
+                "versions": item.new_articles + item.updated_articles,
+            }
+        )
+        items.append(response)
+    return {"items": items}
+
+
+@app.post(
+    "/api/v1/ingest/runs",
+    response_model=IngestRunCreated,
+    status_code=202,
+    dependencies=[Depends(require_admin)],
+)
+async def start_ingest(
+    payload: IngestRunRequest,
+    request: Request,
+    idempotency_key: Annotated[str, Header(min_length=1, max_length=200)],
+) -> IngestRunCreated:
+    repository = ingest_repository(request)
+    try:
+        run, replay = await repository.create_run(payload.source_ids, idempotency_key)
+    except IdempotencyConflict as exc:
+        raise api_error("IDEMPOTENCY_CONFLICT", str(exc), 409) from exc
+    except SourceRejected as exc:
+        raise api_error("SOURCE_REJECTED", str(exc), 422) from exc
+    return IngestRunCreated(run_id=run.id, status=run.status, idempotent_replay=replay)

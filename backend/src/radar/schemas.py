@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 from enum import StrEnum
 from typing import Any, Literal, Self
 from uuid import UUID
@@ -110,3 +111,37 @@ class ErrorBody(BaseModel):
     request_id: str
     data_mode: Literal["fixture", "postgres"]
     details: dict[str, Any] | None = None
+
+
+class IngestRunRequest(BaseModel):
+    source_ids: list[UUID] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def deduplicate_sources(self) -> Self:
+        self.source_ids = list(dict.fromkeys(self.source_ids))
+        return self
+
+
+class IngestRun(BaseModel):
+    model_config = {"from_attributes": True}
+
+    id: UUID
+    status: str
+    started_at: datetime
+    finished_at: datetime | None
+    discovered_urls: int
+    fetched_articles: int
+    new_articles: int
+    updated_articles: int
+    event_candidates: int
+    parser_failures: int
+    failed_jobs: int
+    cost: Decimal | None
+    cost_status: Literal["actual", "estimated", "unknown"]
+    error_summary: str | None
+
+
+class IngestRunCreated(BaseModel):
+    run_id: UUID
+    status: str
+    idempotent_replay: bool

@@ -16,7 +16,7 @@ from .models import (
     SourceRow,
 )
 from .normalize import normalize_text
-from .repository import Page, RepositoryUnavailable
+from .repository import EvidenceInvalid, Page, RepositoryUnavailable
 from .schemas import Article, Event, Evidence, Filters
 
 
@@ -181,21 +181,26 @@ class PostgresRepository:
                 )
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
-        return [
-            Evidence(
-                id=row.id,
-                event_id=row.event_id,
-                article_version_id=row.article_version_id,
-                paragraph_id=row.paragraph_id,
-                quote_text=row.quote_text,
-                source_url=row.article_version.source_url,
-                title=row.article_version.title,
-                verification_status=row.verification_status,
-                source_published_at=row.article_version.published_at,
-                event_date=row.event.event_date,
+        evidence: list[Evidence] = []
+        for row in rows:
+            paragraph = row.article_version.paragraphs.get(row.paragraph_id)
+            if not row.quote_text or paragraph is None or row.quote_text not in paragraph:
+                raise EvidenceInvalid("Evidence cannot be located in article version")
+            evidence.append(
+                Evidence(
+                    id=row.id,
+                    event_id=row.event_id,
+                    article_version_id=row.article_version_id,
+                    paragraph_id=row.paragraph_id,
+                    quote_text=row.quote_text,
+                    source_url=row.article_version.source_url,
+                    title=row.article_version.title,
+                    verification_status=row.verification_status,
+                    source_published_at=row.article_version.published_at,
+                    event_date=row.event.event_date,
+                )
             )
-            for row in rows
-        ]
+        return evidence
 
     async def articles_for(self, event_id: UUID) -> list[Article]:
         evidence = await self.evidence_for(event_id)
@@ -310,6 +315,6 @@ class PostgresRepository:
                 vector = await session.scalar(
                     text("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='vector')")
                 )
-            return revision == "0001_core" and bool(vector)
+            return revision == "0002_ingest_pipeline" and bool(vector)
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL readiness check failed") from exc

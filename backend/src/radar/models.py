@@ -2,8 +2,22 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
+from typing import Any
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -21,6 +35,11 @@ class SourceRow(Base):
     health: Mapped[str] = mapped_column(String(32), default="unknown")
     last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     consecutive_failures: Mapped[int] = mapped_column(Integer, default=0)
+    etag: Mapped[str | None] = mapped_column(String(500))
+    last_modified: Mapped[str | None] = mapped_column(String(500))
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    canonical_host: Mapped[str] = mapped_column(String(255), default="")
+    channel_type: Mapped[str] = mapped_column(String(24), default="rss")
 
 
 class EventRow(Base):
@@ -130,3 +149,89 @@ class EvidenceRow(Base):
     verification_status: Mapped[str] = mapped_column(String(32), default="unverified")
     article_version: Mapped[ArticleVersionRow] = relationship()
     event: Mapped[EventRow] = relationship()
+
+
+class IngestRunRow(Base):
+    __tablename__ = "ingest_runs"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    idempotency_key: Mapped[str] = mapped_column(String(200), unique=True)
+    payload_hash: Mapped[str] = mapped_column(String(64))
+    trigger_type: Mapped[str] = mapped_column(String(24))
+    status: Mapped[str] = mapped_column(String(32), default="queued")
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    discovered_urls: Mapped[int] = mapped_column(Integer, default=0)
+    fetched_articles: Mapped[int] = mapped_column(Integer, default=0)
+    new_articles: Mapped[int] = mapped_column(Integer, default=0)
+    updated_articles: Mapped[int] = mapped_column(Integer, default=0)
+    event_candidates: Mapped[int] = mapped_column(Integer, default=0)
+    parser_failures: Mapped[int] = mapped_column(Integer, default=0)
+    failed_jobs: Mapped[int] = mapped_column(Integer, default=0)
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+    cost_status: Mapped[str] = mapped_column(String(16), default="unknown")
+    error_summary: Mapped[str | None] = mapped_column(Text)
+
+
+class IngestJobRow(Base):
+    __tablename__ = "ingest_jobs"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("ingest_runs.id", ondelete="CASCADE"), index=True
+    )
+    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
+    stage: Mapped[str] = mapped_column(String(32), default="rss_fetch")
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    state: Mapped[str] = mapped_column(String(24), default="queued")
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=3)
+    not_before: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    lease_owner: Mapped[str | None] = mapped_column(String(200))
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_generation: Mapped[int] = mapped_column(Integer, default=0)
+    last_error: Mapped[str | None] = mapped_column(Text)
+
+
+class ArticleCandidateRow(Base):
+    __tablename__ = "article_candidates"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ingest_runs.id", ondelete="CASCADE"))
+    source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
+    canonical_url: Mapped[str] = mapped_column(Text)
+    original_url: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(24), default="needs_review")
+    discovered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    __table_args__ = (
+        UniqueConstraint("source_id", "canonical_url", name="uq_candidate_source_url"),
+    )
+
+
+class LlmCallRow(Base):
+    __tablename__ = "llm_calls"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    ingest_run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("ingest_runs.id"))
+    logical_request_id: Mapped[str] = mapped_column(String(200))
+    purpose: Mapped[str] = mapped_column(String(48))
+    provider: Mapped[str] = mapped_column(String(100))
+    model_id: Mapped[str] = mapped_column(String(200))
+    attempt: Mapped[int] = mapped_column(Integer)
+    reserved_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+    estimated_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+    actual_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+    currency: Mapped[str] = mapped_column(String(8), default="USD")
+    cost_status: Mapped[str] = mapped_column(String(16), default="unknown")
+    status: Mapped[str] = mapped_column(String(24))
+
+
+class BudgetReservationRow(Base):
+    __tablename__ = "budget_reservations"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    scope: Mapped[str] = mapped_column(String(100), index=True)
+    logical_request_id: Mapped[str] = mapped_column(String(200), unique=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 6))
+    currency: Mapped[str] = mapped_column(String(8), default="USD")
+    state: Mapped[str] = mapped_column(String(16), default="reserved")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    settled_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))

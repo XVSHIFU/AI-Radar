@@ -150,10 +150,17 @@ def test_configured_admin_rejects_bad_token_without_fake_success(client: TestCli
     client.app.state.settings.admin_token = "secret"
     denied = client.post("/api/v1/ingest/runs")
     wrong = client.post("/api/v1/ingest/runs", headers={"Authorization": "Bearer wrong"})
-    accepted_auth = client.post("/api/v1/ingest/runs", headers={"Authorization": "Bearer secret"})
+    accepted_auth = client.post(
+        "/api/v1/ingest/runs",
+        headers={
+            "Authorization": "Bearer secret",
+            "Idempotency-Key": "fixture-disabled",
+        },
+        json={"source_ids": ["10000000-0000-4000-8000-000000000001"]},
+    )
     assert denied.status_code == wrong.status_code == 401
     assert accepted_auth.status_code == 503
-    assert accepted_auth.json()["code"] == "INGEST_NOT_IMPLEMENTED"
+    assert accepted_auth.json()["code"] == "INGEST_NOT_AVAILABLE"
 
 
 def test_ask_rejects_inverted_date_range(client: TestClient) -> None:
