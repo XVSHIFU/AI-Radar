@@ -25,7 +25,7 @@ const viewKey = computed(
     前端模拟：仅用于交互演示，不代表真实服务结果。
   </p>
   <p v-else-if="dataMode === 'fixture'" class="demo" role="note">
-    后端合成数据：服务端返回的 fixture，不代表真实新闻或采集结果。
+    后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
   </p>
   <main><RouterView :key="viewKey" /></main>
 </template>

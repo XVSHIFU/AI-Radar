@@ -143,14 +143,15 @@ onBeforeUnmount(() => {
   <section>
     <div class="row">
       <div>
-        <p class="meta">全球事件库 · 服务端稳定排序</p>
+        <p class="meta">全球事件库 · 按日期浏览</p>
         <h1>研究工作台</h1>
         <p class="muted">先确认事实，再建立观点。</p>
       </div>
       <aside class="card">
         <b>当前研究范围</b>
         <p v-if="overview" class="meta">
-          {{ overview.scope }} · {{ overview.total_events }} 条事件 ·
+          {{ overview.scope === "global" ? "全库" : overview.scope }} ·
+          {{ overview.total_events }} 条事件 ·
           {{ Object.keys(overview.categories).length }} 个主题
         </p>
         <p v-if="overview" class="meta">更新时间：{{ overview.as_of }}</p>
