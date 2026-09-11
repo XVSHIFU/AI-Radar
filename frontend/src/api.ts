@@ -62,7 +62,7 @@ export type EventResult = {
 };
 const demo = () => new URLSearchParams(location.search).get("demo") === "1";
 export const dataMode = ref(demo() ? "fixture" : "live");
-export const isDemo = () => demo() || dataMode.value === "fixture";
+export const isDemo = () => demo();
 function err(e: unknown): ApiError {
   return typeof e === "object" && e && "code" in e
     ? (e as ApiError)

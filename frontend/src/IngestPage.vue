@@ -75,7 +75,10 @@ async function start() {
     <div class="row">
       <button :disabled="sourcesLoading || runsLoading || !token" @click="load">
         {{ sourcesLoading || runsLoading ? "读取中…" : "读取状态" }}</button
-      ><button :disabled="submitting || !sources.length" @click="start">
+      ><button
+        :disabled="submitting || !sources.some((s) => s.enabled)"
+        @click="start"
+      >
         {{ submitting ? "正在提交…" : "开始采集" }}
       </button>
     </div>
@@ -88,8 +91,7 @@ async function start() {
             ? "服务未配置或不可用"
             : submitError.code
       }}</strong
-      >：{{ submitError.message
-      }}<button @click="start">使用相同请求键重试</button>
+      >：{{ submitError.message }}<button @click="start">重试采集</button>
     </div>
     <div class="card">
       <h2>来源健康</h2>

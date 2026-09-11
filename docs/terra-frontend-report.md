@@ -19,3 +19,5 @@
 采集管理修订：sources 与 runs 独立读取、独立加载/401/503/重试状态；读取或提交期间禁用动作。令牌仅页面内存。提交防重，失败重试保留同一 Idempotency-Key，成功后才轮换；submission 单测覆盖重复点击只取得一次请求键与失败重试复用。
 
 问答修订：演示 SSE 在 150–1600ms 分段产生状态、token、来源、done，取消会清除全部 timer；分类与日期条件可见、会校验并随真实请求发送。真实与模拟引用均按 index 展开、受安全 URL 限制，统计来自 done/API 响应；每个 await/帧按 generation 守卫，卸载取消。
+
+审查修订：isDemo 仅由 URL 显式 demo=1 决定，服务端 fixture 仅显示合成标识；SSE 在 error 后拒绝 completed/cancelled done；采集仅在存在启用来源时可提交。
