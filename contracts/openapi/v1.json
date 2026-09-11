@@ -550,6 +550,176 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "IngestRun": {
+        "properties": {
+          "candidates": {
+            "default": 0,
+            "title": "Candidates",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "cost_status": {
+            "enum": [
+              "actual",
+              "estimated",
+              "unknown"
+            ],
+            "title": "Cost Status",
+            "type": "string"
+          },
+          "discovered_urls": {
+            "title": "Discovered Urls",
+            "type": "integer"
+          },
+          "error_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Summary"
+          },
+          "event_candidates": {
+            "title": "Event Candidates",
+            "type": "integer"
+          },
+          "failed_jobs": {
+            "title": "Failed Jobs",
+            "type": "integer"
+          },
+          "fetched_articles": {
+            "title": "Fetched Articles",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "found": {
+            "default": 0,
+            "title": "Found",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kept": {
+            "default": 0,
+            "title": "Kept",
+            "type": "integer"
+          },
+          "new_articles": {
+            "title": "New Articles",
+            "type": "integer"
+          },
+          "parser_failures": {
+            "title": "Parser Failures",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_articles": {
+            "title": "Updated Articles",
+            "type": "integer"
+          },
+          "versions": {
+            "default": 0,
+            "title": "Versions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "started_at",
+          "finished_at",
+          "discovered_urls",
+          "fetched_articles",
+          "new_articles",
+          "updated_articles",
+          "event_candidates",
+          "parser_failures",
+          "failed_jobs",
+          "cost",
+          "cost_status",
+          "error_summary"
+        ],
+        "title": "IngestRun",
+        "type": "object"
+      },
+      "IngestRunCreated": {
+        "properties": {
+          "idempotent_replay": {
+            "title": "Idempotent Replay",
+            "type": "boolean"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "status",
+          "idempotent_replay"
+        ],
+        "title": "IngestRunCreated",
+        "type": "object"
+      },
+      "IngestRunRequest": {
+        "properties": {
+          "source_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Source Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source_ids"
+        ],
+        "title": "IngestRunRequest",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -916,7 +1086,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
+                  "additionalProperties": {
+                    "items": {
+                      "$ref": "#/components/schemas/IngestRun"
+                    },
+                    "type": "array"
+                  },
                   "title": "Response Ingest Runs Api V1 Ingest Runs Get",
                   "type": "object"
                 }
@@ -942,6 +1117,17 @@
         "parameters": [
           {
             "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
             "name": "authorization",
             "required": false,
             "schema": {
@@ -957,14 +1143,22 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
-          "200": {
+          "202": {
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Start Ingest Api V1 Ingest Runs Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/IngestRunCreated"
                 }
               }
             },

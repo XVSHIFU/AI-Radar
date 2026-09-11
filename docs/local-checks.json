@@ -1,59 +1,65 @@
 {
-  "started_at": "2026-09-11T17:22:57.4690687+00:00",
-  "finished_at": "2026-09-11T17:23:05.6382554+00:00",
+  "started_at": "2026-09-11T18:01:06.0546458+00:00",
+  "finished_at": "2026-09-11T18:01:15.9580333+00:00",
   "layer": "local_static_unit_offline_migration_build",
   "postgres_integration_executed": false,
   "live_model_executed": false,
-  "passed": 8,
-  "expected_steps": 8,
+  "passed": 9,
+  "expected_steps": 9,
   "checks": [
     {
       "command": "uv run --frozen ruff check .",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 78
+      "elapsed_ms": 93
     },
     {
-      "command": "uv run --frozen mypy src",
+      "command": "uv run --frozen mypy src app",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 345
+      "elapsed_ms": 1263
     },
     {
       "command": "uv run --frozen pytest -q",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 1273
+      "elapsed_ms": 1416
+    },
+    {
+      "command": "uv run --frozen python ../scripts/check-structure.py",
+      "exit_code": 0,
+      "passed": true,
+      "elapsed_ms": 938
     },
     {
       "command": "uv run --frozen python ../scripts/freeze-openapi.py",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 851
+      "elapsed_ms": 835
     },
     {
       "command": "uv run --frozen alembic upgrade head --sql",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 694
+      "elapsed_ms": 688
     },
     {
       "command": "pnpm typecheck",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 1502
+      "elapsed_ms": 1460
     },
     {
       "command": "pnpm test",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 757
+      "elapsed_ms": 717
     },
     {
       "command": "pnpm build",
       "exit_code": 0,
       "passed": true,
-      "elapsed_ms": 2647
+      "elapsed_ms": 2472
     }
   ]
 }

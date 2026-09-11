@@ -18,7 +18,7 @@ try {
     Push-Location (Join-Path $projectRoot 'backend')
     try {
         Invoke-Checked uv @('run','--frozen','ruff','check','.')
-        Invoke-Checked uv @('run','--frozen','mypy','src')
+        Invoke-Checked uv @('run','--frozen','mypy','src','app')
         Invoke-Checked uv @('run','--frozen','pytest','-q')
         Invoke-Checked uv @('run','--frozen','python','../scripts/check-structure.py')
         Invoke-Checked uv @('run','--frozen','python','../scripts/freeze-openapi.py')

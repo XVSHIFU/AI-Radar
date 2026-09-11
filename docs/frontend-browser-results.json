@@ -1,8 +1,8 @@
 {
-  "observed_at": "2026-09-11T17:23:19.5304426+00:00",
+  "observed_at": "2026-09-11T18:03:07.1427064+00:00",
   "base_url": "http://127.0.0.1:5175",
-  "passed": 35,
-  "total": 35,
+  "passed": 36,
+  "total": 36,
   "checks": [
     {
       "check": "home_initial_total_and_page",
@@ -250,6 +250,15 @@
       "passed": true,
       "actual": {
         "passed": true
+      }
+    },
+    {
+      "check": "ingest_distinct_counts_and_estimated_money",
+      "layer": "synthetic_api_response_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "text": "◒ AI 革新雷达\n事件\n问答\n采集管理\n演示模式\n采集管理\n\n管理令牌仅保留在当前页面内存中。\n\n管理令牌\n读取状态\n开始采集\n\n来源健康\n\n尚未读取来源。\n\n近期运行\n\npartial · 发现URL 21 · 候选报道 3 · 正文版本 2 · 已发布事件 0 · 解析失败 1 / 任务失败 1 · 成本 估算 1.25000 · 合成部分失败"
       }
     },
     {

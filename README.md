@@ -50,13 +50,13 @@ Set-Location ..
 
 ```powershell
 ./scripts/verify.ps1
-./scripts/check-frontend.ps1 -BaseUrl http://127.0.0.1:5175
-python scripts/check-api.py --base-url http://127.0.0.1:8002
+./scripts/check-frontend.ps1 -BaseUrl http://127.0.0.1:5173
+python scripts/check-api.py --base-url http://127.0.0.1:8000
 python scripts/validate-sources.py
 ./scripts/check-codex-quota.ps1
 ```
 
-`verify.ps1` 执行静态检查、单元测试和离线迁移 SQL 生成；当前尚无可运行的真实 PostgreSQL 集成测试。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
+`verify.ps1` 执行静态检查、单元测试、24项显式过滤结构回归、OpenAPI对齐和离线迁移 SQL 生成；当前尚无可运行的真实 PostgreSQL 集成测试。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
 
 原型比较：分别在两个 `prototypes/*` 目录执行 `npm ci` 和 `npm run dev -- --host 127.0.0.1 --port <4174或4173>`，再执行 `./scripts/check-prototypes.ps1`。运行前需本机已安装 `agent-browser` 及浏览器；结果写入 `docs/prototype-browser-results.json`。
 
