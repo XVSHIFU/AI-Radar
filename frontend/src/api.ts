@@ -200,13 +200,13 @@ export const ingest = {
     api<{ items: Run[] }>("/api/v1/ingest/runs", {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  start: (token: string, source_ids: string[]) =>
+  start: (token: string, source_ids: string[], idempotencyKey: string) =>
     api<{ run_id: string; status: string }>("/api/v1/ingest/runs", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": crypto.randomUUID(),
+        "Idempotency-Key": idempotencyKey,
       },
       body: JSON.stringify({ source_ids }),
     }),

@@ -1,39 +1,70 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { ingest, err, type Run, type Source } from "./api";
+import { err, ingest, type Run, type Source } from "./api";
+import { idempotentSubmission } from "./submission";
 const token = ref(""),
   sources = ref<Source[]>([]),
   runs = ref<Run[]>([]),
-  error = ref<any>(),
-  notice = ref("");
-async function load() {
-  error.value = null;
+  sourcesLoading = ref(false),
+  runsLoading = ref(false),
+  submitting = ref(false),
+  sourcesError = ref<ReturnType<typeof err>>(),
+  runsError = ref<ReturnType<typeof err>>(),
+  submitError = ref<ReturnType<typeof err>>(),
+  notice = ref(""),
+  submission = idempotentSubmission();
+async function loadSources() {
+  sourcesLoading.value = true;
+  sourcesError.value = undefined;
   try {
-    [sources.value, runs.value] = await Promise.all([
-      ingest.sources(token.value).then((x) => x.items),
-      ingest.runs(token.value).then((x) => x.items),
-    ]);
+    sources.value = (await ingest.sources(token.value)).items;
   } catch (e) {
-    error.value = err(e);
+    sourcesError.value = err(e);
+  } finally {
+    sourcesLoading.value = false;
   }
 }
-async function start() {
+async function loadRuns() {
+  runsLoading.value = true;
+  runsError.value = undefined;
   try {
-    const x = await ingest.start(
+    runs.value = (await ingest.runs(token.value)).items;
+  } catch (e) {
+    runsError.value = err(e);
+  } finally {
+    runsLoading.value = false;
+  }
+}
+function load() {
+  void loadSources();
+  void loadRuns();
+}
+async function start() {
+  const key = submission.begin();
+  if (!key) return;
+  submitting.value = true;
+  submitError.value = undefined;
+  try {
+    const response = await ingest.start(
       token.value,
       sources.value.filter((s) => s.enabled).map((s) => s.id),
+      key,
     );
-    notice.value = `已接受采集请求：${x.run_id}`;
-    await load();
+    submission.finish(true);
+    notice.value = `已接受采集请求：${response.run_id}`;
+    void loadRuns();
   } catch (e) {
-    error.value = err(e);
+    submission.finish(false);
+    submitError.value = err(e);
+  } finally {
+    submitting.value = false;
   }
 }
 </script>
 <template>
   <section>
     <h1>采集管理</h1>
-    <p class="muted">管理凭据仅保留在当前页面内存中。</p>
+    <p class="muted">管理令牌仅保留在当前页面内存中。</p>
     <label
       >管理令牌<input
         v-model="token"
@@ -42,30 +73,57 @@ async function start() {
         autocomplete="off"
     /></label>
     <div class="row">
-      <button @click="load">读取状态</button
-      ><button :disabled="!sources.length" @click="start">开始采集</button>
+      <button :disabled="sourcesLoading || runsLoading || !token" @click="load">
+        {{ sourcesLoading || runsLoading ? "读取中…" : "读取状态" }}</button
+      ><button :disabled="submitting || !sources.length" @click="start">
+        {{ submitting ? "正在提交…" : "开始采集" }}
+      </button>
     </div>
     <p aria-live="polite">{{ notice }}</p>
-    <div v-if="error" class="card error" role="alert">
+    <div v-if="submitError" class="card error" role="alert">
       <strong>{{
-        error.status === 401
+        submitError.status === 401
           ? "未授权"
-          : error.status === 503
+          : submitError.status === 503
             ? "服务未配置或不可用"
-            : error.code
+            : submitError.code
       }}</strong
-      >：{{ error.message }}
-      <p v-if="error.code === 'BUDGET_EXCEEDED'">预算不足，未开始新运行。</p>
+      >：{{ submitError.message
+      }}<button @click="start">使用相同请求键重试</button>
     </div>
-    <div v-if="sources.length" class="card">
+    <div class="card">
       <h2>来源健康</h2>
-      <p v-for="s in sources">
+      <p v-if="sourcesLoading">正在读取来源…</p>
+      <div v-else-if="sourcesError" class="error" role="alert">
+        {{
+          sourcesError.status === 401
+            ? "令牌无效"
+            : sourcesError.status === 503
+              ? "来源服务未配置"
+              : sourcesError.message
+        }}
+        <button @click="loadSources">重试来源</button>
+      </div>
+      <p v-else-if="!sources.length" class="meta">尚未读取来源。</p>
+      <p v-for="s in sources" :key="s.id">
         {{ s.name }} · {{ s.health }} · 连续失败 {{ s.consecutive_failures }}
       </p>
     </div>
-    <div v-if="runs.length" class="card">
+    <div class="card">
       <h2>近期运行</h2>
-      <p v-for="r in runs">
+      <p v-if="runsLoading">正在读取运行记录…</p>
+      <div v-else-if="runsError" class="error" role="alert">
+        {{
+          runsError.status === 401
+            ? "令牌无效"
+            : runsError.status === 503
+              ? "运行服务未配置"
+              : runsError.message
+        }}
+        <button @click="loadRuns">重试运行记录</button>
+      </div>
+      <p v-else-if="!runs.length" class="meta">尚未读取运行记录。</p>
+      <p v-for="r in runs" :key="r.id">
         {{ r.status }} · 发现 {{ r.found }} / 保留 {{ r.kept }} · 成本
         {{ r.cost_status === "unknown" ? "未知" : r.cost }}
         <span v-if="r.error_summary">· {{ r.error_summary }}</span>
