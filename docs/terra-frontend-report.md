@@ -13,3 +13,5 @@
 预审修订：SSE 解析器现保留跨块 CRLF 的末尾 CR、在 abort 时取消并释放 reader、拒绝未知事件、sources 后 token、重复/未知状态 done 与无 done EOF。冻结 normal/empty/failed/truncated 样本以单字节流验证通过；normal 保留非连续引用 index=2，failed 不被当作成功。后端响应 data_mode=fixture 也会触发演示标识。
 
 本轮继续修复：首页保留 ?demo=1、立即取消旧请求并以 generation 防止旧响应覆盖；移动端恢复筛选折叠、清除及范围卡片。详情在路由参数改变时取消旧请求并显示未找到。问答演示模式已接入明确标记的可取消模拟 SSE 流。SSE 冻结样本在本地未提交副本下以单字节验证。尚未宣称正式验收完成，需后端及浏览器四页验收。
+
+本轮协议测试扩展为 5 项：冻结 normal/empty/failed/truncated 的逐字节 CRLF、状态终态、协议顺序、挂起 read abort/cancel/release、真实延迟竞态。首页已实际浏览器验证 ?demo=1 首屏精确匹配32；stats 单独请求与错误态、两栏网格均已修复。
