@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ..models import (
@@ -57,16 +57,22 @@ class WorkerService:
                 or locked.lease_owner != job.lease_owner
                 or locked.lease_generation != job.lease_generation
                 or locked.state != "running"
+                or locked.lease_until is None
+                or locked.lease_until < datetime.now(UTC)
             ):
                 raise LeaseLost("worker lease is no longer current")
-            source_row = await session.get(SourceRow, source.id)
+            source_row = await session.scalar(
+                select(SourceRow).where(SourceRow.id == source.id).with_for_update()
+            )
             assert source_row is not None
             source_row.etag = feed.etag
             source_row.last_modified = feed.last_modified
             source_row.last_checked_at = datetime.now(UTC)
             source_row.last_success_at = datetime.now(UTC)
             source_row.consecutive_failures = 0
-            run = await session.get(IngestRunRow, job.run_id)
+            run = await session.scalar(
+                select(IngestRunRow).where(IngestRunRow.id == job.run_id).with_for_update()
+            )
             assert run is not None
             run.discovered_urls += len(entries)
             run.fetched_articles += len(documents)
@@ -78,7 +84,8 @@ class WorkerService:
                         ArticleRow.canonical_url == entry.url,
                     )
                 )
-                if article is None:
+                is_new_article = article is None
+                if is_new_article:
                     article = ArticleRow(
                         id=uuid4(),
                         source_id=source.id,
@@ -87,6 +94,7 @@ class WorkerService:
                     session.add(article)
                     await session.flush()
                     run.new_articles += 1
+                assert article is not None
                 existing = await session.scalar(
                     select(ArticleVersionRow).where(
                         ArticleVersionRow.article_id == article.id,
@@ -105,7 +113,7 @@ class WorkerService:
                             content_hash=document.content_hash,
                         )
                     )
-                    if run.new_articles == 0:
+                    if not is_new_article:
                         run.updated_articles += 1
                 candidate = await session.scalar(
                     select(ArticleCandidateRow).where(
@@ -127,6 +135,22 @@ class WorkerService:
                     )
                     run.event_candidates += 1
 
+            locked.state = "succeeded"
+            locked.lease_owner = None
+            locked.lease_until = None
+            await session.flush()
+            remaining = await session.scalar(
+                select(func.count())
+                .select_from(IngestJobRow)
+                .where(
+                    IngestJobRow.run_id == run.id,
+                    IngestJobRow.state.in_(("queued", "retry_wait", "running")),
+                )
+            )
+            if not remaining:
+                run.status = "partial" if run.parser_failures or run.failed_jobs else "succeeded"
+                run.finished_at = datetime.now(UTC)
+
     async def _record_unchanged(
         self,
         job: IngestJobRow,
@@ -142,6 +166,9 @@ class WorkerService:
                 locked is None
                 or locked.lease_owner != job.lease_owner
                 or locked.lease_generation != job.lease_generation
+                or locked.state != "running"
+                or locked.lease_until is None
+                or locked.lease_until < datetime.now(UTC)
             ):
                 raise LeaseLost("worker lease is no longer current")
             row = await session.get(SourceRow, source.id)
@@ -150,3 +177,22 @@ class WorkerService:
             row.last_modified = last_modified or row.last_modified
             row.last_checked_at = datetime.now(UTC)
             row.last_success_at = datetime.now(UTC)
+            locked.state = "succeeded"
+            locked.lease_owner = None
+            locked.lease_until = None
+            run = await session.scalar(
+                select(IngestRunRow).where(IngestRunRow.id == job.run_id).with_for_update()
+            )
+            assert run is not None
+            remaining = await session.scalar(
+                select(func.count())
+                .select_from(IngestJobRow)
+                .where(
+                    IngestJobRow.run_id == run.id,
+                    IngestJobRow.id != locked.id,
+                    IngestJobRow.state.in_(("queued", "retry_wait", "running")),
+                )
+            )
+            if not remaining:
+                run.status = "partial" if run.parser_failures or run.failed_jobs else "succeeded"
+                run.finished_at = datetime.now(UTC)

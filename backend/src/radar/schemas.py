@@ -134,6 +134,10 @@ class IngestRun(BaseModel):
     new_articles: int
     updated_articles: int
     event_candidates: int
+    found: int = 0
+    kept: int = 0
+    candidates: int = 0
+    versions: int = 0
     parser_failures: int
     failed_jobs: int
     cost: Decimal | None

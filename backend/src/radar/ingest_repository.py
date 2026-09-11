@@ -2,9 +2,11 @@ import hashlib
 import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .models import BudgetReservationRow, IngestJobRow, IngestRunRow, SourceRow
@@ -26,7 +28,9 @@ class IngestRepository:
     def __init__(self, sessions: async_sessionmaker[AsyncSession]) -> None:
         self.sessions = sessions
 
-    async def create_run(self, source_ids: list[UUID], key: str) -> tuple[IngestRunRow, bool]:
+    async def create_run(
+        self, source_ids: list[UUID], key: str, trigger_type: str = "manual"
+    ) -> tuple[IngestRunRow, bool]:
         unique_ids = sorted(set(source_ids), key=str)
         payload_hash = hashlib.sha256(
             json.dumps([str(item) for item in unique_ids]).encode()
@@ -55,7 +59,7 @@ class IngestRepository:
                 id=uuid4(),
                 idempotency_key=key,
                 payload_hash=payload_hash,
-                trigger_type="manual",
+                trigger_type=trigger_type,
                 status="queued",
             )
             session.add(run)
@@ -124,6 +128,24 @@ class IngestRepository:
             await session.flush()
             session.expunge(job)
             return job
+
+    async def heartbeat(
+        self, job_id: UUID, owner: str, generation: int, lease_seconds: int = 60
+    ) -> bool:
+        now = datetime.now(UTC)
+        async with self.sessions() as session, session.begin():
+            result = await session.execute(
+                update(IngestJobRow)
+                .where(
+                    IngestJobRow.id == job_id,
+                    IngestJobRow.lease_owner == owner,
+                    IngestJobRow.lease_generation == generation,
+                    IngestJobRow.state == "running",
+                    IngestJobRow.lease_until >= now,
+                )
+                .values(lease_until=now + timedelta(seconds=lease_seconds))
+            )
+            return bool(cast(CursorResult[Any], result).rowcount)
 
     async def finish(
         self, job_id: UUID, owner: str, generation: int, success: bool, error: str | None = None

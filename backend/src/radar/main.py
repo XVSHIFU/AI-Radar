@@ -365,6 +365,7 @@ async def ingest_runs(request: Request) -> dict[str, list[IngestRun]]:
     for item in await repository.runs():
         response = IngestRun.model_validate(item).model_copy(
             update={
+                "found": item.discovered_urls,
                 "kept": 0,
                 "candidates": item.event_candidates,
                 "versions": item.new_articles + item.updated_articles,
