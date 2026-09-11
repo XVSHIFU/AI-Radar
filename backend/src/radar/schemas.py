@@ -110,7 +110,9 @@ class ClarificationCandidate(BaseModel):
 
 
 class QueryPlan(BaseModel):
-    intent: Literal["structured_list", "summary", "entity_lookup", "semantic_search", "follow_up"]
+    intent: Literal[
+        "structured_list", "structured_summary", "entity_lookup", "semantic_search", "follow_up"
+    ]
     filters: Filters
     timezone: str
     business_date: date

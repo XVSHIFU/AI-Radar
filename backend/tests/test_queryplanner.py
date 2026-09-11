@@ -1,4 +1,6 @@
 from datetime import UTC, datetime
+from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -170,3 +172,101 @@ def test_unknown_hard_constraint_is_not_treated_as_empty_result(client: TestClie
     assert response.status_code == 503
     assert response.json()["code"] == "QUERY_UNSUPPORTED"
     assert response.json()["details"]["query_plan_public"]["free_text"] == "未发布 项目"
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [("2026-09-09", "2026-09-09"), ("2026-12-31 至 01-02", "2027-01-02")],
+)
+def test_standalone_and_cross_year_iso_dates(
+    client: TestClient, question: str, expected: str
+) -> None:
+    response = client.post(
+        "/api/v1/query-plan", json={"question": question, "client_request_id": "iso-date"}
+    )
+    assert response.status_code == 200
+    assert response.json()["filters"]["date_to"] == expected
+    if question == "2026-09-09":
+        assert response.json()["filters"]["date_from"] == expected
+
+
+def test_entity_name_does_not_infer_category_and_request_match_wins(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/query-plan",
+        json={
+            "question": "DeepSeek 和 示例研究团队",
+            "filters": {"entity_match": "any"},
+            "client_request_id": "entity-precedence",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["filters"]["category"] is None
+    assert body["filters"]["entity_match"] == "any"
+    assert body["warnings"]
+
+
+def test_maximum_date_returns_validation_error(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/query-plan",
+        json={"question": "9999-12-31", "client_request_id": "max-date"},
+    )
+    assert response.status_code == 422
+    assert response.json()["code"] == "QUERY_INVALID"
+
+
+class DirectoryResult:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def scalars(self):
+        return self
+
+    def all(self):
+        return self.rows
+
+
+class DirectorySession:
+    def __init__(self, rows):
+        self.rows = rows
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_args):
+        return None
+
+    def __call__(self):
+        return self
+
+    async def execute(self, _statement):
+        return DirectoryResult(self.rows)
+
+
+@pytest.mark.asyncio
+async def test_production_resolver_uses_longest_non_overlapping_confirmed_aliases() -> None:
+    from radar.postgres_repository import PostgresRepository
+
+    meta_id = uuid4()
+    metaflow_id = uuid4()
+    rows = [
+        SimpleNamespace(
+            id=meta_id,
+            canonical_name="Meta",
+            aliases=[SimpleNamespace(normalized_alias="meta")],
+        ),
+        SimpleNamespace(
+            id=metaflow_id,
+            canonical_name="Metaflow",
+            aliases=[SimpleNamespace(normalized_alias="metaflow")],
+        ),
+    ]
+    repository = PostgresRepository(DirectorySession(rows), "secret")
+
+    longest = await repository.resolve_entities("Metaflow")
+    explicit_both = await repository.resolve_entities("Meta 和 Metaflow")
+    embedded = await repository.resolve_entities("DeepSeeker")
+
+    assert [item.entity_id for item in longest.resolved] == [metaflow_id]
+    assert {item.entity_id for item in explicit_both.resolved} == {meta_id, metaflow_id}
+    assert embedded.resolved == []

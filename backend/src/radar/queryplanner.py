@@ -66,6 +66,7 @@ GENERIC_WORDS = (
 ABSOLUTE_RANGE = re.compile(
     r"(\d{4})-(\d{2})-(\d{2})\s*(?:至|到|~|—|-)\s*(?:(\d{4})-)?(\d{2})-(\d{2})"
 )
+SINGLE_DATE = re.compile(r"(?<!\d)(\d{4})-(\d{2})-(\d{2})(?![\d-])")
 
 
 def normalize_query(value: str) -> str:
@@ -86,6 +87,10 @@ def _date_range(text: str, business_date: date) -> tuple[date, date, str | None]
         if end < start:
             raise ValueError("question date range is inverted")
         return start, end, match.group(0)
+    single = SINGLE_DATE.search(text)
+    if single:
+        value = date(int(single[1]), int(single[2]), int(single[3]))
+        return value, value, single.group(0)
     relative = (
         ("最近7天", business_date - timedelta(days=6), business_date),
         ("最近一周", business_date - timedelta(days=6), business_date),
@@ -109,7 +114,12 @@ def _date_terms(text: str) -> list[str]:
         term for term in ("最近7天", "最近一周", "今天", "昨天", "本周", "上周") if term in text
     ]
     absolute = ABSOLUTE_RANGE.search(text)
-    return ([absolute.group(0)] if absolute else []) + terms
+    dates = (
+        [absolute.group(0)]
+        if absolute
+        else [match.group(0) for match in SINGLE_DATE.finditer(text)]
+    )
+    return dates + terms
 
 
 class QueryPlanner:
@@ -152,9 +162,14 @@ class QueryPlanner:
             requires_clarification = True
             warnings.append("问题中有多个日期限制，请选择一个日期范围")
             candidates.append(ClarificationCandidate(label="请选择一个日期范围", entity_id=None))
+        resolution = await entity_resolver.resolve_entities(normalized)
         category_matches: list[tuple[str, Category]] = []
         for alias in sorted(CATEGORY_ALIASES, key=len, reverse=True):
-            if alias in normalized:
+            overlaps_entity = any(
+                alias != entity_term and alias in entity_term
+                for entity_term in resolution.matched_terms
+            )
+            if alias in normalized and not overlaps_entity:
                 category_matches.append((alias, CATEGORY_ALIASES[alias]))
                 consumed.append(alias)
         if category_matches:
@@ -164,7 +179,6 @@ class QueryPlanner:
             warnings.append("问题中有多个事件分类，请选择一个分类")
             candidates.append(ClarificationCandidate(label="请选择一个事件分类", entity_id=None))
 
-        resolution = await entity_resolver.resolve_entities(normalized)
         if resolution.resolved:
             inferred.entity_ids = [item.entity_id for item in resolution.resolved]
             inferred.entity_match = "any" if "或" in normalized else "all"
@@ -187,16 +201,22 @@ class QueryPlanner:
             elif inferred_value is not None:
                 setattr(combined, field, inferred_value)
                 origins[field] = "question"
+        explicit_entity_match = "entity_match" in filters.model_fields_set
         if filters.entity_ids:
             origins["entity_ids"] = "request"
             if inferred.entity_ids and set(filters.entity_ids) != set(inferred.entity_ids):
                 warnings.append("请求参数 entity_ids 已覆盖问题中识别出的实体")
         elif inferred.entity_ids:
             combined.entity_ids = inferred.entity_ids
-            combined.entity_match = inferred.entity_match
             origins["entity_ids"] = "question"
-            origins["entity_match"] = "question"
-        elif filters.entity_match != "all":
+            if explicit_entity_match:
+                origins["entity_match"] = "request"
+                if filters.entity_match != inferred.entity_match:
+                    warnings.append("请求参数 entity_match 已覆盖问题中识别出的匹配方式")
+            else:
+                combined.entity_match = inferred.entity_match
+                origins["entity_match"] = "question"
+        elif explicit_entity_match:
             origins["entity_match"] = "request"
         if filters.q:
             origins["q"] = "request"
@@ -213,6 +233,8 @@ class QueryPlanner:
             residual = residual.replace(word, " ")
         residual = re.sub(r"[\s,，。:：]+", " ", residual).strip()
         combined = Filters.model_validate(combined.model_dump())
+        if combined.date_to == date.max:
+            raise ValueError("date_to is too large for an exclusive upper bound")
         date_until = combined.date_to + timedelta(days=1) if combined.date_to else None
         return QueryPlan(
             intent="structured_list",
@@ -227,6 +249,53 @@ class QueryPlanner:
             warnings=warnings,
             entity_roles=["subject", "product"],
         )
+
+
+def _ascii_word_character(value: str) -> bool:
+    return value.isascii() and (value.isalnum() or value == "_")
+
+
+def resolve_confirmed_entities(
+    normalized: str, aliases: dict[str, list[ResolvedEntity]]
+) -> EntityResolution:
+    spans: list[tuple[int, int, str]] = []
+    for alias in aliases:
+        if not alias:
+            continue
+        for match in re.finditer(re.escape(alias), normalized):
+            start, end = match.span()
+            if (
+                _ascii_word_character(alias[0])
+                and start
+                and _ascii_word_character(normalized[start - 1])
+            ):
+                continue
+            if (
+                _ascii_word_character(alias[-1])
+                and end < len(normalized)
+                and _ascii_word_character(normalized[end])
+            ):
+                continue
+            spans.append((start, end, alias))
+    selected: list[tuple[int, int, str]] = []
+    for candidate in sorted(spans, key=lambda item: (-(item[1] - item[0]), item[0])):
+        if any(candidate[0] < end and start < candidate[1] for start, end, _ in selected):
+            continue
+        selected.append(candidate)
+    resolved: dict[UUID, ResolvedEntity] = {}
+    ambiguous: dict[UUID, ResolvedEntity] = {}
+    matched_terms: list[str] = []
+    for _start, _end, alias in sorted(selected):
+        matched_terms.append(alias)
+        distinct = {item.entity_id: item for item in aliases[alias]}
+        if len(distinct) == 1:
+            item = next(iter(distinct.values()))
+            resolved[item.entity_id] = item
+        else:
+            ambiguous.update(distinct)
+    if not resolved and not ambiguous and " " not in normalized:
+        ambiguous = {item.entity_id: item for item in fuzzy_candidates(normalized, aliases)}
+    return EntityResolution(list(resolved.values()), list(ambiguous.values()), matched_terms)
 
 
 def fuzzy_candidates(term: str, aliases: dict[str, list[ResolvedEntity]]) -> list[ResolvedEntity]:

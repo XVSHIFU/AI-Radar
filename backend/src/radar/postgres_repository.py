@@ -18,7 +18,7 @@ from .models import (
     SourceRow,
 )
 from .normalize import normalize_text
-from .queryplanner import EntityResolution, ResolvedEntity, fuzzy_candidates
+from .queryplanner import EntityResolution, ResolvedEntity, resolve_confirmed_entities
 from .repository import EvidenceInvalid, Page, RepositoryUnavailable
 from .schemas import Article, Event, Evidence, Filters
 
@@ -103,21 +103,7 @@ class PostgresRepository:
             aliases.setdefault(normalize_text(row.canonical_name), []).append(entity)
             for entity_alias in row.aliases:
                 aliases.setdefault(entity_alias.normalized_alias, []).append(entity)
-        resolved: dict[UUID, ResolvedEntity] = {}
-        ambiguous: list[ResolvedEntity] = []
-        matched_terms: list[str] = []
-        for alias, candidates in aliases.items():
-            if alias and alias in normalized:
-                matched_terms.append(alias)
-                distinct = {item.entity_id: item for item in candidates}
-                if len(distinct) == 1:
-                    item = next(iter(distinct.values()))
-                    resolved[item.entity_id] = item
-                else:
-                    ambiguous.extend(distinct.values())
-        if not resolved and not ambiguous and " " not in normalized:
-            ambiguous = fuzzy_candidates(normalized, aliases)
-        return EntityResolution(list(resolved.values()), ambiguous, matched_terms)
+        return resolve_confirmed_entities(normalized, aliases)
 
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
         clauses = self._filters(filters)
