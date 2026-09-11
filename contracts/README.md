@@ -17,3 +17,5 @@ POST `/api/v1/ask`: {question,filters,timezone,answer_mode,client_request_id}。
 错误统一 {code,message,retryable,request_id,details?}。校验失败422。管理未配置503，缺失或错误凭据401。前端支持错误并保留条件。
 
 SSE 新协议参考实施规格；模拟客户端与真实服务分别验收。meta→status*→token*→sources→done；异常 error→sources→done(failed)。EOF无done判失败；重试不得自动重新计费。
+
+采集下一迁移约定：持久PG模式POST /ingest/runs接受已配置source_ids，Idempotency-Key绑定规范化payload；同键同payload返回已有运行，不同payload为409 IDEMPOTENCY_CONFLICT。GET返回真实found/candidates/versions/parser_failures及cost/cost_status；fixture或无执行配置503 INGEST_NOT_AVAILABLE，不伪造真实采集运行。管理未配置503 MANAGEMENT_UNAVAILABLE，有配置但凭据错误401。

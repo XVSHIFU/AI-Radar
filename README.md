@@ -2,7 +2,7 @@
 
 本仓库正在按实施规格 v1.0 落地。当前工作区是 `E:\AI-AGENT\AI-Radar-Implementation-Spec\codex`，覆盖旧方案中的 C 盘示例路径。
 
-首页候选已实际运行比较，采用 Terra 研究工作台。两候选共用浏览器DOM回归 **14/14通过**，保留在 `prototypes/sol` 和 `prototypes/terra`。正式前后端正在集成，最终状态以 [验收矩阵](docs/acceptance-matrix.md) 为准，不能把原型通过算成 P0 完成。
+首页候选已实际运行比较，采用 Terra 研究工作台。两候选共用浏览器DOM回归 **14/14通过**，保留在 `prototypes/sol` 和 `prototypes/terra`。四页与基础 API 已集成，采集工程继续实施，最终状态以 [验收矩阵](docs/acceptance-matrix.md) 为准，不能把原型通过算成 P0 完成。
 
 ## 工程结构
 
@@ -14,7 +14,7 @@
 
 ## 本地安装与启动
 
-工具基线：Node 24.15.0、pnpm 11.13.0、Python 3.12、uv 0.11.16。正式前后端合入后，从仓库根执行：
+工具基线：Node 24.15.0、pnpm 11.22.0、Python 3.12、uv 0.11.16。从仓库根执行：
 
 ```powershell
 Set-Location backend
@@ -50,11 +50,13 @@ Set-Location ..
 
 ```powershell
 ./scripts/verify.ps1
+./scripts/check-frontend.ps1 -BaseUrl http://127.0.0.1:5175
+python scripts/check-api.py --base-url http://127.0.0.1:8002
 python scripts/validate-sources.py
 ./scripts/check-codex-quota.ps1
 ```
 
-`verify.ps1` 的真实数据库测试依赖专用 `TEST_DATABASE_URL`；没有实例时会明确跳过。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
+`verify.ps1` 执行静态检查、单元测试和离线迁移 SQL 生成；当前尚无可运行的真实 PostgreSQL 集成测试。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
 
 原型比较：分别在两个 `prototypes/*` 目录执行 `npm ci` 和 `npm run dev -- --host 127.0.0.1 --port <4174或4173>`，再执行 `./scripts/check-prototypes.ps1`。运行前需本机已安装 `agent-browser` 及浏览器；结果写入 `docs/prototype-browser-results.json`。
 

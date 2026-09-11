@@ -1,0 +1,346 @@
+{
+  "observed_at": "2026-09-11T17:23:19.5304426+00:00",
+  "base_url": "http://127.0.0.1:5175",
+  "passed": 35,
+  "total": 35,
+  "checks": [
+    {
+      "check": "home_initial_total_and_page",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "theme_colors_and_focus_resolve",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "actual": {
+          "banner": "rgb(255, 248, 231)",
+          "focus": "rgb(139, 211, 203)",
+          "pill": "rgb(232, 245, 243)"
+        },
+        "passed": true
+      }
+    },
+    {
+      "check": "home_pagination_unique_total",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "count": 32,
+        "passed": true
+      }
+    },
+    {
+      "check": "home_alias_full_dataset_url",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "home_empty_and_clear",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "home_inclusive_date_category_exact_ids",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "ids": [
+          "00000000-0000-4000-8000-000000000013",
+          "00000000-0000-4000-8000-000000000019",
+          "00000000-0000-4000-8000-000000000025"
+        ],
+        "passed": true
+      }
+    },
+    {
+      "check": "home_invalid_dates",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "mobile_navigation_single_line_targets",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "rows": [
+          {
+            "height": 44,
+            "lines": 1,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "lines": 1,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "lines": 1,
+            "text": "采集管理"
+          }
+        ]
+      }
+    },
+    {
+      "check": "home_width_390",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 390,
+        "width": 390
+      }
+    },
+    {
+      "check": "home_width_768",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 768,
+        "width": 768
+      }
+    },
+    {
+      "check": "home_width_1440",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1440,
+        "width": 1440
+      }
+    },
+    {
+      "check": "detail_saved_version",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "detail_keyboard_evidence",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "detail_unknown_404",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_fixture_api_does_not_fake_model",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "error": "Question interpretation requires a configured answer model",
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_structured_no_answer",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "text": "回答\n\n没有可回答的资料。\n\n完整匹配 0 · 取回 0 · 总结 0 · 引用 0 · 覆盖：complete"
+      }
+    },
+    {
+      "check": "ask_slow_demo_completed_index",
+      "layer": "synthetic_stream_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_citation_focus",
+      "layer": "synthetic_stream_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_cancel_partial_no_completion",
+      "layer": "synthetic_stream_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_real_json_preserves_explicit_index",
+      "layer": "synthetic_api_response_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_malformed_citations_fail_visibly",
+      "layer": "synthetic_api_response_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_many_citations_long_untrusted_answer",
+      "layer": "synthetic_api_response_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_long_answer_mobile_overflow",
+      "layer": "synthetic_api_response_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 375,
+        "width": 390
+      }
+    },
+    {
+      "check": "same_route_switch_demo_to_api",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "after": "/events/00000000-0000-4000-8000-000000000005",
+        "before": "/events/00000000-0000-4000-8000-000000000001?demo=1",
+        "passed": true
+      }
+    },
+    {
+      "check": "detail_error_retry_real_request",
+      "layer": "synthetic_fault_real_retry_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ingest_independent_source_and_runs_failure",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "page_width_/events/00000000-0000-4000-8000-000000000002_390",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 390,
+        "width": 390
+      }
+    },
+    {
+      "check": "page_width_/events/00000000-0000-4000-8000-000000000002_768",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 768,
+        "width": 768
+      }
+    },
+    {
+      "check": "page_width_/events/00000000-0000-4000-8000-000000000002_1440",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1440,
+        "width": 1440
+      }
+    },
+    {
+      "check": "page_width_/ask_390",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 390,
+        "width": 390
+      }
+    },
+    {
+      "check": "page_width_/ask_768",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 768,
+        "width": 768
+      }
+    },
+    {
+      "check": "page_width_/ask_1440",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1440,
+        "width": 1440
+      }
+    },
+    {
+      "check": "page_width_/ingest_390",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 390,
+        "width": 390
+      }
+    },
+    {
+      "check": "page_width_/ingest_768",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 768,
+        "width": 768
+      }
+    },
+    {
+      "check": "page_width_/ingest_1440",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1440,
+        "width": 1440
+      }
+    }
+  ]
+}
