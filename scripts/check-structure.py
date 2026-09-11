@@ -1,12 +1,12 @@
 """Independent frozen synthetic structure evaluation; never counts pending cases as passes."""
 
 import argparse
-from datetime import datetime, timezone
 import hashlib
 import json
 import os
-from pathlib import Path
 import sys
+from datetime import UTC, datetime
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend" / "src"))
@@ -181,7 +181,7 @@ def main() -> int:
         app.dependency_overrides.clear()
 
     report = {
-        "observed_at": datetime.now(timezone.utc).isoformat(),
+        "observed_at": datetime.now(UTC).isoformat(),
         "dataset": corpus["dataset"],
         "layer": "synthetic_explicit_filter_asgi",
         "corpus_sha256": hashlib.sha256(corpus_path.read_bytes()).hexdigest(),
