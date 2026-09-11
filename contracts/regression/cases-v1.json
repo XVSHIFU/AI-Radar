@@ -1,0 +1,689 @@
+{
+  "dataset": "synthetic-structure-v1",
+  "synthetic": true,
+  "scope": "explicit filter structure only; no natural language, live PostgreSQL, historical gold or model quality claim",
+  "fixed_clock": "2026-09-11T04:00:00Z",
+  "timezone": "Asia/Shanghai",
+  "cases": [
+    {
+      "case_id": "C01",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "model_release",
+      "filters": {
+        "category": "model_release"
+      },
+      "expected_event_keys": [
+        "model"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "C02",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "agent_tool",
+      "filters": {
+        "category": "agent_tool"
+      },
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "future_of_range",
+        "unknown_date",
+        "month_precision"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "C03",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "framework_sdk",
+      "filters": {
+        "category": "framework_sdk"
+      },
+      "expected_event_keys": [
+        "framework"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "C04",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "research",
+      "filters": {
+        "category": "research"
+      },
+      "expected_event_keys": [
+        "comparison_only",
+        "unrelated"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "C05",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "product",
+      "filters": {
+        "category": "product"
+      },
+      "expected_event_keys": [
+        "product"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "C06",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "industry",
+      "filters": {
+        "category": "industry"
+      },
+      "expected_event_keys": [
+        "industry"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "invalid_filters": {
+        "category": "not-a-category"
+      },
+      "expected_error_status": 422
+    },
+    {
+      "case_id": "E01",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "DeepSeek",
+      "filters": {
+        "q": "DeepSeek"
+      },
+      "expected_event_keys": [
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model"
+      ],
+      "forbidden_event_keys": [
+        "comparison_only",
+        "unrelated"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "historical_evidence_acceptance": "not_verified"
+    },
+    {
+      "case_id": "E02",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "deepseek",
+      "filters": {
+        "q": "deepseek"
+      },
+      "expected_event_keys": [
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model"
+      ],
+      "forbidden_event_keys": [
+        "comparison_only",
+        "unrelated"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "historical_evidence_acceptance": "not_verified"
+    },
+    {
+      "case_id": "E03",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "深度求索",
+      "filters": {
+        "q": "深度求索"
+      },
+      "expected_event_keys": [
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model"
+      ],
+      "forbidden_event_keys": [
+        "comparison_only",
+        "unrelated"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "historical_evidence_acceptance": "not_verified"
+    },
+    {
+      "case_id": "E04",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "DeepSeek + 指定日期",
+      "filters": {
+        "q": "DeepSeek",
+        "date_from": "2026-09-08",
+        "date_to": "2026-09-10"
+      },
+      "expected_event_keys": [
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "product",
+        "model"
+      ],
+      "forbidden_event_keys": [
+        "old_high_rank",
+        "future_of_range",
+        "comparison_only",
+        "unknown_date",
+        "month_precision"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "E05",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "DeepSeek 和示例研究团队共同事件",
+      "filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ],
+        "entity_match": "all"
+      },
+      "expected_event_keys": [
+        "date_end_both_entities"
+      ],
+      "forbidden_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "comparison_only",
+        "unrelated"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "E06",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "DeepSeek 或示例研究团队事件",
+      "filters": {
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ],
+        "entity_match": "any"
+      },
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "future_of_range",
+        "comparison_only",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model",
+        "framework",
+        "industry"
+      ],
+      "forbidden_event_keys": [
+        "unrelated"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "E07",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "DeepSeek 比较提及不能当主体",
+      "filters": {
+        "q": "DeepSeek"
+      },
+      "expected_event_keys": [
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model"
+      ],
+      "forbidden_event_keys": [
+        "comparison_only"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "E08",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "实体歧义澄清未实现"
+    },
+    {
+      "case_id": "N01",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "确实不存在的库内事件",
+      "filters": {
+        "q": "never-present-synthetic-xyz"
+      },
+      "expected_event_keys": [],
+      "forbidden_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "expected_answer_status": "no_answer"
+    },
+    {
+      "case_id": "N02",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "未来日期无事件",
+      "filters": {
+        "date_from": "2099-01-01",
+        "date_to": "2099-01-01"
+      },
+      "expected_event_keys": [],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "expected_answer_status": "no_answer"
+    },
+    {
+      "case_id": "N03",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "真实embedding故障降级未实现"
+    },
+    {
+      "case_id": "N04",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "故障注入另见API/仓储单测，本套尚未绑定"
+    },
+    {
+      "case_id": "N05",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "有事件但无证据",
+      "filters": {
+        "q": "低排序"
+      },
+      "expected_event_keys": [
+        "date_start"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "no_invented_evidence"
+      ]
+    },
+    {
+      "case_id": "N06",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "引用拦截另见单测，完整生成主张检查未实现"
+    },
+    {
+      "case_id": "R01",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "中文分词/受控查询别名尚未完整实现"
+    },
+    {
+      "case_id": "R02",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "MCP / SDK / 带连字符名称",
+      "filters": {
+        "q": "MCP"
+      },
+      "expected_event_keys": [
+        "framework"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "variants": [
+        {
+          "filters": {
+            "q": "SDK"
+          },
+          "expected_event_keys": [
+            "framework"
+          ]
+        },
+        {
+          "filters": {
+            "q": "Example-Agent"
+          },
+          "expected_event_keys": [
+            "product"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "R03",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "全文/向量RRF融合未实现"
+    },
+    {
+      "case_id": "R04",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "旧事件不能挤掉区间内事件",
+      "filters": {
+        "date_from": "2026-09-08",
+        "date_to": "2026-09-10",
+        "category": "agent_tool"
+      },
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities"
+      ],
+      "forbidden_event_keys": [
+        "old_high_rank"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "R05",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "无embedding的发布事件仍可查",
+      "filters": {
+        "q": "DeepSeek"
+      },
+      "expected_event_keys": [
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model"
+      ],
+      "forbidden_event_keys": [
+        "comparison_only"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "embedding_profile": "absent"
+    },
+    {
+      "case_id": "R06",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "匹配集合超过一页",
+      "filters": {},
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "future_of_range",
+        "comparison_only",
+        "unknown_date",
+        "month_precision",
+        "product",
+        "model",
+        "framework",
+        "industry",
+        "unrelated"
+      ],
+      "forbidden_event_keys": [],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "page_size": 1,
+      "answer_context_coverage": "not_verified"
+    },
+    {
+      "case_id": "T01",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "2026-09-08 至 09-10 的 Agent 工具进展",
+      "filters": {
+        "date_from": "2026-09-08",
+        "date_to": "2026-09-10",
+        "category": "agent_tool"
+      },
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities"
+      ],
+      "forbidden_event_keys": [
+        "old_high_rank",
+        "future_of_range",
+        "unknown_date",
+        "month_precision"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ],
+      "historical_evidence_acceptance": "not_verified"
+    },
+    {
+      "case_id": "T02",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "只查询 2026-09-10 当天",
+      "filters": {
+        "date_from": "2026-09-10",
+        "date_to": "2026-09-10"
+      },
+      "expected_event_keys": [
+        "date_end_both_entities"
+      ],
+      "forbidden_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "future_of_range"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "T03",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "09-08 至 09-10 检查边界",
+      "filters": {
+        "date_from": "2026-09-08",
+        "date_to": "2026-09-10"
+      },
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "comparison_only",
+        "product",
+        "model",
+        "framework",
+        "industry",
+        "unrelated"
+      ],
+      "forbidden_event_keys": [
+        "old_high_rank",
+        "future_of_range",
+        "unknown_date",
+        "month_precision"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    },
+    {
+      "case_id": "T04",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "固定Clock今天解析未实现"
+    },
+    {
+      "case_id": "T05",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "跨月/跨年昨天解析未实现"
+    },
+    {
+      "case_id": "T06",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "最近7自然日解析未实现"
+    },
+    {
+      "case_id": "T07",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "本周解析未实现"
+    },
+    {
+      "case_id": "T08",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "上周解析未实现"
+    },
+    {
+      "case_id": "T09",
+      "enabled_from": "phase0",
+      "layer": "pending",
+      "reason": "午夜跨时区自然语言解析未实现"
+    },
+    {
+      "case_id": "T10",
+      "enabled_from": "phase0",
+      "layer": "synthetic_explicit_filters",
+      "question": "严格日期范围与未知/月级日期",
+      "filters": {
+        "date_from": "2026-09-01",
+        "date_to": "2026-09-30"
+      },
+      "expected_event_keys": [
+        "date_start",
+        "deepseek_no_embedding",
+        "date_end_both_entities",
+        "old_high_rank",
+        "future_of_range",
+        "comparison_only",
+        "product",
+        "model",
+        "framework",
+        "industry",
+        "unrelated"
+      ],
+      "forbidden_event_keys": [
+        "unknown_date",
+        "month_precision"
+      ],
+      "checks": [
+        "exact_scope",
+        "stable_pagination",
+        "negative_exclusion"
+      ]
+    }
+  ]
+}

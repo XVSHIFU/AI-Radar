@@ -1,0 +1,219 @@
+{
+  "dataset": "synthetic-structure-v1",
+  "synthetic": true,
+  "fixed_clock": "2026-09-11T04:00:00Z",
+  "timezone": "Asia/Shanghai",
+  "event_keys": {
+    "date_start": "00000000-0000-4000-8000-000000000001",
+    "deepseek_no_embedding": "00000000-0000-4000-8000-000000000002",
+    "date_end_both_entities": "00000000-0000-4000-8000-000000000003",
+    "old_high_rank": "00000000-0000-4000-8000-000000000004",
+    "future_of_range": "00000000-0000-4000-8000-000000000005",
+    "comparison_only": "00000000-0000-4000-8000-000000000006",
+    "unknown_date": "00000000-0000-4000-8000-000000000007",
+    "month_precision": "00000000-0000-4000-8000-000000000008",
+    "product": "00000000-0000-4000-8000-000000000009",
+    "model": "00000000-0000-4000-8000-000000000010",
+    "framework": "00000000-0000-4000-8000-000000000011",
+    "industry": "00000000-0000-4000-8000-000000000012",
+    "unrelated": "00000000-0000-4000-8000-000000000013"
+  },
+  "items": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "title_zh": "合成边界：低排序智能体工具",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "category": "agent_tool",
+      "entities": [
+        "示例研究团队"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "title_zh": "合成 DeepSeek 智能体工具",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "category": "agent_tool",
+      "entities": [
+        "DeepSeek"
+      ],
+      "importance": 2,
+      "source_count": 1,
+      "evidence_count": 1,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "title_zh": "合成双主体工具更新",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-10",
+      "date_precision": "day",
+      "category": "agent_tool",
+      "entities": [
+        "DeepSeek",
+        "示例研究团队"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "title_zh": "合成旧日期高重要度工具",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-07",
+      "date_precision": "day",
+      "category": "agent_tool",
+      "entities": [
+        "DeepSeek"
+      ],
+      "importance": 5,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "title_zh": "合成区间外工具",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-11",
+      "date_precision": "day",
+      "category": "agent_tool",
+      "entities": [
+        "示例研究团队"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "title_zh": "合成研究：与 DeepSeek 对比",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "category": "research",
+      "entities": [
+        "示例研究团队"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "title_zh": "合成 DeepSeek 日期未知",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": null,
+      "date_precision": "unknown",
+      "category": "agent_tool",
+      "entities": [
+        "DeepSeek"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "title_zh": "合成 DeepSeek 月级日期",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-01",
+      "date_precision": "month",
+      "category": "agent_tool",
+      "entities": [
+        "DeepSeek"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "title_zh": "合成 Example-Agent 产品更新",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "category": "product",
+      "entities": [
+        "DeepSeek"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "title_zh": "合成 DeepSeek 模型发布",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "category": "model_release",
+      "entities": [
+        "DeepSeek"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "title_zh": "合成 MCP SDK 框架",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "category": "framework_sdk",
+      "entities": [
+        "示例研究团队"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "title_zh": "合成行业观察",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-08",
+      "date_precision": "day",
+      "category": "industry",
+      "entities": [
+        "示例研究团队"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013",
+      "title_zh": "合成第三方独立研究",
+      "summary_zh": "完全合成，仅验证结构边界；无真实新闻或历史来源声明。",
+      "event_date": "2026-09-09",
+      "date_precision": "day",
+      "category": "research",
+      "entities": [
+        "合成第三方"
+      ],
+      "importance": 2,
+      "source_count": 0,
+      "evidence_count": 0,
+      "content_version": 1
+    }
+  ]
+}

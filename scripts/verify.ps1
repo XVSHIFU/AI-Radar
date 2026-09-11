@@ -20,6 +20,7 @@ try {
         Invoke-Checked uv @('run','--frozen','ruff','check','.')
         Invoke-Checked uv @('run','--frozen','mypy','src')
         Invoke-Checked uv @('run','--frozen','pytest','-q')
+        Invoke-Checked uv @('run','--frozen','python','../scripts/check-structure.py')
         Invoke-Checked uv @('run','--frozen','python','../scripts/freeze-openapi.py')
         Invoke-Checked uv @('run','--frozen','alembic','upgrade','head','--sql')
     } finally { Pop-Location }
@@ -30,7 +31,7 @@ try {
         Invoke-Checked pnpm @('build')
     } finally { Pop-Location }
 } finally {
-    $report=[pscustomobject]@{started_at=$startedAt.ToString('o');finished_at=[DateTimeOffset]::UtcNow.ToString('o');layer='local_static_unit_offline_migration_build';postgres_integration_executed=$false;live_model_executed=$false;passed=@($checks|Where-Object passed).Count;expected_steps=8;checks=$checks}
+    $report=[pscustomobject]@{started_at=$startedAt.ToString('o');finished_at=[DateTimeOffset]::UtcNow.ToString('o');layer='local_static_unit_offline_migration_build';postgres_integration_executed=$false;live_model_executed=$false;passed=@($checks|Where-Object passed).Count;expected_steps=9;checks=$checks}
     [IO.File]::WriteAllText((Join-Path $projectRoot 'docs/local-checks.json'),($report|ConvertTo-Json -Depth 6))
 }
 Write-Output 'Local checks passed. This runner does not execute PostgreSQL or live model integration acceptance.'
