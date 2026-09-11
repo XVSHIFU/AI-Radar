@@ -25,6 +25,7 @@ class EntityResolution:
     resolved: list[ResolvedEntity]
     ambiguous: list[ResolvedEntity]
     matched_terms: list[str]
+    matched_spans: list[tuple[int, int]]
 
 
 class EntityResolver(Protocol):
@@ -163,13 +164,13 @@ class QueryPlanner:
             warnings.append("问题中有多个日期限制，请选择一个日期范围")
             candidates.append(ClarificationCandidate(label="请选择一个日期范围", entity_id=None))
         resolution = await entity_resolver.resolve_entities(normalized)
+        category_characters = list(normalized)
+        for start_index, end_index in resolution.matched_spans:
+            category_characters[start_index:end_index] = " " * (end_index - start_index)
+        category_text = "".join(category_characters)
         category_matches: list[tuple[str, Category]] = []
         for alias in sorted(CATEGORY_ALIASES, key=len, reverse=True):
-            overlaps_entity = any(
-                alias != entity_term and alias in entity_term
-                for entity_term in resolution.matched_terms
-            )
-            if alias in normalized and not overlaps_entity:
+            if alias in category_text:
                 category_matches.append((alias, CATEGORY_ALIASES[alias]))
                 consumed.append(alias)
         if category_matches:
@@ -209,15 +210,13 @@ class QueryPlanner:
         elif inferred.entity_ids:
             combined.entity_ids = inferred.entity_ids
             origins["entity_ids"] = "question"
-            if explicit_entity_match:
-                origins["entity_match"] = "request"
-                if filters.entity_match != inferred.entity_match:
-                    warnings.append("请求参数 entity_match 已覆盖问题中识别出的匹配方式")
-            else:
-                combined.entity_match = inferred.entity_match
-                origins["entity_match"] = "question"
-        elif explicit_entity_match:
+        if explicit_entity_match:
             origins["entity_match"] = "request"
+            if inferred.entity_ids and filters.entity_match != inferred.entity_match:
+                warnings.append("请求参数 entity_match 已覆盖问题中识别出的匹配方式")
+        elif inferred.entity_ids:
+            combined.entity_match = inferred.entity_match
+            origins["entity_match"] = "question"
         if filters.q:
             origins["q"] = "request"
             normalized_q = normalize_query(filters.q)
@@ -295,7 +294,12 @@ def resolve_confirmed_entities(
             ambiguous.update(distinct)
     if not resolved and not ambiguous and " " not in normalized:
         ambiguous = {item.entity_id: item for item in fuzzy_candidates(normalized, aliases)}
-    return EntityResolution(list(resolved.values()), list(ambiguous.values()), matched_terms)
+    return EntityResolution(
+        list(resolved.values()),
+        list(ambiguous.values()),
+        matched_terms,
+        [(start, end) for start, end, _alias in selected],
+    )
 
 
 def fuzzy_candidates(term: str, aliases: dict[str, list[ResolvedEntity]]) -> list[ResolvedEntity]:

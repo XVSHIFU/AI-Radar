@@ -270,3 +270,52 @@ async def test_production_resolver_uses_longest_non_overlapping_confirmed_aliase
     assert [item.entity_id for item in longest.resolved] == [metaflow_id]
     assert {item.entity_id for item in explicit_both.resolved} == {meta_id, metaflow_id}
     assert embedded.resolved == []
+
+
+@pytest.mark.parametrize(
+    ("question", "category"),
+    [("示例研究团队", None), ("示例研究团队的研究", "research")],
+)
+def test_category_detection_masks_only_confirmed_entity_span(
+    client: TestClient, question: str, category: str | None
+) -> None:
+    response = client.post(
+        "/api/v1/query-plan",
+        json={"question": question, "client_request_id": "entity-category-span"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["filters"]["category"] == category
+    assert body["free_text"] == ""
+
+
+@pytest.mark.parametrize(
+    ("question", "filters", "expected_match"),
+    [
+        ("DeepSeek 或 示例研究团队", {"entity_match": "all"}, "all"),
+        (
+            "DeepSeek 和 示例研究团队",
+            {
+                "entity_ids": ["10000000-0000-4000-8000-000000000001"],
+                "entity_match": "any",
+            },
+            "any",
+        ),
+    ],
+)
+def test_explicit_entity_match_always_has_request_origin_and_conflict_warning(
+    client: TestClient, question: str, filters: dict, expected_match: str
+) -> None:
+    response = client.post(
+        "/api/v1/query-plan",
+        json={
+            "question": question,
+            "filters": filters,
+            "client_request_id": "explicit-match",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["filters"]["entity_match"] == expected_match
+    assert body["constraints_origin"]["entity_match"] == "request"
+    assert any("entity_match" in warning for warning in body["warnings"])
