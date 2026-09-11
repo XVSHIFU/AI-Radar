@@ -21,8 +21,17 @@ const question = ref(""),
   error = ref<ReturnType<typeof err>>(),
   status = ref(""),
   tokens = ref(""),
-  sources = ref<any[]>([]),
-  metrics = ref<any>(),
+  sources = ref<Citation[]>([]),
+  metrics = ref<
+    Pick<
+      AskResult,
+      | "scope_total"
+      | "retrieved_count"
+      | "summarized_count"
+      | "citation_count"
+      | "coverage"
+    > & { status?: string }
+  >(),
   expanded = ref<number>();
 let timers: number[] = [];
 const validUrl = (url: string) => /^https?:\/\//i.test(url);
@@ -81,9 +90,17 @@ async function submit() {
         if (current !== generation) return;
         if (e.event === "status") status.value = "模拟流：正在检索";
         if (e.event === "token") tokens.value += JSON.parse(e.data).text;
-        if (e.event === "sources") sources.value = JSON.parse(e.data).items;
+        if (e.event === "sources")
+          sources.value = JSON.parse(e.data).items as Citation[];
         if (e.event === "done") {
-          metrics.value = JSON.parse(e.data);
+          metrics.value = JSON.parse(e.data) as Pick<
+            AskResult,
+            | "scope_total"
+            | "retrieved_count"
+            | "summarized_count"
+            | "citation_count"
+            | "coverage"
+          >;
           status.value =
             metrics.value.status === "completed"
               ? "模拟流已完成"
@@ -103,13 +120,11 @@ async function submit() {
         controller.value.signal,
       );
       if (current !== generation) return;
+      const view = askView(x);
       result.value = x;
-      sources.value = x.citations.map((c: any, i: number) => ({
-        ...c,
-        index: i + 1,
-      }));
+      sources.value = view.citations;
       metrics.value = x;
-      status.value = "已完成";
+      status.value = view.status;
     }
   } catch (e) {
     if (current !== generation) return;
@@ -182,6 +197,10 @@ onBeforeUnmount(() => {
           >打开来源</a
         >
       </div>
+      <p v-if="result?.answer_status === 'no_answer'">没有可回答的资料。</p>
+      <p v-if="metrics?.coverage === 'partial'" class="meta">
+        覆盖不完整：答案仅基于部分匹配资料。
+      </p>
       <p v-if="metrics" class="meta">
         完整匹配 {{ metrics.scope_total }} · 取回
         {{ metrics.retrieved_count }} · 总结 {{ metrics.summarized_count }} ·

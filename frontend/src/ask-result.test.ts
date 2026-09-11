@@ -44,7 +44,7 @@ test("rejects missing or duplicate citation indexes", () => {
 });
 test("presents no answer partial failed and cancelled states", () => {
   assert.match(
-    askView(result([], "completed", "no_answer", "no_answer")).status,
+    askView(result([], "completed", "complete", "no_answer")).status,
     /没有/,
   );
   assert.equal(askView(result([], "failed", "partial")).partial, true);
