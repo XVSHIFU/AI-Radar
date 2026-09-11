@@ -79,3 +79,19 @@ uv run --project backend --frozen python scripts/validate-source-bodies.py
 ```
 
 报告为 docs/source-body-validation.json，只取每源1篇正文，不写数据库、不调用模型、不发布事件。此前 urllib RSS入口5/5与本次生产transport结果分开记录。即使正文解析成功，仍需后续完整提取、证据与入库验收。
+
+## 采集进程（数据库环境就绪后）
+
+从 backend 目录执行：
+
+```powershell
+uv run alembic upgrade head
+uv run radar-register-sources
+# 上一步仅注册5个候选，默认禁用。完成生产抓取验证后才显式启用：
+uv run radar-register-sources --enable
+# 以下两个进程分别运行，API不会兼任定时器或worker：
+uv run python -m app.scheduler
+uv run python -m app.worker
+```
+
+注册命令按来源名幂等更新；再次不带 --enable 运行会把这些候选设为禁用。来源健康表示RSS发现状态，正文解析失败与最终任务失败在运行记录中分别统计。当前采集止于冻结正文版本与待审候选，已发布事件数保持0；模型提取、发布、embedding及回答生成尚未完成。预算预留表和调用账本表已建模，实际计费执行与结算仍未实现。

@@ -1,0 +1,45 @@
+{
+  "observed_at": "2026-09-11T18:25:48.982245+00:00",
+  "layer": "real_loopback_connection_refused_no_postgresql_server",
+  "postgres_integration_executed": false,
+  "passed": 3,
+  "total": 3,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/v1/events",
+      "status": 503,
+      "body": {
+        "code": "RETRIEVAL_FAILED",
+        "message": "Database retrieval failed",
+        "retryable": true,
+        "request_id": "e97480b1-f121-4e1b-96ab-48400110df86"
+      },
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ingest/runs",
+      "status": 503,
+      "body": {
+        "code": "RETRIEVAL_FAILED",
+        "message": "Database retrieval failed",
+        "retryable": true,
+        "request_id": "092dc040-8db8-4ff4-892f-0f1794a19914"
+      },
+      "passed": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ingest/runs",
+      "status": 503,
+      "body": {
+        "code": "RETRIEVAL_FAILED",
+        "message": "Database retrieval failed",
+        "retryable": true,
+        "request_id": "3ae5b7fe-640f-4559-87e8-80aa7317cd0e"
+      },
+      "passed": true
+    }
+  ]
+}
