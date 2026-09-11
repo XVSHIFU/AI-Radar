@@ -257,3 +257,19 @@ class WorkerService:
             run.failed_jobs = failed
             run.status = "partial" if failed and succeeded else ("failed" if failed else "success")
             run.finished_at = datetime.now(UTC)
+            if failed:
+                errors = list(
+                    (
+                        await session.scalars(
+                            select(IngestJobRow.last_error)
+                            .where(
+                                IngestJobRow.run_id == run.id,
+                                IngestJobRow.state == "failed",
+                                IngestJobRow.last_error.is_not(None),
+                            )
+                            .order_by(IngestJobRow.id)
+                            .limit(10)
+                        )
+                    ).all()
+                )
+                run.error_summary = "; ".join(error for error in errors if error)

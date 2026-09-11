@@ -270,3 +270,27 @@ async def test_article_parser_failure_is_counted_separately_from_http_failure() 
     assert parser_session.parser_updates == 1
     assert source.consecutive_failures == 0
     assert source.health == "ok"
+
+
+class CompletionSession:
+    def __init__(self) -> None:
+        self.counts = iter((0, 1, 1))
+
+    async def scalar(self, statement):
+        assert "count(*)" in str(statement)
+        return next(self.counts)
+
+    async def scalars(self, statement):
+        assert "ingest_jobs.last_error" in str(statement)
+        return Result(rows=["first article permanently failed"])
+
+
+@pytest.mark.asyncio
+async def test_last_success_preserves_prior_failure_summary_on_partial_run() -> None:
+    _source, _job, run = make_rows()
+    await WorkerService._complete_run_if_done(CompletionSession(), run)
+
+    assert run.status == "partial"
+    assert run.failed_jobs == 1
+    assert run.finished_at is not None
+    assert run.error_summary == "first article permanently failed"
