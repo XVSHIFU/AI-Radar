@@ -36,6 +36,7 @@ export type Evidence = {
 };
 export type Article = { title: string; source_url: string; language?: string };
 export type ApiError = {
+  details?: { query_plan_public?: unknown };
   code: string;
   message: string;
   retryable?: boolean;

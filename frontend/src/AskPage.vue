@@ -10,6 +10,7 @@ import {
 } from "./api";
 import { parseSse } from "./sse";
 import { askView } from "./ask-result";
+import { queryPlanFrom, type QueryPlan } from "./query-plan";
 let generation = 0;
 const question = ref(""),
   category = ref<Category | "">(""),
@@ -32,7 +33,8 @@ const question = ref(""),
       | "coverage"
     > & { status?: string }
   >(),
-  expanded = ref<number>();
+  expanded = ref<number>(),
+  plan = ref<QueryPlan>();
 let timers: number[] = [];
 const validUrl = (url: string) => /^https?:\/\//i.test(url);
 const invalid = () => Boolean(from.value && to.value && from.value > to.value);
@@ -74,6 +76,7 @@ async function submit() {
   }
   controller.value = new AbortController();
   result.value = undefined;
+  plan.value = undefined;
   error.value = undefined;
   tokens.value = "";
   sources.value = [];
@@ -120,6 +123,7 @@ async function submit() {
         controller.value.signal,
       );
       if (current !== generation) return;
+      plan.value = queryPlanFrom(x);
       const view = askView(x);
       result.value = x;
       sources.value = view.citations;
@@ -130,7 +134,10 @@ async function submit() {
     if (current !== generation) return;
     status.value =
       (e as Error).name === "AbortError" ? "已取消，未自动重试。" : "";
-    if ((e as Error).name !== "AbortError") error.value = err(e);
+    if ((e as Error).name !== "AbortError") {
+      error.value = err(e);
+      plan.value = queryPlanFrom(e);
+    }
   } finally {
     if (current === generation) running.value = false;
   }
@@ -170,6 +177,33 @@ onBeforeUnmount(() => {
     </div>
     <p aria-live="polite">{{ status }}</p>
     <div v-if="error" class="card error">{{ error.message }}</div>
+    <article v-if="plan" class="card" aria-label="检索范围">
+      <h2>检索范围</h2>
+      <p>业务日期：{{ plan.business_date }} · 时区：{{ plan.timezone }}</p>
+      <p>
+        分类：{{ plan.filters.category || "全部分类" }} · 日期：{{
+          plan.filters.date_from || "不限"
+        }}
+        至 {{ plan.filters.date_to || "不限" }}
+      </p>
+      <p>
+        实体：{{
+          plan.filters.entity_ids?.length
+            ? `已采用 ${plan.filters.entity_ids.length} 个实体条件`
+            : "未限定实体"
+        }}
+      </p>
+      <p v-if="plan.requires_clarification">
+        需要澄清：<span
+          v-for="c in plan.clarification_candidates"
+          :key="c.label"
+          >{{ c.label }}
+        </span>
+      </p>
+      <ul v-if="plan.warnings.length">
+        <li v-for="warning in plan.warnings" :key="warning">{{ warning }}</li>
+      </ul>
+    </article>
     <article v-if="tokens || result" class="card">
       <p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p>
       <h2>回答</h2>

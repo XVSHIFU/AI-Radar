@@ -29,3 +29,5 @@ SSE 终态修订：sawError 后仅允许 done.status=failed；新增 error-befor
 AskPage 实际接入修订：真实响应调用 askView、使用原始 citations 与其 index、状态取 view.status；页面显示 no_answer 与 partial 提示。AskPage rg 已确认无数组重编号或 ref<any；问答结果测试覆盖零/负/小数索引。
 
 本轮返修：RouterView key 改为响应式 route.path 与 route.query.demo；样式重构为单一主题变量集，移除旧 padding/状态覆盖重复规则，补标题正文间距和侧栏 align-self:start。仅执行 typecheck/build，均通过。
+
+QueryPlan UI：问答页直接展示成功 query_plan_public 或错误 details.query_plan_public 的业务日期、时区、分类、日期、实体数量、澄清候选与警告；新请求清空旧计划。解析测试覆盖成功和错误包装。本轮 typecheck、13项测试和 build 通过。
