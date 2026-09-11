@@ -1,18 +1,15 @@
 param([double]$StopBelow = 80)
 $ErrorActionPreference = 'Stop'
-$sessionRoot = Join-Path $env:USERPROFILE '.codex\sessions'
+$sessionRoot = Join-Path $env:USERPROFILE '.codex/sessions'
 $today = Join-Path $sessionRoot (Get-Date -Format 'yyyy/MM/dd')
-$files = Get-ChildItem -LiteralPath $today -Filter '*.jsonl' -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 8
-$observations = foreach ($file in $files) {
-    foreach ($line in (Get-Content -LiteralPath $file.FullName -Tail 150)) {
-        try { $entry = $line | ConvertFrom-Json } catch { continue }
-        if ($entry.type -eq 'event_msg' -and $entry.payload.type -eq 'token_count' -and $entry.payload.rate_limits.limit_id -eq 'codex') {
-            $limits = $entry.payload.rate_limits
-            foreach ($window in @($limits.primary, $limits.secondary)) {
-                if ($null -ne $window) {
-                    [pscustomobject]@{observed_at=$entry.timestamp; window_minutes=$window.window_minutes; remaining_percent=(100 - $window.used_percent); stop_at_or_below=$StopBelow}
-                }
-            }
+$records = & rg --no-heading --no-filename '"type"\s*:\s*"token_count"' $today
+$observations = foreach ($line in $records) {
+    try { $entry = $line | ConvertFrom-Json } catch { continue }
+    if ($entry.type -ne 'event_msg' -or $entry.payload.type -ne 'token_count' -or $entry.payload.rate_limits.limit_id -ne 'codex') { continue }
+    $limits = $entry.payload.rate_limits
+    foreach ($window in @($limits.primary, $limits.secondary)) {
+        if ($null -ne $window) {
+            [pscustomobject]@{observed_at=$entry.timestamp; window_minutes=$window.window_minutes; remaining_percent=(100 - $window.used_percent); stop_at_or_below=$StopBelow}
         }
     }
 }

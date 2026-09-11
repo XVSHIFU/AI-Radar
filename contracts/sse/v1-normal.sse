@@ -1,0 +1,18 @@
+event: meta
+data: {"request_id":"synthetic-stream-001","protocol_version":1}
+
+: heartbeat
+
+event: status
+data: {"phase":"retrieving","message":"正在检索合成验收数据"}
+
+event: token
+data: {"seq":1,
+data: "text":"合成验收：这段中文用于检查跨块 UTF-8。[2]"}
+
+event: sources
+data: {"items":[{"index":2,"evidence_id":"00000000-0000-4000-8000-000000000201","event_id":"00000000-0000-4000-8000-000000000001","article_version_id":"00000000-0000-4000-8000-000000000301","paragraph_id":"p-001","quote_text":"这是合成验收摘录。","source_url":"https://example.com/synthetic","title":"合成验收来源","verification_status":"synthetic"}]}
+
+event: done
+data: {"status":"completed","answer_status":"answered","scope_total":1,"retrieved_count":1,"summarized_count":1,"citation_count":1,"coverage":"complete"}
+

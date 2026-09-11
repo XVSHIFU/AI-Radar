@@ -1,0 +1,9 @@
+event: meta
+data: {"request_id":"synthetic-empty-001","protocol_version":1}
+
+event: sources
+data: {"items":[]}
+
+event: done
+data: {"status":"completed","answer_status":"no_answer","scope_total":0,"retrieved_count":0,"summarized_count":0,"citation_count":0,"coverage":"complete"}
+

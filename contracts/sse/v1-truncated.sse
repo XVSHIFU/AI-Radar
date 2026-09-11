@@ -1,0 +1,6 @@
+event: meta
+data: {"request_id":"synthetic-truncated-001","protocol_version":1}
+
+event: token
+data: {"seq":1,"text":"连接关闭不能视为已完成"}
+

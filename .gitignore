@@ -9,3 +9,6 @@ __pycache__/
 .ruff_cache/
 *.pyc
 artifacts/browser/
+
+.run/
+*.tsbuildinfo

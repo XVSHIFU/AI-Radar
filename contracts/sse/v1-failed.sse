@@ -1,0 +1,15 @@
+event: meta
+data: {"request_id":"synthetic-failed-001","protocol_version":1}
+
+event: token
+data: {"seq":1,"text":"这是尚未完成的合成草稿。"}
+
+event: error
+data: {"code":"MODEL_UNAVAILABLE","message":"模型连接中断","retryable":true,"request_id":"synthetic-failed-001"}
+
+event: sources
+data: {"items":[]}
+
+event: done
+data: {"status":"failed","answer_status":null,"scope_total":1,"retrieved_count":1,"summarized_count":0,"citation_count":0,"coverage":"partial"}
+
