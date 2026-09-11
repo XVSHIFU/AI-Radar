@@ -1,0 +1,1 @@
+"""Stable ASGI entrypoint package."""

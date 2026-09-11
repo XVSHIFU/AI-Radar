@@ -1,0 +1,112 @@
+from datetime import date, datetime
+from enum import StrEnum
+from typing import Any, Literal, Self
+from uuid import UUID
+
+from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+
+
+class Category(StrEnum):
+    MODEL_RELEASE = "model_release"
+    AGENT_TOOL = "agent_tool"
+    FRAMEWORK_SDK = "framework_sdk"
+    RESEARCH = "research"
+    PRODUCT = "product"
+    INDUSTRY = "industry"
+
+
+class Event(BaseModel):
+    id: UUID
+    title_zh: str
+    summary_zh: str
+    category: Category
+    importance: int = Field(ge=1, le=5)
+    event_date: date | None
+    date_precision: Literal["day", "month", "unknown"]
+    source_count: int = Field(ge=0)
+    evidence_count: int = Field(ge=0)
+    entities: list[str]
+    content_version: int = Field(ge=1)
+
+
+class Filters(BaseModel):
+    q: str | None = None
+    category: Category | None = None
+    date_from: date | None = None
+    date_to: date | None = None
+    min_importance: int | None = Field(default=None, ge=1, le=5)
+    entity_ids: list[UUID] = Field(default_factory=list)
+    entity_match: Literal["all", "any"] = "all"
+
+    @model_validator(mode="after")
+    def validate_date_range(self) -> Self:
+        if self.date_from and self.date_to and self.date_from > self.date_to:
+            raise ValueError("date_from must not be after date_to")
+        self.entity_ids = list(dict.fromkeys(self.entity_ids))
+        return self
+
+    @field_validator("entity_ids")
+    @classmethod
+    def deduplicate_entity_ids(cls, value: list[UUID]) -> list[UUID]:
+        return list(dict.fromkeys(value))
+
+
+class EventPage(BaseModel):
+    items: list[Event]
+    total: int
+    total_relation: Literal["eq"] = "eq"
+    next_cursor: str | None
+    filters_applied: Filters
+    as_of: datetime
+    data_revision: str
+    request_id: str
+    data_mode: Literal["fixture", "postgres"]
+
+
+class Evidence(BaseModel):
+    id: UUID
+    event_id: UUID
+    article_version_id: UUID
+    paragraph_id: str
+    quote_text: str
+    source_url: HttpUrl
+    title: str
+    verification_status: Literal["synthetic_verified", "unverified"]
+    source_published_at: datetime | None
+    event_date: date | None
+
+
+class EvidencePage(BaseModel):
+    items: list[Evidence]
+    data_mode: Literal["fixture", "postgres"]
+
+
+class Article(BaseModel):
+    id: UUID
+    title: str
+    source_url: HttpUrl
+    paragraphs: dict[str, str]
+    synthetic: bool
+
+
+class EventDetail(Event):
+    evidence: list[Evidence]
+    articles: list[Article]
+    data_mode: Literal["fixture", "postgres"]
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=2000)
+    filters: Filters = Field(default_factory=Filters)
+    timezone: str = "Asia/Shanghai"
+    answer_mode: str = "concise"
+    client_request_id: str
+
+
+class ErrorBody(BaseModel):
+    code: str
+    message: str
+    retryable: bool
+    request_id: str
+    data_mode: Literal["fixture", "postgres"]
+    details: dict[str, Any] | None = None
