@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from .config import get_settings
 from .fixture_repository import FixtureRepository
 from .postgres_repository import PostgresRepository
-from .repository import EventRepository, InvalidCursor, RepositoryUnavailable
+from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
 from .schemas import AskRequest, Category, EventDetail, EventPage, EvidencePage, Filters
 
 
@@ -83,6 +83,19 @@ async def handle_validation_error(_request: Request, exc: RequestValidationError
             "retryable": False,
             "request_id": str(uuid4()),
             "details": {"errors": details},
+        },
+    )
+
+
+@app.exception_handler(EvidenceInvalid)
+async def handle_evidence_error(_request: Request, _exc: EvidenceInvalid) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "code": "EVIDENCE_INVALID",
+            "message": "Evidence cannot be located in its frozen article version",
+            "retryable": False,
+            "request_id": str(uuid4()),
         },
     )
 

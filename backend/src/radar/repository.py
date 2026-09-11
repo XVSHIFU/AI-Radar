@@ -37,5 +37,9 @@ class RepositoryUnavailable(RuntimeError):
     pass
 
 
+class EvidenceInvalid(RuntimeError):
+    pass
+
+
 class InvalidCursor(ValueError):
     pass

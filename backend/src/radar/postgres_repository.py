@@ -15,6 +15,7 @@ from .models import (
     EvidenceRow,
     SourceRow,
 )
+from .normalize import normalize_text
 from .repository import Page, RepositoryUnavailable
 from .schemas import Article, Event, Evidence, Filters
 
@@ -45,7 +46,7 @@ class PostgresRepository:
         if filters.min_importance:
             clauses.append(EventRow.importance >= filters.min_importance)
         if filters.q:
-            query = filters.q.strip().casefold()
+            query = normalize_text(filters.q)
             alias_ids = select(EntityAliasRow.entity_id).where(
                 EntityAliasRow.normalized_alias == query
             )
@@ -200,8 +201,11 @@ class PostgresRepository:
         evidence = await self.evidence_for(event_id)
         result: dict[UUID, Article] = {}
         for item in evidence:
-            async with self.sessions() as session:
-                row = await session.get(self.article_version_model, item.article_version_id)
+            try:
+                async with self.sessions() as session:
+                    row = await session.get(self.article_version_model, item.article_version_id)
+            except Exception as exc:
+                raise RepositoryUnavailable("PostgreSQL query failed") from exc
             if row is None:
                 continue
             paragraph = row.paragraphs.get(item.paragraph_id)

@@ -1,5 +1,4 @@
 import json
-import unicodedata
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
@@ -7,6 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from .cursor import decode_cursor, encode_cursor
+from .normalize import normalize_text
 from .repository import InvalidCursor, Page
 from .schemas import Article, Event, Evidence, Filters
 
@@ -19,10 +19,6 @@ ARTICLE_VERSION_ID = UUID("30000000-0000-4000-8000-000000000001")
 FROZEN_PARAGRAPHS = {
     "synthetic-v1-p1": "合成段落：DeepSeek 示例研究模型预览用于验证段落级证据定位。"
 }
-
-
-def _normalize(value: str) -> str:
-    return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
 
 
 class FixtureRepository:
@@ -76,7 +72,7 @@ class FixtureRepository:
                 )
             ]
         if filters.q:
-            query = _normalize(filters.q)
+            query = normalize_text(filters.q)
             alias_ids = ALIASES.get(query)
             if alias_ids:
                 events = [
@@ -87,7 +83,7 @@ class FixtureRepository:
                     event
                     for event in events
                     if query
-                    in _normalize(" ".join((event.title_zh, event.summary_zh, *event.entities)))
+                    in normalize_text(" ".join((event.title_zh, event.summary_zh, *event.entities)))
                 ]
         events.sort(
             key=lambda event: (
