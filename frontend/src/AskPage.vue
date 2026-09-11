@@ -74,6 +74,15 @@ function slowStream() {
     },
   });
 }
+function cancel() {
+  generation++;
+  controller.value?.abort();
+  timers.forEach(clearTimeout);
+  timers = [];
+  plan.value = undefined;
+  running.value = false;
+  status.value = "已取消，未自动重试。";
+}
 async function submit() {
   const current = ++generation;
   controller.value?.abort();
@@ -181,7 +190,7 @@ onBeforeUnmount(() => {
     </div>
     <div class="row">
       <button :disabled="running || !question" @click="submit">开始分析</button
-      ><button v-if="running" @click="controller?.abort()">取消</button>
+      ><button v-if="running" @click="cancel">取消</button>
     </div>
     <p aria-live="polite">{{ status }}</p>
     <div v-if="error" class="card error">{{ error.message }}</div>
@@ -218,7 +227,11 @@ onBeforeUnmount(() => {
       </p>
       <p v-if="plan.free_text">未理解限制：{{ plan.free_text }}</p>
       <p v-if="plan.entity_roles?.length">
-        实体角色：{{ plan.entity_roles.join("、") }}
+        实体角色：{{
+          plan.entity_roles
+            .map((role) => (role === "subject" ? "主体" : "产品"))
+            .join("、")
+        }}
       </p>
       <ul v-if="plan.warnings.length">
         <li v-for="warning in plan.warnings" :key="warning">{{ warning }}</li>

@@ -22,3 +22,13 @@ test("reads plan from success and error details", () => {
     "日期条件冲突",
   );
 });
+test("rejects plans missing filters or malformed candidates", () => {
+  const { filters, ...missing } = plan;
+  assert.equal(queryPlanFrom({ query_plan_public: missing }), undefined);
+  assert.equal(
+    queryPlanFrom({
+      query_plan_public: { ...plan, clarification_candidates: [{ label: 42 }] },
+    }),
+    undefined,
+  );
+});
