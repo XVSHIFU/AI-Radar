@@ -1,8 +1,8 @@
 {
-  "observed_at": "2026-09-11T18:25:15.1750591+00:00",
+  "observed_at": "2026-09-11T19:10:37.6553423+00:00",
   "base_url": "http://127.0.0.1:5175",
-  "passed": 41,
-  "total": 41,
+  "passed": 42,
+  "total": 42,
   "checks": [
     {
       "check": "home_initial_total_and_page",
@@ -155,7 +155,7 @@
       "layer": "fixture_api_browser",
       "passed": true,
       "actual": {
-        "error": "Question interpretation requires a configured answer model",
+        "error": "MODEL_UNAVAILABLE：生成模型尚未配置，已显示可用的检索范围。 Answer model is not configured",
         "passed": true
       }
     },
@@ -166,6 +166,15 @@
       "actual": {
         "passed": true,
         "text": "回答\n\n没有可回答的资料。\n\n完整匹配 0 · 取回 0 · 总结 0 · 引用 0 · 覆盖：complete"
+      }
+    },
+    {
+      "check": "ask_real_plan_without_model",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "text": "检索范围\n\n业务日期：2026-09-12 · 时区：Asia/Shanghai\n\n分类：全部分类 · 日期：不限 至 不限（起止日期均包含）\n\n实体：已采用 1 个实体条件（同时匹配）\n\n实体角色：主体、产品"
       }
     },
     {

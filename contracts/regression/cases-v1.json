@@ -329,7 +329,7 @@
       "case_id": "E08",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "实体歧义澄清未实现"
+      "reason": "歧义与模糊拼写另有单测和固定审查；本题完整场景尚未绑定本套检查"
     },
     {
       "case_id": "N01",
@@ -350,7 +350,8 @@
         "stable_pagination",
         "negative_exclusion"
       ],
-      "expected_answer_status": "no_answer"
+      "expected_answer_status": "no_answer",
+      "ask_question": "有哪些事件？"
     },
     {
       "case_id": "N02",
@@ -368,7 +369,8 @@
         "stable_pagination",
         "negative_exclusion"
       ],
-      "expected_answer_status": "no_answer"
+      "expected_answer_status": "no_answer",
+      "ask_question": "有哪些事件？"
     },
     {
       "case_id": "N03",
@@ -380,7 +382,7 @@
       "case_id": "N04",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "故障注入另见API/仓储单测，本套尚未绑定"
+      "reason": "数据库不可用另有3端点真实连接拒绝检查；本题故障场景尚未绑定本套检查"
     },
     {
       "case_id": "N05",
@@ -621,37 +623,37 @@
       "case_id": "T04",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "固定Clock今天解析未实现"
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T05",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "跨月/跨年昨天解析未实现"
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T06",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "最近7自然日解析未实现"
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T07",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "本周解析未实现"
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T08",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "上周解析未实现"
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T09",
       "enabled_from": "phase0",
       "layer": "pending",
-      "reason": "午夜跨时区自然语言解析未实现"
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T10",

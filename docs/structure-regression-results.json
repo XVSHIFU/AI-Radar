@@ -1,15 +1,15 @@
 {
-  "observed_at": "2026-09-11T18:01:09.636696+00:00",
+  "observed_at": "2026-09-11T19:03:23.635003+00:00",
   "dataset": "synthetic-structure-v1",
   "layer": "synthetic_explicit_filter_asgi",
   "corpus_sha256": "3ba1f4d6a13429b7be036fceb7736992dbbf337d5f4deca5a2b6ce20dd4a6def",
-  "cases_sha256": "84c6a4aaf8d3d8540b8e57c71a17039a73f451ce42c07828038c8ae3226c682f",
+  "cases_sha256": "7e0c3b438ad68163d874be5fdfdf4fc1cb4c76ce3e1f3c415e1f04a90a72ebd4",
   "fixed_clock": "2026-09-11T04:00:00Z",
   "timezone": "Asia/Shanghai",
   "enabled": 36,
   "structural_pass": 24,
   "failed": 0,
-  "not_implemented": 12,
+  "pending": 12,
   "historical_gold_verified": false,
   "natural_language_verified": false,
   "postgres_verified": false,
@@ -154,8 +154,8 @@
     },
     {
       "case_id": "E08",
-      "status": "not_implemented",
-      "reason": "实体歧义澄清未实现"
+      "status": "pending",
+      "reason": "歧义与模糊拼写另有单测和固定审查；本题完整场景尚未绑定本套检查"
     },
     {
       "case_id": "N01",
@@ -169,13 +169,13 @@
     },
     {
       "case_id": "N03",
-      "status": "not_implemented",
+      "status": "pending",
       "reason": "真实embedding故障降级未实现"
     },
     {
       "case_id": "N04",
-      "status": "not_implemented",
-      "reason": "故障注入另见API/仓储单测，本套尚未绑定"
+      "status": "pending",
+      "reason": "数据库不可用另有3端点真实连接拒绝检查；本题故障场景尚未绑定本套检查"
     },
     {
       "case_id": "N05",
@@ -186,12 +186,12 @@
     },
     {
       "case_id": "N06",
-      "status": "not_implemented",
+      "status": "pending",
       "reason": "引用拦截另见单测，完整生成主张检查未实现"
     },
     {
       "case_id": "R01",
-      "status": "not_implemented",
+      "status": "pending",
       "reason": "中文分词/受控查询别名尚未完整实现"
     },
     {
@@ -203,7 +203,7 @@
     },
     {
       "case_id": "R03",
-      "status": "not_implemented",
+      "status": "pending",
       "reason": "全文/向量RRF融合未实现"
     },
     {
@@ -280,33 +280,33 @@
     },
     {
       "case_id": "T04",
-      "status": "not_implemented",
-      "reason": "固定Clock今天解析未实现"
+      "status": "pending",
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T05",
-      "status": "not_implemented",
-      "reason": "跨月/跨年昨天解析未实现"
+      "status": "pending",
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T06",
-      "status": "not_implemented",
-      "reason": "最近7自然日解析未实现"
+      "status": "pending",
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T07",
-      "status": "not_implemented",
-      "reason": "本周解析未实现"
+      "status": "pending",
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T08",
-      "status": "not_implemented",
-      "reason": "上周解析未实现"
+      "status": "pending",
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T09",
-      "status": "not_implemented",
-      "reason": "午夜跨时区自然语言解析未实现"
+      "status": "pending",
+      "reason": "确定性日期计划另有独立HTTP回归；本题完整结果ID与边界场景尚未绑定本套检查"
     },
     {
       "case_id": "T10",

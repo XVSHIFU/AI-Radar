@@ -1,29 +1,32 @@
 # 验收状态
 
-本文件按证据更新；未执行不计为通过。合成结构、真实采集、真实数据库、真实模型分别统计。更新于 2026-09-12，采集工程仍在实施。
+这是可启动工程与合成回归阶段的验收记录，项目P0整体仍为NO-GO。未执行项目不计通过，各层数量不相加。
 
-| 检查 | 当前状态 | 证据 / 限制 |
+| 检查 | 当前结果 | 证据与限制 |
 | --- | --- | --- |
-| 四页设计要求与接口 | 已落盘 | design-requirements.md、contracts/README.md |
-| 两候选同数据首页 | 已比较，采用 Terra | prototype-comparison.md；32 条合成事件 |
-| 两候选浏览器回归 | 14/14 | prototype-browser-results.json |
-| 正式四页浏览器回归 | 35/35 | frontend-browser-results.json；含 390/768/1440px、分页、日期分类、引用、流取消、错误、长内容 |
-| 独立 HTTP 合成 API 冒烟 | 14/14 | api-smoke-results.json；包含完整分页 ID 和 Evidence 段落定位 |
-| 后端自动检查 | 上轮 20 项单测通过 | 修复 Windows 时区后；无真实 PG 集成运行 |
-| 前端自动检查 | 12/12 单测、类型检查与构建通过 | 包含 SSE 冲突终态、引用编号、请求取消与重复提交 |
-| 新版 SSE 冻结结构 | 已回归 | contracts/sse；不是旧站兼容抓包 |
-| 5 个 RSS 入口 | 5/5 解析通过 | source-validation.json；不等于正文验收 |
-| 完整来源抓取提取链路 | 0/5 已验收 | 采集工程实施中；未校验完整入库链路 |
-| 100 条真实标准事件 | 0/100 | 不以合成数据、报道或候选数量替代 |
-| PostgreSQL 16 + vector 迁移 | 未执行，环境阻断 | 无 Docker/PG；用户已同意先推进工程 |
-| T01/E01 历史真实用例 | 未执行，材料缺失 | 用户同意先建合成结构回归；当前日期与别名查询有合成检查 |
-| 36 题 P0 硬规则 | 24 项显式过滤结构通过，12 项未实现 | structure-regression-results.json；不代表完整题义、自然语言或真实PG通过 |
-| 真实 embedding / 问答 | 未配置 | 无模型凭据、profile 与付费预算 |
-| 旧 API / SSE 逐字段兼容 | 未验证 | 缺少原站 fixture |
-| P0 go/no-go | NO-GO | 真实链路门槛未通过 |
+| 四页设计、两版原型比较 | 采用Terra，持续由Terra负责前端 | design-requirements.md、prototype-comparison.md；同32条合成数据，主观评分Sol88/Terra90 |
+| 两原型共用浏览器检查 | 14/14 | prototype-browser-results.json |
+| 正式四页浏览器 | 42/42 | frontend-browser-results.json；390/768/1440、分页、取消、引用、错误、实际计划与长文本 |
+| 实际HTTP合成API | 14/14 | api-smoke-results.json；确切ID、日期、别名、分页和证据定位 |
+| 独立确定性计划HTTP | 30/30 | query-plan-regression-results.json；固定Clock、日期、别名、实体跨度、UI冲突 |
+| 原36题的显式结构部分 | 24通过，12待验收 | structure-regression-results.json；不代表36题完整题义全部通过 |
+| 后端单元测试 | 94/94 | local-checks.json、verification日志；无真实PG |
+| 前端单元测试 | 15/15 | SSE、引用、请求取消、计划结构守卫等 |
+| 统一工程检查 | 11/11 | local-checks.json；静态/类型/单测、两层回归、OpenAPI、离线迁移、构建 |
+| 真实连接拒绝故障协议 | 3/3 | database-unavailable-results.json；保留未监听loopback端口，未使用PG服务 |
+| 仅生产依赖启动导入 | 通过 | runtime-validation.json；独立no-dev环境导入API/worker/scheduler，未安装pytest |
+| 原RSS入口探测 | 5/5 XML解析 | source-validation.json；使用旧入口探测脚本，不能代替生产transport |
+| 生产抓取/正文样本 | 0/5，本机DNS阻断 | source-body-validation.json；域名解析至198.18/私有IPv6而被拒绝 |
+| 完整来源链路、真实标准事件 | 0/5、0/100 | 当前止于正文版本与待审候选；未完成模型提取/发布 |
+| PostgreSQL16+pgvector真实迁移 | 未执行 | 无Docker/PG；用户同意先推进工程，离线DDL不替代落库/并发/恢复 |
+| 历史T01/E01 gold | 未执行 | 用户暂无原站ID/材料，明确同意合成结构回归 |
+| 全文/向量/RRF及真实问答 | 未完成 | 无真实模型调用；预算表/账本基础不等于执行结算 |
+| 旧API/SSE兼容、生产恢复 | 未验收 | 缺原站抓包和运行环境 |
 
-浏览器检查分别标注合成 API、模拟 SSE、模拟 JSON 响应及故障注入层级；以 JSON 中每项 layer 为准。DOM 注入的回答只证明界面行为，不能证明真实问答质量。
+浏览器JSON每项layer区分真实fixture API、模拟SSE、模拟JSON及故障注入。模拟流通过只证明客户端行为；普通API不会自动改为模拟答案。无模型的问答仍显示真实错误和已解析条件。
 
-启动、停止脚本已在本项目进程上实际验证；当前主工作区预览端口为 5175 / 8002。默认端口仍为 5173 / 8000，可通过参数调整。
+固定双轴审查见review-575d571.md、review-0b5cbb9.md、review-4eb258e.md。查询计划发现的实体漏检、冲突提示和日期上界问题均经过原负责人修复与固定复验；仍不等于真实PG语义/事务验收。
 
-实际 Codex 货币成本：unknown（周额度变化不能推算现金费用）；用户返工时间：unknown。初始周剩余 95%，最新检查 90%；剩余到 80% 即停止。
+当前预览 http://127.0.0.1:5175 ，API http://127.0.0.1:8002/docs 。启动/停止脚本已实际验证。后续依赖和验收顺序见next-acceptance.md。
+
+Pro周额度起始95%，最近86%；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。

@@ -86,6 +86,32 @@
         "title": "Category",
         "type": "string"
       },
+      "ClarificationCandidate": {
+        "properties": {
+          "entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "entity_id"
+        ],
+        "title": "ClarificationCandidate",
+        "type": "object"
+      },
       "Event": {
         "properties": {
           "category": {
@@ -720,6 +746,129 @@
         "title": "IngestRunRequest",
         "type": "object"
       },
+      "QueryPlan": {
+        "properties": {
+          "business_date": {
+            "format": "date",
+            "title": "Business Date",
+            "type": "string"
+          },
+          "clarification_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/ClarificationCandidate"
+            },
+            "title": "Clarification Candidates",
+            "type": "array"
+          },
+          "constraints_origin": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Constraints Origin",
+            "type": "object"
+          },
+          "data_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "fixture",
+                  "postgres"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Mode"
+          },
+          "date_until_exclusive": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Until Exclusive"
+          },
+          "entity_roles": {
+            "default": [
+              "subject",
+              "product"
+            ],
+            "items": {
+              "enum": [
+                "subject",
+                "product"
+              ],
+              "type": "string"
+            },
+            "title": "Entity Roles",
+            "type": "array"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/Filters"
+          },
+          "free_text": {
+            "title": "Free Text",
+            "type": "string"
+          },
+          "intent": {
+            "enum": [
+              "structured_list",
+              "structured_summary",
+              "entity_lookup",
+              "semantic_search",
+              "follow_up"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "requires_clarification": {
+            "title": "Requires Clarification",
+            "type": "boolean"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "intent",
+          "filters",
+          "timezone",
+          "business_date",
+          "date_until_exclusive",
+          "constraints_origin",
+          "free_text",
+          "requires_clarification",
+          "clarification_candidates",
+          "warnings"
+        ],
+        "title": "QueryPlan",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1196,6 +1345,44 @@
           }
         },
         "summary": "Insights"
+      }
+    },
+    "/api/v1/query-plan": {
+      "post": {
+        "operationId": "query_plan_api_v1_query_plan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryPlan"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Query Plan"
       }
     },
     "/api/v1/sources": {

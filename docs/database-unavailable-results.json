@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-11T18:25:48.982245+00:00",
+  "observed_at": "2026-09-11T19:03:22.698775+00:00",
   "layer": "real_loopback_connection_refused_no_postgresql_server",
   "postgres_integration_executed": false,
   "passed": 3,
@@ -13,7 +13,7 @@
         "code": "RETRIEVAL_FAILED",
         "message": "Database retrieval failed",
         "retryable": true,
-        "request_id": "e97480b1-f121-4e1b-96ab-48400110df86"
+        "request_id": "1d3482f9-00fe-4121-a5db-48292b9ee02e"
       },
       "passed": true
     },
@@ -25,7 +25,7 @@
         "code": "RETRIEVAL_FAILED",
         "message": "Database retrieval failed",
         "retryable": true,
-        "request_id": "092dc040-8db8-4ff4-892f-0f1794a19914"
+        "request_id": "b6c84795-cf7e-4688-b8d9-4905cf5f7f1d"
       },
       "passed": true
     },
@@ -37,7 +37,7 @@
         "code": "RETRIEVAL_FAILED",
         "message": "Database retrieval failed",
         "retryable": true,
-        "request_id": "3ae5b7fe-640f-4559-87e8-80aa7317cd0e"
+        "request_id": "2a0c7cfd-a9bc-45e9-b668-427aaf77c76c"
       },
       "passed": true
     }

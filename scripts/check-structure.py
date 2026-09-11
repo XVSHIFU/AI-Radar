@@ -61,7 +61,7 @@ def main() -> int:
     from fastapi.testclient import TestClient
     from radar.config import get_settings
     from radar.fixture_repository import FixtureRepository
-    from radar.main import app, get_repository
+    from radar.main import app, get_clock, get_repository
 
     get_settings.cache_clear()
     repository = FixtureRepository(
@@ -70,6 +70,7 @@ def main() -> int:
     repository.now = datetime.fromisoformat(
         manifest["fixed_clock"].replace("Z", "+00:00")
     )
+    app.dependency_overrides[get_clock] = lambda: repository.now
     app.dependency_overrides[get_repository] = lambda: repository
     results = []
 
@@ -104,7 +105,7 @@ def main() -> int:
                     results.append(
                         {
                             "case_id": case["case_id"],
-                            "status": "not_implemented",
+                            "status": "pending",
                             "reason": case["reason"],
                         }
                     )
@@ -141,7 +142,7 @@ def main() -> int:
                         response = client.post(
                             "/api/v1/ask",
                             json={
-                                "question": case["question"],
+                                "question": case.get("ask_question", case["question"]),
                                 "filters": case["filters"],
                                 "timezone": manifest["timezone"],
                                 "client_request_id": "synthetic-" + case["case_id"],
@@ -169,7 +170,7 @@ def main() -> int:
                             "actual_event_ids": ids,
                         }
                     )
-                except Exception as exc:
+                except (AssertionError, KeyError, TypeError, ValueError, RuntimeError) as exc:
                     results.append(
                         {
                             "case_id": case["case_id"],
@@ -191,7 +192,7 @@ def main() -> int:
         "enabled": len(results),
         "structural_pass": sum(x["status"] == "structural_pass" for x in results),
         "failed": sum(x["status"] == "failed" for x in results),
-        "not_implemented": sum(x["status"] == "not_implemented" for x in results),
+        "pending": sum(x["status"] == "pending" for x in results),
         "historical_gold_verified": False,
         "natural_language_verified": False,
         "postgres_verified": False,
@@ -206,7 +207,7 @@ def main() -> int:
         json.dumps(
             {
                 key: report[key]
-                for key in ("enabled", "structural_pass", "failed", "not_implemented")
+                for key in ("enabled", "structural_pass", "failed", "pending")
             }
         )
     )

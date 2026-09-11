@@ -21,3 +21,9 @@ SSE 新协议参考实施规格；模拟客户端与真实服务分别验收。m
 采集下一迁移约定：持久PG模式POST /ingest/runs接受已配置source_ids，Idempotency-Key绑定规范化payload；同键同payload返回已有运行，不同payload为409 IDEMPOTENCY_CONFLICT。GET返回真实found/candidates/versions/parser_failures及cost/cost_status；fixture或无执行配置503 INGEST_NOT_AVAILABLE，不伪造真实采集运行。管理未配置503 MANAGEMENT_UNAVAILABLE，有配置但凭据错误401。
 
 采集金额用 Decimal 持久化，JSON cost 为十进制字符串或 null，前端不以浮点累加。cost_status=actual/estimated/unknown 分别显示实际/估算/未知。found=发现URL数，kept=已发布标准事件数；candidates=候选报道数，versions=本轮新增正文版本数，parser_failures/failed_jobs 分项显示。本切片不发布模型提取事件，kept保持0。
+
+POST /api/v1/query-plan 已实现确定性计划，复用AskRequest，详见queryplan-v1.md；不调用模型。支持已确认实体、受控分类、相对自然日和ISO日期/区间。实体匹配按最长非重叠跨度，名称内部分类词不会追加硬过滤；UI显式entity_match优先且冲突有warning。
+
+/ask复用同一计划：422 CLARIFICATION_REQUIRED、503 QUERY_UNSUPPORTED/MODEL_UNAVAILABLE/ASK_NOT_IMPLEMENTED均保留details.query_plan_public；真正结构化空集返回completed+no_answer。未知残余限制不会被清空后执行扩大范围。问答生成和真实SSE尚未实现；30项确定性计划通过不代表完整自然语言理解。
+
+唯一OpenAPI快照为openapi/v1.json，由scripts/freeze-openapi.py检查或在主审批准结构变更后--write更新；删除了重复backend派生快照。

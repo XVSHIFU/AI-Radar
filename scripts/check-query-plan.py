@@ -14,8 +14,8 @@ def main() -> int:
     manifest_path = ROOT / "contracts/regression/query-plan-cases-v1.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     ids = [case["id"] for case in manifest["cases"]]
-    if len(ids) != 24 or len(set(ids)) != 24:
-        raise ValueError("Frozen plan case inventory must contain 24 distinct IDs")
+    if len(ids) != 30 or len(set(ids)) != 30:
+        raise ValueError("Frozen plan case inventory must contain 30 distinct IDs")
     for case in manifest["cases"]:
         if not any(key in case for key in ("expected_filters", "requires_clarification", "expected_status")):
             raise ValueError("Case has no expected assertion")
@@ -54,6 +54,8 @@ def main() -> int:
                             assert (sorted(actual) == sorted(expected) if isinstance(expected, list) else actual == expected), {
                                 "field": field, "actual": actual, "expected": expected,
                             }
+                        if 'expected_free_text' in case:
+                            assert body['free_text'] == case['expected_free_text']
                         if case.get("warnings_required"):
                             assert body["warnings"], "UI conflict must be disclosed"
                         end = body["filters"].get("date_to")

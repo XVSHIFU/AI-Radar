@@ -48,3 +48,7 @@
 独立规格审查执行18项模拟网络/地址检查及1项迁移SQL断言，全部通过。旧run回填只处理queued/running且无活动jobs的记录；公网候选全部校验后才按IP连接，TLS主机名/Host及证书验证保留。上述两项代码问题关闭；真实PG回填及真实TLS握手未执行。
 
 7492716加入来源注册、source健康、DocumentParseError计数与SQLAlchemy错误503。根目录通过关闭的本机端口独立复现连接拒绝仍返回500，原因在于底层连接异常未必属于SQLAlchemyError；该项再次退回Sol。HTTPX生产依赖此前仅在dev组，也要求移至运行依赖。
+
+## 最终收尾复验
+
+55df2f2在摄取仓储局部上下文捕获连接OSError和SQLAlchemyError，根独立保留未监听端口复验GET events、GET runs、POST runs均返回503，3/3通过。4eb258e移动httpx至生产依赖，独立no-dev环境API/worker/scheduler导入通过。e20bc40补成功汇总路径的部分失败error_summary。来源注册、健康统计、公网固定IP连接和旧run回填均已集成；本轮列出的代码问题已修复，锁、事务、迁移和恢复的真实PG验收仍未执行。

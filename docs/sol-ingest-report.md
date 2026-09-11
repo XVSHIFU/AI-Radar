@@ -15,7 +15,7 @@ Run from `backend` with Python 3.12:
 - `uv run ruff check .` passed.
 - `uv run mypy src app` passed for 22 source files.
 - `uv run pytest -q` passed: 94 tests, with two third-party deprecation warnings.
-- The frozen synthetic QueryPlanner HTTP checker passed 24/24 cases with an injected clock and no model or PostgreSQL.
+- Root integration expanded the frozen synthetic QueryPlanner HTTP checker to 30 cases; all passed with an injected clock and no model or PostgreSQL. See docs/query-plan-regression-results.json.
 - `uv export --no-dev --no-emit-project` includes `httpx==0.28.1`; root integration performs the separate clean runtime-environment import check.
 - `uv run alembic upgrade head --sql` passed through revision `0003_persistent_article_jobs`.
 

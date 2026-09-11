@@ -3,7 +3,7 @@
   "layer": "deterministic_plan_http_contract",
   "fixed_clock": "2026-09-11T04:00:00Z",
   "timezone": "Asia/Shanghai",
-  "status": "awaiting_implementation",
+  "status": "implemented_deterministic_subset",
   "cases": [
     {
       "id": "today",
@@ -12,7 +12,8 @@
         "date_from": "2026-09-11",
         "date_to": "2026-09-11"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "yesterday",
@@ -21,7 +22,8 @@
         "date_from": "2026-09-10",
         "date_to": "2026-09-10"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "last_seven",
@@ -30,7 +32,8 @@
         "date_from": "2026-09-05",
         "date_to": "2026-09-11"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "last_week_alias",
@@ -39,7 +42,8 @@
         "date_from": "2026-09-05",
         "date_to": "2026-09-11"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "this_week",
@@ -48,7 +52,8 @@
         "date_from": "2026-09-07",
         "date_to": "2026-09-11"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "previous_week",
@@ -57,7 +62,8 @@
         "date_from": "2026-08-31",
         "date_to": "2026-09-06"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "historical_range",
@@ -67,7 +73,8 @@
         "date_to": "2026-09-10",
         "category": "agent_tool"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "entity_english",
@@ -77,9 +84,11 @@
           "10000000-0000-4000-8000-000000000001"
         ],
         "date_from": null,
-        "date_to": null
+        "date_to": null,
+        "category": null
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "entity_chinese",
@@ -89,9 +98,11 @@
           "10000000-0000-4000-8000-000000000001"
         ],
         "date_from": null,
-        "date_to": null
+        "date_to": null,
+        "category": null
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "entity_nfkc",
@@ -101,9 +112,11 @@
           "10000000-0000-4000-8000-000000000001"
         ],
         "date_from": null,
-        "date_to": null
+        "date_to": null,
+        "category": null
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "entity_any",
@@ -113,9 +126,11 @@
           "10000000-0000-4000-8000-000000000001",
           "10000000-0000-4000-8000-000000000002"
         ],
-        "entity_match": "any"
+        "entity_match": "any",
+        "category": null
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "entity_all",
@@ -125,9 +140,11 @@
           "10000000-0000-4000-8000-000000000001",
           "10000000-0000-4000-8000-000000000002"
         ],
-        "entity_match": "all"
+        "entity_match": "all",
+        "category": null
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "category_model_release",
@@ -135,7 +152,8 @@
       "expected_filters": {
         "category": "model_release"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "category_agent_tool",
@@ -143,7 +161,8 @@
       "expected_filters": {
         "category": "agent_tool"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "category_framework_sdk",
@@ -151,7 +170,8 @@
       "expected_filters": {
         "category": "framework_sdk"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "category_research",
@@ -159,7 +179,8 @@
       "expected_filters": {
         "category": "research"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "category_product",
@@ -167,7 +188,8 @@
       "expected_filters": {
         "category": "product"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "category_industry",
@@ -175,12 +197,14 @@
       "expected_filters": {
         "category": "industry"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "hour_precision",
       "question": "过去24小时",
-      "requires_clarification": true
+      "requires_clarification": true,
+      "expected_free_text": ""
     },
     {
       "id": "request_wins",
@@ -194,7 +218,8 @@
         "date_to": "2026-09-02"
       },
       "warnings_required": true,
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "year_boundary",
@@ -204,7 +229,8 @@
         "date_from": "2026-12-31",
         "date_to": "2026-12-31"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "business_midnight",
@@ -214,7 +240,8 @@
         "date_from": "2026-09-11",
         "date_to": "2026-09-11"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "utc_midnight",
@@ -225,13 +252,120 @@
         "date_from": "2026-09-10",
         "date_to": "2026-09-10"
       },
-      "requires_clarification": false
+      "requires_clarification": false,
+      "expected_free_text": ""
     },
     {
       "id": "invalid_timezone",
       "question": "今天",
       "timezone": "Unknown/Nowhere",
       "expected_status": 422
+    },
+    {
+      "id": "entity_name_contains_category",
+      "question": "示例研究团队",
+      "expected_filters": {
+        "date_to": null,
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000002"
+        ],
+        "date_from": null,
+        "category": null
+      },
+      "requires_clarification": false,
+      "expected_free_text": ""
+    },
+    {
+      "id": "entity_with_external_category",
+      "question": "示例研究团队的研究",
+      "expected_filters": {
+        "category": "research",
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "requires_clarification": false,
+      "expected_free_text": ""
+    },
+    {
+      "id": "explicit_mode_any_ids_False",
+      "question": "DeepSeek 和 示例研究团队",
+      "filters": {
+        "entity_match": "any"
+      },
+      "expected_filters": {
+        "entity_match": "any",
+        "category": null,
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "warnings_required": true,
+      "requires_clarification": false,
+      "expected_free_text": ""
+    },
+    {
+      "id": "explicit_mode_all_ids_False",
+      "question": "DeepSeek 或 示例研究团队",
+      "filters": {
+        "entity_match": "all"
+      },
+      "expected_filters": {
+        "entity_match": "all",
+        "category": null,
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "warnings_required": true,
+      "requires_clarification": false,
+      "expected_free_text": ""
+    },
+    {
+      "id": "explicit_mode_any_ids_True",
+      "question": "DeepSeek 和 示例研究团队",
+      "filters": {
+        "entity_match": "any",
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "expected_filters": {
+        "entity_match": "any",
+        "category": null,
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "warnings_required": true,
+      "requires_clarification": false,
+      "expected_free_text": ""
+    },
+    {
+      "id": "explicit_mode_all_ids_True",
+      "question": "DeepSeek 或 示例研究团队",
+      "filters": {
+        "entity_match": "all",
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "expected_filters": {
+        "entity_match": "all",
+        "category": null,
+        "entity_ids": [
+          "10000000-0000-4000-8000-000000000001",
+          "10000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "warnings_required": true,
+      "requires_clarification": false,
+      "expected_free_text": ""
     }
   ]
 }
