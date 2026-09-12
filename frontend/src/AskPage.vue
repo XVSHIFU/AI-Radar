@@ -181,18 +181,6 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <section class="reading-shell ask-layout">
-    <aside class="side-panel">
-      <h2>研究条件</h2>
-      <label
-        >分类<select v-model="category" class="control">
-          <option value="">全部</option>
-          <option v-for="(label, key) in categoryName" :value="key">
-            {{ label }}
-          </option>
-        </select></label
-      ><label>从<input v-model="from" type="date" class="control" /></label
-      ><label>至<input v-model="to" type="date" class="control" /></label>
-    </aside>
     <div class="stream">
       <h1 class="page-title">研究问答</h1>
       <label
@@ -203,6 +191,18 @@ onBeforeUnmount(() => {
           placeholder="输入需要核查的 AI 进展问题"
         />
       </label>
+      <section class="ask-conditions">
+        <h2>研究条件</h2>
+        <label
+          >分类<select v-model="category" class="control">
+            <option value="">全部</option>
+            <option v-for="(label, key) in categoryName" :value="key">
+              {{ label }}
+            </option>
+          </select></label
+        ><label>从<input v-model="from" type="date" class="control" /></label
+        ><label>至<input v-model="to" type="date" class="control" /></label>
+      </section>
       <div class="row">
         <button
           class="primary"
@@ -282,6 +282,9 @@ onBeforeUnmount(() => {
             tabindex="-1"
           >
             {{ s.quote_text || "无段落摘录" }}
+            <footer class="meta">
+              段落 {{ s.paragraph_id || "未提供" }} · 来源版本未提供
+            </footer>
           </blockquote>
           <a
             v-if="validUrl(s.source_url)"
