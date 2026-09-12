@@ -41,4 +41,66 @@ onBeforeUnmount(() => {
   controller?.abort();
 });
 </script>
-<template><section class="stream"><p><RouterLink :to="{path:'/',query:{demo:$route.query.demo}}">返回事件</RouterLink></p><div v-if="error" class="card error" role="alert">{{error.status===404?'事件不存在':error.message}} <button v-if="error.status!==404" @click="load">重试</button><RouterLink v-else :to="{path:'/',query:{demo:$route.query.demo}}">返回事件库</RouterLink></div><article v-else-if="item"><p class="meta">{{item.event_date||'日期未知'}} · {{item.date_precision}}</p><h1 class="page-title">{{item.title_zh}}</h1><p class="answer-body">{{item.summary_zh}}</p><h2>相关实体</h2><p class="row"><span v-for="entity in item.entities" :key="entity" class="pill">{{entity}}</span></p><section class="evidence-layer"><h2>来源与摘录</h2><p v-if="isDemo()" class="demo">以下摘录为合成演示。</p><p v-if="!item.evidence_count" class="meta">此事件没有关联证据。</p><div v-for="x in item.evidence_count?evidence:[]" :key="x.id" class="evidence-item"><button :aria-expanded="open===x.id" :aria-controls="`quote-${x.id}`" @click="toggle(x.id)">{{open===x.id?'收起':'展开'}}摘录：{{x.title}}</button><blockquote v-if="open===x.id" :id="`quote-${x.id}`" tabindex="-1">{{x.quote_text}}<footer class="meta">版本 {{x.article_version_id}} · 段落 {{x.paragraph_id}}</footer></blockquote><a v-if="safe(x.source_url)" :href="x.source_url" target="_blank" rel="noopener">打开来源</a></div></section></article><p v-else>正在加载详情…</p></section></template>
+<template>
+  <section class="stream">
+    <p>
+      <RouterLink :to="{ path: '/', query: { demo: $route.query.demo } }"
+        >返回事件</RouterLink
+      >
+    </p>
+    <div v-if="error" class="card error" role="alert">
+      {{ error.status === 404 ? "事件不存在" : error.message }}
+      <button v-if="error.status !== 404" @click="load">重试</button
+      ><RouterLink
+        v-else
+        :to="{ path: '/', query: { demo: $route.query.demo } }"
+        >返回事件库</RouterLink
+      >
+    </div>
+    <article v-else-if="item">
+      <p class="meta">
+        {{ item.event_date || "日期未知" }} · {{ item.date_precision }}
+      </p>
+      <h1 class="page-title">{{ item.title_zh }}</h1>
+      <p class="answer-body">{{ item.summary_zh }}</p>
+      <h2>相关实体</h2>
+      <p class="row">
+        <span v-for="entity in item.entities" :key="entity" class="pill">{{
+          entity
+        }}</span>
+      </p>
+      <section class="evidence-layer">
+        <h2>来源与摘录</h2>
+        <p v-if="isDemo()" class="demo">以下摘录为合成演示。</p>
+        <p v-if="!item.evidence_count" class="meta">此事件没有关联证据。</p>
+        <div
+          v-for="x in item.evidence_count ? evidence : []"
+          :key="x.id"
+          class="evidence-item"
+        >
+          <button
+            :aria-expanded="open === x.id"
+            :aria-controls="`quote-${x.id}`"
+            @click="toggle(x.id)"
+          >
+            {{ open === x.id ? "收起" : "展开" }}摘录：{{ x.title }}
+          </button>
+          <blockquote v-if="open === x.id" :id="`quote-${x.id}`" tabindex="-1">
+            {{ x.quote_text }}
+            <footer class="meta">
+              版本 {{ x.article_version_id }} · 段落 {{ x.paragraph_id }}
+            </footer>
+          </blockquote>
+          <a
+            v-if="safe(x.source_url)"
+            :href="x.source_url"
+            target="_blank"
+            rel="noopener"
+            >打开来源</a
+          >
+        </div>
+      </section>
+    </article>
+    <p v-else>正在加载详情…</p>
+  </section>
+</template>

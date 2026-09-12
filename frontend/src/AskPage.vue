@@ -179,6 +179,128 @@ onBeforeUnmount(() => {
   timers.forEach(clearTimeout);
 });
 </script>
-<template><section class="reading-shell"><aside class="side-panel"><h2>研究条件</h2><label>分类<select v-model="category" class="control"><option value="">全部</option><option v-for="(label,key) in categoryName" :value="key">{{label}}</option></select></label><label>从<input v-model="from" type="date" class="control" /></label><label>至<input v-model="to" type="date" class="control" /></label></aside><div class="stream"><h1 class="page-title">研究问答</h1><label>问题<textarea v-model="question" class="control" rows="5" placeholder="输入需要核查的 AI 进展问题" /></label><div class="row"><button :disabled="running||!question" @click="submit">开始分析</button><button v-if="running" @click="cancel">取消</button></div><p aria-live="polite" class="meta">{{status}}</p><div v-if="error" class="card error" role="alert"><strong>{{error.code}}</strong>：{{errorDescription(error)}}</div><section v-if="plan" class="card query-plan" aria-label="检索范围" data-testid="query-plan"><h2>检索范围</h2><p>业务日期：{{plan.business_date}} · 时区：{{plan.timezone}}</p><p>分类：{{plan.filters.category?categoryName[plan.filters.category]||plan.filters.category:'全部分类'}} · 日期：{{plan.filters.date_from||'不限'}} 至 {{plan.filters.date_to||'不限'}}（起止日期均包含）</p><p>实体：{{plan.filters.entity_ids?.length?`已采用 ${plan.filters.entity_ids.length} 个实体条件（${plan.filters.entity_match==='all'?'同时匹配':'任一匹配'}）`:'未限定实体'}}</p><p v-if="plan.requires_clarification">需要澄清：<span v-for="c in plan.clarification_candidates" :key="c.label">{{ c.label }} </span></p>
-<p v-if="plan.free_text">未理解限制：{{plan.free_text}}</p>
-<p v-if="plan.entity_roles?.length">实体角色：{{ plan.entity_roles.map((role) => role === "subject" ? "主体" : "产品").join("、") }}</p><ul v-if="plan.warnings.length"><li v-for="w in plan.warnings" :key="w">{{w}}</li></ul></section><article v-if="tokens||result" class="evidence-layer" data-testid="ask-answer"><p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p><h2>回答</h2><p class="answer-body">{{tokens||result?.answer}}</p><div v-for="s in sources" :key="s.index" class="evidence-item"><button :aria-expanded="expanded===s.index" :aria-controls="`citation-${s.index}`" @click="toggle(s.index)">[{{s.index}}] {{s.title}}</button><blockquote v-if="expanded===s.index" :id="`citation-${s.index}`" tabindex="-1">{{s.quote_text||'无段落摘录'}}</blockquote><a v-if="validUrl(s.source_url)" :href="s.source_url" target="_blank" rel="noopener">打开来源</a></div><p v-if="result?.answer_status==='no_answer'">没有可回答的资料。</p><p v-if="metrics?.coverage==='partial'" class="meta">覆盖不完整：答案仅基于部分匹配资料。</p><p v-if="metrics" class="meta tabular">完整匹配 {{metrics.scope_total}} · 取回 {{metrics.retrieved_count}} · 总结 {{metrics.summarized_count}} · 引用 {{metrics.citation_count}} · 覆盖：{{metrics.coverage}}</p></article></div><aside class="context-panel"><h2>研究说明</h2><p class="meta">回答中的事实应回查到保存的来源段落。</p></aside></section></template>
+<template>
+  <section class="reading-shell">
+    <aside class="side-panel">
+      <h2>研究条件</h2>
+      <label
+        >分类<select v-model="category" class="control">
+          <option value="">全部</option>
+          <option v-for="(label, key) in categoryName" :value="key">
+            {{ label }}
+          </option>
+        </select></label
+      ><label>从<input v-model="from" type="date" class="control" /></label
+      ><label>至<input v-model="to" type="date" class="control" /></label>
+    </aside>
+    <div class="stream">
+      <h1 class="page-title">研究问答</h1>
+      <label
+        >问题<textarea
+          v-model="question"
+          class="control"
+          rows="5"
+          placeholder="输入需要核查的 AI 进展问题"
+        />
+      </label>
+      <div class="row">
+        <button :disabled="running || !question" @click="submit">
+          开始分析</button
+        ><button v-if="running" @click="cancel">取消</button>
+      </div>
+      <p aria-live="polite" class="meta">{{ status }}</p>
+      <div v-if="error" class="card error" role="alert">
+        <strong>{{ error.code }}</strong
+        >：{{ errorDescription(error) }}
+      </div>
+      <section
+        v-if="plan"
+        class="card query-plan"
+        aria-label="检索范围"
+        data-testid="query-plan"
+      >
+        <h2>检索范围</h2>
+        <p>业务日期：{{ plan.business_date }} · 时区：{{ plan.timezone }}</p>
+        <p>
+          分类：{{
+            plan.filters.category
+              ? categoryName[plan.filters.category] || plan.filters.category
+              : "全部分类"
+          }}
+          · 日期：{{ plan.filters.date_from || "不限" }} 至
+          {{ plan.filters.date_to || "不限" }}（起止日期均包含）
+        </p>
+        <p>
+          实体：{{
+            plan.filters.entity_ids?.length
+              ? `已采用 ${plan.filters.entity_ids.length} 个实体条件（${plan.filters.entity_match === "all" ? "同时匹配" : "任一匹配"}）`
+              : "未限定实体"
+          }}
+        </p>
+        <p v-if="plan.requires_clarification">
+          需要澄清：<span
+            v-for="c in plan.clarification_candidates"
+            :key="c.label"
+            >{{ c.label }}
+          </span>
+        </p>
+        <p v-if="plan.free_text">未理解限制：{{ plan.free_text }}</p>
+        <p v-if="plan.entity_roles?.length">
+          实体角色：{{
+            plan.entity_roles
+              .map((role) => (role === "subject" ? "主体" : "产品"))
+              .join("、")
+          }}
+        </p>
+        <ul v-if="plan.warnings.length">
+          <li v-for="w in plan.warnings" :key="w">{{ w }}</li>
+        </ul>
+      </section>
+      <article
+        v-if="tokens || result"
+        class="evidence-layer"
+        data-testid="ask-answer"
+      >
+        <p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p>
+        <h2>回答</h2>
+        <p class="answer-body">{{ tokens || result?.answer }}</p>
+        <div v-for="s in sources" :key="s.index" class="evidence-item">
+          <button
+            :aria-expanded="expanded === s.index"
+            :aria-controls="`citation-${s.index}`"
+            @click="toggle(s.index)"
+          >
+            [{{ s.index }}] {{ s.title }}
+          </button>
+          <blockquote
+            v-if="expanded === s.index"
+            :id="`citation-${s.index}`"
+            tabindex="-1"
+          >
+            {{ s.quote_text || "无段落摘录" }}
+          </blockquote>
+          <a
+            v-if="validUrl(s.source_url)"
+            :href="s.source_url"
+            target="_blank"
+            rel="noopener"
+            >打开来源</a
+          >
+        </div>
+        <p v-if="result?.answer_status === 'no_answer'">没有可回答的资料。</p>
+        <p v-if="metrics?.coverage === 'partial'" class="meta">
+          覆盖不完整：答案仅基于部分匹配资料。
+        </p>
+        <p v-if="metrics" class="meta tabular">
+          完整匹配 {{ metrics.scope_total }} · 取回
+          {{ metrics.retrieved_count }} · 总结 {{ metrics.summarized_count }} ·
+          引用 {{ metrics.citation_count }} · 覆盖：{{ metrics.coverage }}
+        </p>
+      </article>
+    </div>
+    <aside class="context-panel">
+      <h2>研究说明</h2>
+      <p class="meta">回答中的事实应回查到保存的来源段落。</p>
+    </aside>
+  </section>
+</template>
