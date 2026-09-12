@@ -1,0 +1,556 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-12T05:47:20.862888Z",
+  "title": "Design System: AI 革新雷达",
+  "extensions": {
+    "colorMeta": {
+      "blue": {
+        "role": "primary",
+        "displayName": "blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.10401 256.18)",
+          "oklch(26.43% 0.10401 256.18)",
+          "oklch(37.86% 0.10401 256.18)",
+          "oklch(49.29% 0.10401 256.18)",
+          "oklch(60.71% 0.10401 256.18)",
+          "oklch(72.14% 0.10401 256.18)",
+          "oklch(83.57% 0.10401 256.18)",
+          "oklch(95.00% 0.10401 256.18)"
+        ]
+      },
+      "blue-soft": {
+        "role": "primary",
+        "displayName": "blue-soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.01596 253.90)",
+          "oklch(26.43% 0.01596 253.90)",
+          "oklch(37.86% 0.01596 253.90)",
+          "oklch(49.29% 0.01596 253.90)",
+          "oklch(60.71% 0.01596 253.90)",
+          "oklch(72.14% 0.01596 253.90)",
+          "oklch(83.57% 0.01596 253.90)",
+          "oklch(95.00% 0.01596 253.90)"
+        ]
+      },
+      "aqua": {
+        "role": "secondary",
+        "displayName": "aqua",
+        "tonalRamp": [
+          "oklch(15.00% 0.02012 200.64)",
+          "oklch(26.43% 0.02012 200.64)",
+          "oklch(37.86% 0.02012 200.64)",
+          "oklch(49.29% 0.02012 200.64)",
+          "oklch(60.71% 0.02012 200.64)",
+          "oklch(72.14% 0.02012 200.64)",
+          "oklch(83.57% 0.02012 200.64)",
+          "oklch(95.00% 0.02012 200.64)"
+        ]
+      },
+      "pill-ink": {
+        "role": "secondary",
+        "displayName": "pill-ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.07409 206.37)",
+          "oklch(26.43% 0.07409 206.37)",
+          "oklch(37.86% 0.07409 206.37)",
+          "oklch(49.29% 0.07409 206.37)",
+          "oklch(60.71% 0.07409 206.37)",
+          "oklch(72.14% 0.07409 206.37)",
+          "oklch(83.57% 0.07409 206.37)",
+          "oklch(95.00% 0.07409 206.37)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.00859 247.92)",
+          "oklch(26.43% 0.00859 247.92)",
+          "oklch(37.86% 0.00859 247.92)",
+          "oklch(49.29% 0.00859 247.92)",
+          "oklch(60.71% 0.00859 247.92)",
+          "oklch(72.14% 0.00859 247.92)",
+          "oklch(83.57% 0.00859 247.92)",
+          "oklch(95.00% 0.00859 247.92)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "rail": {
+        "role": "neutral",
+        "displayName": "rail",
+        "tonalRamp": [
+          "oklch(15.00% 0.00738 260.73)",
+          "oklch(26.43% 0.00738 260.73)",
+          "oklch(37.86% 0.00738 260.73)",
+          "oklch(49.29% 0.00738 260.73)",
+          "oklch(60.71% 0.00738 260.73)",
+          "oklch(72.14% 0.00738 260.73)",
+          "oklch(83.57% 0.00738 260.73)",
+          "oklch(95.00% 0.00738 260.73)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.05339 256.94)",
+          "oklch(26.43% 0.05339 256.94)",
+          "oklch(37.86% 0.05339 256.94)",
+          "oklch(49.29% 0.05339 256.94)",
+          "oklch(60.71% 0.05339 256.94)",
+          "oklch(72.14% 0.05339 256.94)",
+          "oklch(83.57% 0.05339 256.94)",
+          "oklch(95.00% 0.05339 256.94)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.03966 252.49)",
+          "oklch(26.43% 0.03966 252.49)",
+          "oklch(37.86% 0.03966 252.49)",
+          "oklch(49.29% 0.03966 252.49)",
+          "oklch(60.71% 0.03966 252.49)",
+          "oklch(72.14% 0.03966 252.49)",
+          "oklch(83.57% 0.03966 252.49)",
+          "oklch(95.00% 0.03966 252.49)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "line",
+        "tonalRamp": [
+          "oklch(15.00% 0.01856 250.60)",
+          "oklch(26.43% 0.01856 250.60)",
+          "oklch(37.86% 0.01856 250.60)",
+          "oklch(49.29% 0.01856 250.60)",
+          "oklch(60.71% 0.01856 250.60)",
+          "oklch(72.14% 0.01856 250.60)",
+          "oklch(83.57% 0.01856 250.60)",
+          "oklch(95.00% 0.01856 250.60)"
+        ]
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.11467 249.33)",
+          "oklch(26.43% 0.11467 249.33)",
+          "oklch(37.86% 0.11467 249.33)",
+          "oklch(49.29% 0.11467 249.33)",
+          "oklch(60.71% 0.11467 249.33)",
+          "oklch(72.14% 0.11467 249.33)",
+          "oklch(83.57% 0.11467 249.33)",
+          "oklch(95.00% 0.11467 249.33)"
+        ]
+      },
+      "pointer-focus": {
+        "role": "neutral",
+        "displayName": "pointer-focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.07458 225.98)",
+          "oklch(26.43% 0.07458 225.98)",
+          "oklch(37.86% 0.07458 225.98)",
+          "oklch(49.29% 0.07458 225.98)",
+          "oklch(60.71% 0.07458 225.98)",
+          "oklch(72.14% 0.07458 225.98)",
+          "oklch(83.57% 0.07458 225.98)",
+          "oklch(95.00% 0.07458 225.98)"
+        ]
+      },
+      "hover-line": {
+        "role": "neutral",
+        "displayName": "hover-line",
+        "tonalRamp": [
+          "oklch(15.00% 0.05058 248.48)",
+          "oklch(26.43% 0.05058 248.48)",
+          "oklch(37.86% 0.05058 248.48)",
+          "oklch(49.29% 0.05058 248.48)",
+          "oklch(60.71% 0.05058 248.48)",
+          "oklch(72.14% 0.05058 248.48)",
+          "oklch(83.57% 0.05058 248.48)",
+          "oklch(95.00% 0.05058 248.48)"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "selection",
+        "tonalRamp": [
+          "oklch(15.00% 0.04823 247.42)",
+          "oklch(26.43% 0.04823 247.42)",
+          "oklch(37.86% 0.04823 247.42)",
+          "oklch(49.29% 0.04823 247.42)",
+          "oklch(60.71% 0.04823 247.42)",
+          "oklch(72.14% 0.04823 247.42)",
+          "oklch(83.57% 0.04823 247.42)",
+          "oklch(95.00% 0.04823 247.42)"
+        ]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "danger",
+        "tonalRamp": [
+          "oklch(15.00% 0.15018 28.37)",
+          "oklch(26.43% 0.15018 28.37)",
+          "oklch(37.86% 0.15018 28.37)",
+          "oklch(49.29% 0.15018 28.37)",
+          "oklch(60.71% 0.15018 28.37)",
+          "oklch(72.14% 0.15018 28.37)",
+          "oklch(83.57% 0.15018 28.37)",
+          "oklch(95.00% 0.15018 28.37)"
+        ]
+      },
+      "error-line": {
+        "role": "neutral",
+        "displayName": "error-line",
+        "tonalRamp": [
+          "oklch(15.00% 0.06044 27.44)",
+          "oklch(26.43% 0.06044 27.44)",
+          "oklch(37.86% 0.06044 27.44)",
+          "oklch(49.29% 0.06044 27.44)",
+          "oklch(60.71% 0.06044 27.44)",
+          "oklch(72.14% 0.06044 27.44)",
+          "oklch(83.57% 0.06044 27.44)",
+          "oklch(95.00% 0.06044 27.44)"
+        ]
+      },
+      "danger-bg": {
+        "role": "neutral",
+        "displayName": "danger-bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.01632 22.08)",
+          "oklch(26.43% 0.01632 22.08)",
+          "oklch(37.86% 0.01632 22.08)",
+          "oklch(49.29% 0.01632 22.08)",
+          "oklch(60.71% 0.01632 22.08)",
+          "oklch(72.14% 0.01632 22.08)",
+          "oklch(83.57% 0.01632 22.08)",
+          "oklch(95.00% 0.01632 22.08)"
+        ]
+      },
+      "status-bg": {
+        "role": "neutral",
+        "displayName": "status-bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.01535 257.20)",
+          "oklch(26.43% 0.01535 257.20)",
+          "oklch(37.86% 0.01535 257.20)",
+          "oklch(49.29% 0.01535 257.20)",
+          "oklch(60.71% 0.01535 257.20)",
+          "oklch(72.14% 0.01535 257.20)",
+          "oklch(83.57% 0.01535 257.20)",
+          "oklch(95.00% 0.01535 257.20)"
+        ]
+      },
+      "demo-bg": {
+        "role": "neutral",
+        "displayName": "demo-bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.02355 88.23)",
+          "oklch(26.43% 0.02355 88.23)",
+          "oklch(37.86% 0.02355 88.23)",
+          "oklch(49.29% 0.02355 88.23)",
+          "oklch(60.71% 0.02355 88.23)",
+          "oklch(72.14% 0.02355 88.23)",
+          "oklch(83.57% 0.02355 88.23)",
+          "oklch(95.00% 0.02355 88.23)"
+        ]
+      },
+      "demo-ink": {
+        "role": "neutral",
+        "displayName": "demo-ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.08856 83.89)",
+          "oklch(26.43% 0.08856 83.89)",
+          "oklch(37.86% 0.08856 83.89)",
+          "oklch(49.29% 0.08856 83.89)",
+          "oklch(60.71% 0.08856 83.89)",
+          "oklch(72.14% 0.08856 83.89)",
+          "oklch(83.57% 0.08856 83.89)",
+          "oklch(95.00% 0.08856 83.89)"
+        ]
+      },
+      "demo-line": {
+        "role": "neutral",
+        "displayName": "demo-line",
+        "tonalRamp": [
+          "oklch(15.00% 0.08487 84.56)",
+          "oklch(26.43% 0.08487 84.56)",
+          "oklch(37.86% 0.08487 84.56)",
+          "oklch(49.29% 0.08487 84.56)",
+          "oklch(60.71% 0.08487 84.56)",
+          "oklch(72.14% 0.08487 84.56)",
+          "oklch(83.57% 0.08487 84.56)",
+          "oklch(95.00% 0.08487 84.56)"
+        ]
+      },
+      "quote-bg": {
+        "role": "neutral",
+        "displayName": "quote-bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.00684 247.89)",
+          "oklch(26.43% 0.00684 247.89)",
+          "oklch(37.86% 0.00684 247.89)",
+          "oklch(49.29% 0.00684 247.89)",
+          "oklch(60.71% 0.00684 247.89)",
+          "oklch(72.14% 0.00684 247.89)",
+          "oklch(83.57% 0.00684 247.89)",
+          "oklch(95.00% 0.00684 247.89)"
+        ]
+      },
+      "quote-line": {
+        "role": "neutral",
+        "displayName": "quote-line",
+        "tonalRamp": [
+          "oklch(15.00% 0.04016 244.75)",
+          "oklch(26.43% 0.04016 244.75)",
+          "oklch(37.86% 0.04016 244.75)",
+          "oklch(49.29% 0.04016 244.75)",
+          "oklch(60.71% 0.04016 244.75)",
+          "oklch(72.14% 0.04016 244.75)",
+          "oklch(83.57% 0.04016 244.75)",
+          "oklch(95.00% 0.04016 244.75)"
+        ]
+      },
+      "plan-bg": {
+        "role": "neutral",
+        "displayName": "plan-bg",
+        "tonalRamp": [
+          "oklch(15.00% 0.01099 243.65)",
+          "oklch(26.43% 0.01099 243.65)",
+          "oklch(37.86% 0.01099 243.65)",
+          "oklch(49.29% 0.01099 243.65)",
+          "oklch(60.71% 0.01099 243.65)",
+          "oklch(72.14% 0.01099 243.65)",
+          "oklch(83.57% 0.01099 243.65)",
+          "oklch(95.00% 0.01099 243.65)"
+        ]
+      },
+      "plan-line": {
+        "role": "neutral",
+        "displayName": "plan-line",
+        "tonalRamp": [
+          "oklch(15.00% 0.02891 238.28)",
+          "oklch(26.43% 0.02891 238.28)",
+          "oklch(37.86% 0.02891 238.28)",
+          "oklch(49.29% 0.02891 238.28)",
+          "oklch(60.71% 0.02891 238.28)",
+          "oklch(72.14% 0.02891 238.28)",
+          "oklch(83.57% 0.02891 238.28)",
+          "oklch(95.00% 0.02891 238.28)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "display",
+        "purpose": "四页主标题。"
+      },
+      "headline": {
+        "displayName": "headline",
+        "purpose": "详情与问答阅读面章节标题。"
+      },
+      "event-title": {
+        "displayName": "event-title",
+        "purpose": "事件链接标题，保留独立400字重。"
+      },
+      "body": {
+        "displayName": "body",
+        "purpose": "界面正文与控件。"
+      },
+      "reading": {
+        "displayName": "reading",
+        "purpose": "摘要与回答，最大宽度70ch。"
+      },
+      "label": {
+        "displayName": "label",
+        "purpose": "字段名称。"
+      },
+      "meta": {
+        "displayName": "meta",
+        "purpose": "来源、状态与辅助文字。"
+      },
+      "date": {
+        "displayName": "date",
+        "purpose": "事件组日期，桌面等宽数字。"
+      },
+      "pill": {
+        "displayName": "pill",
+        "purpose": "分类与实体元数据。"
+      },
+      "brand": {
+        "displayName": "brand",
+        "purpose": "应用名称。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "reading-plane",
+        "value": "0 12px 30px rgba(34, 61, 93, 0.08)",
+        "purpose": "首页、详情和问答连续阅读面。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "evidence-reveal",
+        "value": "reveal 0.22s ease-out",
+        "purpose": "摘录插入；clip-path从inset(0 0 100% 0)到inset(0)，默认内容可见，无独立收起动画。"
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation: none !important; transition: none !important",
+        "purpose": "prefers-reduced-motion: reduce下全局关闭。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "filter-expanded-min",
+        "value": "768px"
+      },
+      {
+        "name": "compact-layout-max",
+        "value": "900px"
+      },
+      {
+        "name": "desktop-layout-min",
+        "value": "901px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "普通按钮",
+      "kind": "button",
+      "description": "清除、取消、重试与管理动作。",
+      "html": "<button class=\"ds-secondary\">清除</button>",
+      "css": ".ds-secondary{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-secondary:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-secondary:disabled{opacity:.52;cursor:not-allowed}.ds-secondary:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}",
+      "refersTo": "button-secondary"
+    },
+    {
+      "name": "主要按钮",
+      "kind": "button",
+      "description": "问答提交；悬停维持深蓝。",
+      "html": "<button class=\"ds-primary\">开始分析</button>",
+      "css": ".ds-primary{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-primary:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-primary:disabled{opacity:.52;cursor:not-allowed}.ds-primary:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}.ds-primary,.ds-primary:hover{background:var(--blue, #123d73);color:var(--paper, #fff);border-color:var(--blue, #123d73)}",
+      "refersTo": "button-primary"
+    },
+    {
+      "name": "关键词字段",
+      "kind": "input",
+      "description": "全宽字段、可见标签与焦点。",
+      "html": "<label class=\"ds-label\">关键词<input class=\"ds-input\" placeholder=\"标题、摘要、实体\"></label>",
+      "css": ".ds-label{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;display:grid;gap:4px;font-size:14px;color:var(--ink, #10223b)}.ds-input{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;width:100%;min-height:44px;border:1px solid var(--line, #d4dee9);border-radius:8px;padding:8px 10px;background:var(--paper, #fff);color:var(--ink, #10223b);caret-color:var(--blue, #123d73)}.ds-input:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}",
+      "refersTo": "input"
+    },
+    {
+      "name": "应用导航",
+      "kind": "nav",
+      "description": "活动项通过颜色与字重区分；紧凑布局横排。",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-current\" href=\"#events\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5h14v14H5zM8 9h8M8 13h5\"/></svg>事件</a><a href=\"#ask\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5h14v10H9l-4 4z\"/></svg>问答</a><a href=\"#ingest\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 5h12v14H6zM9 9h6M9 13h6\"/></svg>采集管理</a></nav>",
+      "css": ".ds-nav{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;display:grid;gap:4px}.ds-nav a{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;color:var(--muted, #5b6d82);text-decoration:none;white-space:nowrap}.ds-nav .ds-current{color:var(--blue, #123d73);font-weight:700}.ds-nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}.ds-nav a:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}@media(max-width:900px){.ds-nav{display:flex;overflow:auto}}",
+      "refersTo": "nav-item"
+    },
+    {
+      "name": "分类与实体标签",
+      "kind": "chip",
+      "description": "非交互文本元数据。",
+      "html": "<span class=\"ds-pill\">模型发布</span>",
+      "css": ".ds-pill{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;display:inline-block;padding:3px 8px;background:var(--aqua, #dceff0);color:#075f68;border-radius:999px;font-size:12px}",
+      "refersTo": "pill"
+    },
+    {
+      "name": "管理面板",
+      "kind": "card",
+      "description": "独立管理功能块使用边框，保持自然高度。",
+      "html": "<section class=\"ds-card\"><h2>来源健康</h2><p>尚未读取来源。</p></section>",
+      "css": ".ds-card{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;padding:20px;border:1px solid var(--line, #d4dee9);border-radius:14px;background:var(--paper, #fff);color:var(--ink, #10223b)}.ds-card h2{font:inherit;margin:0}.ds-card p{margin:0;color:var(--muted, #5b6d82);font-size:13px}",
+      "refersTo": "card"
+    },
+    {
+      "name": "连续阅读面",
+      "kind": "card",
+      "description": "连续正文承载层，阴影不复制到每条事件。",
+      "html": "<section class=\"ds-plane\"><h1>AI 动态</h1><p>从事件流开始，再回查来源与证据。</p></section>",
+      "css": ".ds-plane{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-width:0;padding:28px;border-radius:16px;background:var(--paper, #fff);color:var(--ink, #10223b);box-shadow:0 12px 30px rgba(34,61,93,.08)}.ds-plane h1{font-size:clamp(28px,3vw,38px);font-weight:600;line-height:1.12;letter-spacing:-.03em;max-width:30ch;margin:0 0 12px}.ds-plane p{margin:0 0 12px;color:var(--muted, #5b6d82)}@media(max-width:900px){.ds-plane{padding:16px}.ds-plane h1{margin-bottom:6px}.ds-plane p{margin-bottom:8px}}",
+      "refersTo": "home-reading-plane"
+    },
+    {
+      "name": "证据摘录",
+      "kind": "custom",
+      "description": "展开后的合成引用示意；真实交互由Vue按钮管理，不在预览中编造执行行为。",
+      "html": "<section class=\"ds-evidence\"><button class=\"ds-evidence-button\" aria-expanded=\"true\" aria-controls=\"ds-quote\">[2] 合成演示来源</button><blockquote class=\"ds-quote\" id=\"ds-quote\" tabindex=\"-1\">合成段落摘录<footer>段落 demo-p-001 · 来源版本未提供</footer></blockquote></section>",
+      "css": ".ds-evidence{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;color:var(--ink, #10223b);padding:16px 0;border-bottom:1px solid var(--line, #d4dee9)}.ds-evidence-button{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-evidence-button:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-evidence-button:disabled{opacity:.52;cursor:not-allowed}.ds-evidence-button:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}.ds-quote{margin:12px 0;padding:12px 16px;background:#f3f7fb;border-left:1px solid #9db5ca;overflow-wrap:anywhere;animation:ds-reveal .22s ease-out}.ds-quote footer{font-size:13px;color:var(--muted, #5b6d82)}.ds-quote:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}@keyframes ds-reveal{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0)}}@media(prefers-reduced-motion:reduce){.ds-quote{animation:none!important;transition:none!important}}",
+      "refersTo": "quote"
+    },
+    {
+      "name": "合成数据提示",
+      "kind": "custom",
+      "description": "必须保留完整模式文字。",
+      "html": "<p class=\"ds-demo\" role=\"note\">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>",
+      "css": ".ds-demo{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;padding:8px 12px;background:#fff8e7;color:#674b00;border:1px solid #f1d396;border-radius:8px}",
+      "refersTo": "demo-notice"
+    },
+    {
+      "name": "错误与重试",
+      "kind": "custom",
+      "description": "错误含文字与警报语义，不能替换成空结果。",
+      "html": "<div class=\"ds-error\" role=\"alert\">服务未配置或不可用。<button class=\"ds-retry\">重试</button></div>",
+      "css": ".ds-error{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;padding:20px;border:1px solid #e8b5ae;border-radius:14px;background:var(--paper, #fff);color:var(--danger, #a5342b)}.ds-retry{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-retry:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-retry:disabled{opacity:.52;cursor:not-allowed}.ds-retry:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}",
+      "refersTo": "error-card"
+    }
+  ],
+  "narrative": {
+    "northStar": "桌面阅读空间 · 云层切面 · 动作谱",
+    "overview": "以桌面阅读空间为主体：冷银蓝底面托起白色连续阅读面，深蓝交互与深墨正文建立稳定层级。云层切面只表现为面板、浅色摘录和证据展开的层次；动作谱只表现为日期、节点与正文的对齐节奏。\n\n这是依据已完成 Vue 页面与最终 CSS 层叠提取的实现记录，替代此前青绿色版本。中文工作字体、紧凑 SVG、留白与轻边界支撑日常阅读；没有栅格素材、云景或舞蹈符号。页面组成见方向契约，产品能力边界仍以 PRODUCT.md 为准。",
+    "keyCharacteristics": [
+      "冷银蓝地面、白色阅读面与安静的上下文面板。",
+      "连续事件流采用完整日期和细线节点，移动端回到自然文档顺序。",
+      "证据在正文中展开，来源、段落和缺失信息保留明确文字。"
+    ],
+    "rules": [
+      {
+        "name": "The Reading Plane Rule",
+        "body": "深蓝用于链接、当前导航与主要动作；大面积承载阅读的是白色面与冷银蓝地面。",
+        "section": "colors"
+      },
+      {
+        "name": "The Date Rhythm Rule",
+        "body": "日期必须按正常阅读顺序完整显示；桌面日期列与节点对齐，移动端移到事件组上方。",
+        "section": "typography"
+      },
+      {
+        "name": "The Evidence Layer Rule",
+        "body": "层次服务于阅读与核对：主阅读面使用柔和阴影，摘录使用浅色平面和细边界，不引入字面云景。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 保留合成数据、模拟流、检索范围、覆盖不足与错误的明确文字标识。",
+      "Do 为按钮、字段与导航保留至少44px高度及可见焦点；原生分类单选项的当前行高为36px，不能将它当作44px合规证明。",
+      "Do 保留日期、统计数字的等宽数字特性，让链接、计划与摘录长文本换行。",
+      "Do 让证据展开可由键盘操作，聚焦已展开摘录，并保留来源与段落可用性说明。",
+      "Do 使用已实现的平面层次、细线、SVG和中文字体回退，优先让内容可读。"
+    ],
+    "donts": [
+      "Don't 把服务失败、模拟回答或合成事件呈现成真实成功或真实新闻。",
+      "Don't 只靠颜色传达错误、加载、取消或数据来源。",
+      "Don't 将云层切面变成云雾、3D场景或图片，将动作谱变成舞蹈符号。",
+      "Don't 把连续事件阅读区改成等尺寸摘要卡片墙。",
+      "Don't 把尚未完成的真实数据库、模型、历史材料验收或待定审查写成设计合格或产品能力承诺。"
+    ]
+  }
+}

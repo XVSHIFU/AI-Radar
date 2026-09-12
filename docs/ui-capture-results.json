@@ -1,0 +1,300 @@
+{
+  "observed_at": "2026-09-12T13:42:09.7494003+08:00",
+  "base_url": "http://127.0.0.1:5175",
+  "layer": "fixture_and_explicit_demo_visual_capture",
+  "passed": 7,
+  "total": 8,
+  "checks": [
+    {
+      "page": "home",
+      "viewport": "desktop",
+      "path": "/",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\desktop.png",
+      "layout": {
+        "articleCount": 10,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "contextHeight": 230.765625,
+        "firstEventTop": 458.3125,
+        "headingCount": 1,
+        "headingTop": 115.59375,
+        "mainWidth": 1180,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 1430,
+        "searchWidth": 704,
+        "syntheticNotice": true,
+        "textLength": 1198,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "page": "home",
+      "viewport": "mobile",
+      "path": "/",
+      "passed": false,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\mobile.png",
+      "layout": {
+        "articleCount": 10,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "contextHeight": 230.765625,
+        "firstEventTop": 500.328125,
+        "headingCount": 1,
+        "headingTop": 233.1875,
+        "mainWidth": 380,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 380,
+        "searchWidth": 316,
+        "syntheticNotice": true,
+        "textLength": 1171,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "page": "detail",
+      "viewport": "desktop",
+      "path": "/events/00000000-0000-4000-8000-000000000002",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\detail-desktop.png",
+      "layout": {
+        "articleCount": 0,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "headingCount": 1,
+        "headingTop": 193.984375,
+        "mainWidth": 1180,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 1440,
+        "syntheticNotice": true,
+        "textLength": 238,
+        "title": "示例 DeepSeek 推出研究模型预览",
+        "width": 1440
+      }
+    },
+    {
+      "page": "detail",
+      "viewport": "mobile",
+      "path": "/events/00000000-0000-4000-8000-000000000002",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\detail-mobile.png",
+      "layout": {
+        "articleCount": 0,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "headingCount": 1,
+        "headingTop": 319.578125,
+        "mainWidth": 390,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 390,
+        "syntheticNotice": true,
+        "textLength": 238,
+        "title": "示例 DeepSeek 推出研究模型预览",
+        "width": 390
+      }
+    },
+    {
+      "page": "ask",
+      "viewport": "desktop",
+      "path": "/ask?demo=1",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\ask-desktop.png",
+      "layout": {
+        "articleCount": 0,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "categorySelectWidth": 252.65625,
+        "contextHeight": 101.1875,
+        "headingCount": 1,
+        "headingTop": 135.59375,
+        "mainWidth": 1180,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 1430,
+        "syntheticNotice": true,
+        "textLength": 213,
+        "title": "研究问答",
+        "width": 1440
+      }
+    },
+    {
+      "page": "ask",
+      "viewport": "mobile",
+      "path": "/ask?demo=1",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\ask-mobile.png",
+      "layout": {
+        "articleCount": 0,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "categorySelectWidth": 308,
+        "contextHeight": 80.390625,
+        "headingCount": 1,
+        "headingTop": 261.1875,
+        "mainWidth": 380,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 380,
+        "syntheticNotice": true,
+        "textLength": 213,
+        "title": "研究问答",
+        "width": 390
+      }
+    },
+    {
+      "page": "ingest",
+      "viewport": "desktop",
+      "path": "/ingest",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\ingest-desktop.png",
+      "layout": {
+        "articleCount": 0,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "headingCount": 1,
+        "headingTop": 56,
+        "mainWidth": 1180,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 1440,
+        "syntheticNotice": false,
+        "textLength": 70,
+        "title": "采集管理",
+        "width": 1440
+      }
+    },
+    {
+      "page": "ingest",
+      "viewport": "mobile",
+      "path": "/ingest",
+      "passed": true,
+      "screenshot": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\final\\ingest-mobile.png",
+      "layout": {
+        "articleCount": 0,
+        "bodyFont": "Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "bodySize": "16px",
+        "headingCount": 1,
+        "headingTop": 164,
+        "mainWidth": 390,
+        "navTargets": [
+          {
+            "height": 44,
+            "text": "事件"
+          },
+          {
+            "height": 44,
+            "text": "问答"
+          },
+          {
+            "height": 44,
+            "text": "采集管理"
+          }
+        ],
+        "railTop": 0,
+        "scrollWidth": 390,
+        "syntheticNotice": false,
+        "textLength": 70,
+        "title": "采集管理",
+        "width": 390
+      }
+    }
+  ],
+  "visual_threshold_note": "移动首事件top=500.328px与严格<500阈值差0.328px；独立审查判定无实质视觉影响。此记录保留原7/8结果。"
+}

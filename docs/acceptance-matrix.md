@@ -4,8 +4,9 @@
 
 | 检查 | 当前结果 | 证据与限制 |
 | --- | --- | --- |
-| 四页设计、两版原型比较 | 采用Terra，持续由Terra负责前端 | design-requirements.md、prototype-comparison.md；同32条合成数据，主观评分Sol88/Terra90 |
+| 早期两版原型比较 | 采用Terra，持续由Terra负责前端 | design-requirements.md、prototype-comparison.md；同32条合成数据，主观评分Sol88/Terra90 |
 | 两原型共用浏览器检查 | 14/14 | prototype-browser-results.json |
+| 本轮四页重设计 | 四项独立审查修复均resolved，ship | ui-redesign-report.md、ui-finish-verdict-final.md；仅该修复范围，不代表完整P0通过 |
 | 正式四页浏览器 | 42/42 | frontend-browser-results.json；390/768/1440、分页、取消、引用、错误、实际计划与长文本 |
 | 实际HTTP合成API | 14/14 | api-smoke-results.json；确切ID、日期、别名、分页和证据定位 |
 | 独立确定性计划HTTP | 30/30 | query-plan-regression-results.json；固定Clock、日期、别名、实体跨度、UI冲突 |
@@ -29,4 +30,4 @@
 
 当前预览 http://127.0.0.1:5175 ，API http://127.0.0.1:8002/docs 。启动/停止脚本已实际验证。后续依赖和验收顺序见next-acceptance.md。
 
-Pro周额度起始95%，最近86%；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。
+Pro周额度起始95%，2026-09-12 13:39最近观测83%；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。

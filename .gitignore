@@ -12,3 +12,10 @@ artifacts/browser/
 
 .run/
 *.tsbuildinfo
+
+# Local Impeccable sessions and visual evidence
+.impeccable/config.local.json
+.impeccable/live/app-root.json
+.impeccable/questions/
+.impeccable/review/
+.impeccable/planning/**/*.webp

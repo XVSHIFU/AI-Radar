@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-11T19:10:37.6553423+00:00",
+  "observed_at": "2026-09-12T05:39:23.9239892+00:00",
   "base_url": "http://127.0.0.1:5175",
   "passed": 42,
   "total": 42,
@@ -19,8 +19,12 @@
       "actual": {
         "actual": {
           "banner": "rgb(255, 248, 231)",
-          "focus": "rgb(139, 211, 203)",
-          "pill": "rgb(232, 245, 243)"
+          "focus": "rgb(23, 91, 149)",
+          "focusContrast": 7.078211648793108,
+          "focusWidth": 3,
+          "noteContrast": 7.677801591061549,
+          "pill": "rgb(220, 239, 240)",
+          "pillContrast": 6.201385531449396
         },
         "passed": true
       }
@@ -112,7 +116,7 @@
       "passed": true,
       "actual": {
         "passed": true,
-        "scroll": 768,
+        "scroll": 758,
         "width": 768
       }
     },
@@ -231,7 +235,7 @@
       "passed": true,
       "actual": {
         "passed": true,
-        "scroll": 375,
+        "scroll": 380,
         "width": 390
       }
     },
@@ -308,7 +312,7 @@
       "passed": true,
       "actual": {
         "passed": true,
-        "text": "◒ AI 革新雷达\n事件\n问答\n采集管理\n演示模式\n采集管理\n\n管理令牌仅保留在当前页面内存中。\n\n管理令牌\n读取状态\n开始采集\n\n来源健康\n\n尚未读取来源。\n\n近期运行\n\npartial · 发现URL 21 · 候选报道 3 · 正文版本 2 · 已发布事件 0 · 解析失败 1 / 任务失败 1 · 成本 估算 1.25000 · 合成部分失败"
+        "text": "AI 革新雷达\n事件\n问答\n采集管理\n演示模式\n采集管理\n\n管理令牌仅保留在当前页面内存中。\n\n管理令牌\n读取状态\n开始采集\n\n来源健康\n\n尚未读取来源。\n\n近期运行\n\npartial · 发现URL 21 · 候选报道 3 · 正文版本 2 · 已发布事件 0 · 解析失败 1 / 任务失败 1 · 成本 估算 1.25000 · 合成部分失败"
       }
     },
     {
