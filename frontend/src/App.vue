@@ -11,7 +11,7 @@ const viewKey = computed(
 </script>
 <template>
   <header>
-    <RouterLink :to="link('/')" class="brand">◒ AI 革新雷达</RouterLink>
+    <RouterLink :to="link('/')" class="brand">AI 革新雷达</RouterLink>
     <nav>
       <RouterLink :to="link('/')">事件</RouterLink
       ><RouterLink :to="link('/ask')">问答</RouterLink
