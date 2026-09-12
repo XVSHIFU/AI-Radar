@@ -155,12 +155,13 @@ onBeforeUnmount(() => {
       <h1 class="page-title">AI 动态</h1>
       <p class="page-subtitle">从事件流开始，再回查来源与证据。</p>
       <div class="filter-strip">
-        <label
+        <label class="search-field"
           >关键词<input
             v-model="q"
             class="control"
-            placeholder="标题、摘要、实体" /></label
-        ><button
+            placeholder="标题、摘要、实体"
+        /></label>
+        <button
           v-if="compact"
           class="mobile"
           :aria-expanded="advanced"
@@ -169,16 +170,21 @@ onBeforeUnmount(() => {
         >
           分类与日期 {{ advanced ? "−" : "+" }}
         </button>
-        <div id="advanced" v-show="!compact || advanced" class="category-list">
-          <label v-for="c in categories" :key="c.v"
-            ><input v-model="category" type="radio" :value="c.v" />{{
-              c.l
-            }}</label
-          ><label>从<input v-model="from" type="date" class="control" /></label
-          ><label>至<input v-model="to" type="date" class="control" /></label
-          >
+        <div id="advanced" v-show="!compact || advanced" class="filter-details">
+          <fieldset class="category-list">
+            <legend>分类</legend>
+            <label v-for="c in categories" :key="c.v"
+              ><input v-model="category" type="radio" :value="c.v" />{{
+                c.l
+              }}</label
+            >
+          </fieldset>
+          <div class="date-controls">
+            <label>从<input v-model="from" type="date" class="control" /></label
+            ><label>至<input v-model="to" type="date" class="control" /></label>
+          </div>
         </div>
-        <button @click="clear">清除</button>
+        <div class="filter-actions"><button @click="clear">清除</button></div>
       </div>
       <p v-if="invalid" class="status danger">
         日期范围无效：起始日期不能晚于截止日期。
