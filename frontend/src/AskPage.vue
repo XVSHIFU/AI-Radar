@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <section class="reading-shell">
+  <section class="reading-shell ask-layout">
     <aside class="side-panel">
       <h2>研究条件</h2>
       <label
@@ -204,7 +204,11 @@ onBeforeUnmount(() => {
         />
       </label>
       <div class="row">
-        <button :disabled="running || !question" @click="submit">
+        <button
+          class="primary"
+          :disabled="running || !question"
+          @click="submit"
+        >
           开始分析</button
         ><button v-if="running" @click="cancel">取消</button>
       </div>

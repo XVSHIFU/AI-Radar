@@ -491,3 +491,168 @@ select:focus {
   stroke-linejoin: round;
   flex: none;
 }
+/* round one corrective composition */
+:root {
+  --focus: #175b95;
+}
+header {
+  margin: 0;
+}
+.app-rail {
+  margin: 0 !important;
+  align-self: start;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  min-width: 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand svg {
+  width: 18px;
+  height: 18px;
+}
+.app-content main {
+  padding-top: 32px;
+}
+.home-layout {
+  align-items: start;
+}
+.context-panel {
+  align-self: start !important;
+  height: auto !important;
+}
+.filter-strip {
+  display: block;
+}
+.filter-strip > label:first-child {
+  display: grid;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.filter-strip .category-list {
+  display: flex;
+  width: 100%;
+  align-items: end;
+}
+.filter-strip .category-list label {
+  white-space: nowrap;
+}
+.filter-strip .control {
+  min-width: 0;
+}
+.filter-strip button {
+  margin-top: 8px;
+}
+.date-group {
+  position: relative;
+  padding-left: 96px;
+}
+.date-group:before {
+  content: "";
+  position: absolute;
+  left: 82px;
+  top: 45px;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+.date-group > h2 {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 74px;
+  text-align: right;
+}
+.date-group .event:before {
+  left: -19px;
+}
+.loading-state {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+}
+.page-title {
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 600;
+  max-width: 30ch;
+  margin: 24px 0 12px;
+}
+.page-subtitle {
+  margin: 0 0 24px;
+}
+.stream h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 24px 0 12px;
+}
+.stream p {
+  margin: 0 0 12px;
+}
+.answer-body {
+  font-size: 16px;
+  line-height: 1.7;
+}
+.reading-shell.ask-layout {
+  grid-template-columns: minmax(0, 1fr) 250px;
+}
+.ask-layout > .side-panel {
+  grid-column: 1/-1;
+  position: static;
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+.ask-layout > .side-panel h2 {
+  width: 100%;
+}
+.ask-layout > .side-panel label {
+  flex: 1;
+}
+.primary {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+blockquote[tabindex]:focus-visible {
+  outline: 3px solid var(--focus) !important;
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  .app-rail {
+    top: 0;
+    height: auto;
+  }
+  .date-group {
+    padding-left: 0;
+  }
+  .date-group:before {
+    display: none;
+  }
+  .date-group > h2 {
+    position: static;
+    width: auto;
+    text-align: left;
+  }
+  .ask-layout > .side-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .ask-layout > .side-panel {
+    order: 2;
+  }
+  .ask-layout > .stream {
+    order: 1;
+  }
+  .ask-layout > .context-panel {
+    order: 3;
+  }
+}
