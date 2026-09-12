@@ -682,19 +682,6 @@ blockquote[tabindex]:focus-visible {
   .home-stream {
     padding: 20px;
   }
-  .date-group > h2 {
-    white-space: nowrap;
-    width: 92px;
-  }
-  .date-group {
-    padding-left: 108px;
-  }
-  .date-group:before {
-    left: 94px;
-  }
-  .date-group .event:before {
-    left: -19px;
-  }
 }
 /* independent review density */
 .ask-conditions .control {
@@ -803,5 +790,21 @@ blockquote[tabindex]:focus-visible {
   }
   .date-group > h2 {
     margin-top: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-content main {
+    padding-top: 4px;
+  }
+  .home-stream .filter-strip {
+    padding-bottom: 2px;
+  }
+  .home-stream .date-group > h2 {
+    margin-top: 4px;
+  }
+  .home-stream .event {
+    padding-top: 14px;
+    padding-bottom: 14px;
   }
 }
