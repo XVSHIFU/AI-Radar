@@ -221,7 +221,6 @@ onBeforeUnmount(() => {
       </button>
     </div>
     <aside class="context-panel">
-      <p class="meta">全库</p>
       <h2>全库范围</h2>
       <p v-if="overview" class="tabular">
         {{ overview.scope === "global" ? "全库" : overview.scope }} ·
