@@ -631,6 +631,7 @@ blockquote[tabindex]:focus-visible {
   }
   .date-group > h2 {
     position: static;
+    left: auto;
     width: auto;
     text-align: left;
   }
@@ -727,6 +728,7 @@ blockquote[tabindex]:focus-visible {
     left: 96px;
   }
   .date-group > h2 {
+    left: -8px;
     width: 96px;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
