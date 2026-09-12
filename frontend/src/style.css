@@ -468,14 +468,6 @@ blockquote {
     display: block;
   }
 }
-`nbutton:focus,
-a:focus,
-input:focus,
-textarea:focus,
-select:focus {
-  outline: 3px solid #175b95;
-  outline-offset: 2px;
-}
 .brand,
 .app-rail nav a {
   gap: 8px;
@@ -654,5 +646,19 @@ blockquote[tabindex]:focus-visible {
   }
   .ask-layout > .context-panel {
     order: 3;
+  }
+}
+
+.primary:hover {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+@media (max-width: 900px) {
+  .reading-shell.ask-layout {
+    grid-template-columns: 1fr;
+  }
+  .date-group .event:before {
+    left: 0;
   }
 }

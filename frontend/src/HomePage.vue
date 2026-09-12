@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
             }}</label
           ><label>从<input v-model="from" type="date" class="control" /></label
           ><label>至<input v-model="to" type="date" class="control" /></label
-          ><button @click="clear">清除</button>
+
         </div>
       </div>
       <p v-if="invalid" class="status danger">
@@ -227,11 +227,10 @@ onBeforeUnmount(() => {
         {{ overview.scope === "global" ? "全库" : overview.scope }} ·
         {{ overview.total_events }} 条事件
       </p>
-      <p v-if="overview" class="meta">
-        {{ Object.keys(overview.categories).length }} 个主题 · 更新时间：{{
-          overview.as_of
-        }}
-      </p>
+      <div v-if="overview" class="meta">
+        <p>更新时间：{{ new Date(overview.as_of).toLocaleString("zh-CN") }}</p>
+        <ul><li v-for="(count, name) in overview.categories" :key="name">{{ categories.find((c) => c.v === name)?.l || name }} {{ count }}</li></ul>
+      </div>
       <p v-else class="meta">
         {{ statsError ? "全库态势暂时无法读取" : "正在读取全库态势…" }}
       </p>
