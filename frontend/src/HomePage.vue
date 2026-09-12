@@ -175,7 +175,9 @@ onBeforeUnmount(() => {
               c.l
             }}</label
           ><label>从<input v-model="from" type="date" class="control" /></label
-          ><label>至<input v-model="to" type="date" class="control" /></label>`r`n        </div>
+          ><label>至<input v-model="to" type="date" class="control" /></label
+          >`r`n
+        </div>
       </div>
       <p v-if="invalid" class="status danger">
         日期范围无效：起始日期不能晚于截止日期。
@@ -227,7 +229,11 @@ onBeforeUnmount(() => {
       </p>
       <div v-if="overview" class="meta">
         <p>更新时间：{{ new Date(overview.as_of).toLocaleString("zh-CN") }}</p>
-        <ul><li v-for="(count, name) in overview.categories" :key="name">{{ categories.find((c) => c.v === name)?.l || name }} {{ count }}</li></ul>
+        <ul>
+          <li v-for="(count, name) in overview.categories" :key="name">
+            {{ categories.find((c) => c.v === name)?.l || name }} {{ count }}
+          </li>
+        </ul>
       </div>
       <p v-else class="meta">
         {{ statsError ? "全库态势暂时无法读取" : "正在读取全库态势…" }}
