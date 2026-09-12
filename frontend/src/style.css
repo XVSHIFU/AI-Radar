@@ -662,3 +662,37 @@ blockquote[tabindex]:focus-visible {
     left: 0;
   }
 }
+.ask-conditions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.ask-conditions h2 {
+  grid-column: 1/-1;
+  margin: 0;
+}
+.ask-conditions label {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .ask-conditions {
+    grid-template-columns: 1fr;
+  }
+  .home-stream {
+    padding: 20px;
+  }
+  .date-group > h2 {
+    white-space: nowrap;
+    width: 92px;
+  }
+  .date-group {
+    padding-left: 108px;
+  }
+  .date-group:before {
+    left: 94px;
+  }
+  .date-group .event:before {
+    left: -19px;
+  }
+}
