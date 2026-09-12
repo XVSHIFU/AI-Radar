@@ -696,3 +696,39 @@ blockquote[tabindex]:focus-visible {
     left: -19px;
   }
 }
+/* independent review density */
+.ask-conditions .control {
+  min-width: 120px;
+}
+.home-stream > .page-title {
+  margin-top: 0;
+}
+.home-stream > .page-subtitle {
+  margin-bottom: 12px;
+}
+.home-stream .filter-strip {
+  padding: 10px 0;
+}
+.home-stream .filter-strip > label:first-child {
+  margin-bottom: 8px;
+}
+@media (max-width: 900px) {
+  .app-content main {
+    padding-top: 12px;
+  }
+  .home-stream {
+    padding: 16px;
+  }
+  .home-stream .page-title {
+    margin: 0 0 6px;
+  }
+  .home-stream .page-subtitle {
+    margin-bottom: 8px;
+  }
+  .home-stream .filter-strip {
+    padding: 6px 0;
+  }
+  .home-stream .control {
+    min-height: 44px;
+  }
+}
