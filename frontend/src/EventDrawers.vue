@@ -57,6 +57,10 @@ const evidenceId = computed(() => queryString("evidence"));
 const eventLayer = computed(() =>
   Boolean(eventId.value || sourceKey.value || evidenceId.value),
 );
+const eventInactive = computed(() =>
+  Boolean(sourceKey.value || evidenceId.value),
+);
+const sourceInactive = computed(() => Boolean(evidenceId.value));
 const safeUrl = (url: string) => /^https?:\/\//i.test(url);
 const categoryLabels: Record<Category, string> = {
   model_release: "模型发布",
@@ -180,7 +184,7 @@ function handleEscape(event: KeyboardEvent) {
   if (event.key !== "Escape" || !eventLayer.value) return;
   event.preventDefault();
   event.stopImmediatePropagation();
-  moveToParent();
+  if (!event.repeat) moveToParent();
 }
 function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   if (!dialog) return;
@@ -301,6 +305,10 @@ onBeforeUnmount(() => {
     <dialog
       ref="eventDialog"
       class="drawer-surface drawer-surface--event"
+      :class="{
+        'drawer-surface--inactive': eventInactive,
+        'drawer-surface--active': !eventInactive,
+      }"
       data-testid="drawer-event"
       aria-labelledby="drawer-event-title"
       @cancel.prevent="moveToParent"
@@ -392,6 +400,10 @@ onBeforeUnmount(() => {
     <dialog
       ref="sourceDialog"
       class="drawer-surface drawer-surface--source"
+      :class="{
+        'drawer-surface--inactive': sourceInactive,
+        'drawer-surface--active': !sourceInactive,
+      }"
       data-testid="drawer-source"
       aria-labelledby="drawer-source-title"
       @cancel.prevent="moveToParent"
@@ -471,6 +483,7 @@ onBeforeUnmount(() => {
     <dialog
       ref="evidenceDialog"
       class="drawer-surface drawer-surface--evidence"
+      :class="{ 'drawer-surface--active': Boolean(evidenceId) }"
       data-testid="drawer-evidence"
       aria-labelledby="drawer-evidence-title"
       @cancel.prevent="moveToParent"

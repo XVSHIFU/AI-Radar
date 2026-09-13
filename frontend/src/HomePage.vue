@@ -274,8 +274,8 @@ onBeforeUnmount(() => {
             class="timeline-year__tools"
             aria-label="时间线展开控制"
           >
-            <button @click="setAll(true)">展开全部</button>
-            <button @click="setAll(false)">折叠全部</button>
+            <button aria-label="展开全部" @click="setAll(true)">展开</button>
+            <button aria-label="折叠全部" @click="setAll(false)">折叠</button>
           </div>
         </div>
         <div v-if="timelineState[year.key]">
