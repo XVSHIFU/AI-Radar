@@ -25,7 +25,9 @@ let generation = 0;
 let controller: AbortController | undefined;
 let savedScroll = 0;
 let locked = false;
-let priorBodyStyles: { position: string; top: string; width: string } | undefined;
+let priorBodyStyles:
+  | { position: string; top: string; width: string }
+  | undefined;
 let eventOpener: HTMLElement | undefined;
 let sourceOpener: HTMLElement | undefined;
 let evidenceOpener: HTMLElement | undefined;
@@ -37,8 +39,8 @@ const queryString = (name: "event" | "source" | "evidence") => {
 const eventId = computed(() => queryString("event"));
 const sourceKey = computed(() => queryString("source"));
 const evidenceId = computed(() => queryString("evidence"));
-const eventLayer = computed(
-  () => Boolean(eventId.value || sourceKey.value || evidenceId.value),
+const eventLayer = computed(() =>
+  Boolean(eventId.value || sourceKey.value || evidenceId.value),
 );
 const safeUrl = (url: string) => /^https?:\/\//i.test(url);
 
@@ -109,7 +111,8 @@ function parentQuery(): LocationQueryRaw {
 function moveToParent() {
   const query = parentQuery();
   const target = router.resolve({ path: "/", query }).fullPath;
-  if ((history.state as { back?: string } | null)?.back === target) router.back();
+  if ((history.state as { back?: string } | null)?.back === target)
+    router.back();
   else void router.replace({ path: "/", query });
 }
 function closeAll() {
@@ -196,7 +199,8 @@ async function loadEvent() {
   try {
     const value = await events.one(id, controller.signal);
     if (current !== generation) return;
-    if (!value) throw { code: "NOT_FOUND", message: "未找到该事件", status: 404 };
+    if (!value)
+      throw { code: "NOT_FOUND", message: "未找到该事件", status: 404 };
     item.value = value;
     try {
       const evidenceRows = await events.evidence(id, controller.signal);
@@ -215,18 +219,22 @@ async function loadEvent() {
 
 watch(eventId, loadEvent, { immediate: true });
 watch([eventLayer, sourceKey, evidenceId], syncDialogs, { immediate: true });
-watch(eventLayer, async (next, previous) => {
-  if (next && !previous) {
-    const active = document.activeElement;
-    if (active instanceof HTMLElement) eventOpener = active;
-    lockScroll();
-  }
-  if (!next && previous) {
-    unlockScroll();
-    await nextTick();
-    eventOpener?.focus();
-  }
-}, { immediate: true });
+watch(
+  eventLayer,
+  async (next, previous) => {
+    if (next && !previous) {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement) eventOpener = active;
+      lockScroll();
+    }
+    if (!next && previous) {
+      unlockScroll();
+      await nextTick();
+      eventOpener?.focus();
+    }
+  },
+  { immediate: true },
+);
 watch(sourceKey, async (next, previous) => {
   if (!next && previous && !evidenceId.value) {
     await nextTick();
@@ -258,10 +266,18 @@ onBeforeUnmount(() => {
       <div class="drawer-shell">
         <div class="drawer-header">
           <h2 id="drawer-event-title">事件</h2>
-          <button data-testid="drawer-close" aria-label="关闭事件抽屉" @click="moveToParent">关闭</button>
+          <button
+            data-testid="drawer-close"
+            aria-label="关闭事件抽屉"
+            @click="moveToParent"
+          >
+            关闭
+          </button>
         </div>
         <div class="drawer-body">
-          <p v-if="loading" class="drawer-status" aria-live="polite">正在读取事件与关联证据…</p>
+          <p v-if="loading" class="drawer-status" aria-live="polite">
+            正在读取事件与关联证据…
+          </p>
           <div v-else-if="error" class="drawer-error" role="alert">
             <p>{{ error.status === 404 ? "未找到该事件。" : error.message }}</p>
             <button @click="loadEvent">重试</button>
@@ -269,21 +285,46 @@ onBeforeUnmount(() => {
           <template v-else-if="item">
             <h3 class="drawer-event-title">{{ item.title_zh }}</h3>
             <p class="muted">{{ item.summary_zh }}</p>
-            <p class="meta tabular">{{ item.event_date || "日期未知" }} · {{ item.source_count }} 个来源 · {{ item.evidence_count }} 条关联证据</p>
+            <p class="meta tabular">
+              {{ item.event_date || "日期未知" }} ·
+              {{ item.source_count }} 个来源 ·
+              {{ item.evidence_count }} 条关联证据
+            </p>
             <h3>来源</h3>
-            <p v-if="evidenceError" class="drawer-error" role="alert">证据暂时无法读取：{{ evidenceError.message }} <button @click="loadEvent">重试</button></p>
-            <p v-else-if="!sources.length" class="drawer-status">此事件没有可打开的来源或关联证据。</p>
-            <div v-for="source in sources" :key="source.key" class="drawer-source">
+            <p v-if="evidenceError" class="drawer-error" role="alert">
+              证据暂时无法读取：{{ evidenceError.message }}
+              <button @click="loadEvent">重试</button>
+            </p>
+            <p v-else-if="!sources.length" class="drawer-status">
+              此事件没有可打开的来源或关联证据。
+            </p>
+            <div
+              v-for="source in sources"
+              :key="source.key"
+              class="drawer-source"
+            >
               <p class="drawer-source__name">{{ source.title }}</p>
-              <p class="meta">{{ source.evidence.length ? `${source.evidence.length} 条已保存证据` : "未提供关联证据" }}</p>
-              <button data-testid="source-open" @click="openSource(source)">查看来源</button>
+              <p class="meta">
+                {{
+                  source.evidence.length
+                    ? `${source.evidence.length} 条已保存证据`
+                    : "未提供关联证据"
+                }}
+              </p>
+              <button data-testid="source-open" @click="openSource(source)">
+                查看来源
+              </button>
             </div>
           </template>
           <div v-else class="drawer-error" role="alert">
             <p>缺少事件标识，无法打开来源层。</p>
-            <button data-testid="drawer-back" @click="moveToParent">返回</button>
+            <button data-testid="drawer-back" @click="moveToParent">
+              返回
+            </button>
           </div>
-          <button v-if="eventLayer" class="drawer-return" @click="closeAll">返回时间线</button>
+          <button v-if="eventLayer" class="drawer-return" @click="closeAll">
+            返回时间线
+          </button>
         </div>
       </div>
     </dialog>
@@ -297,24 +338,66 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent">返回</button>
+          <button
+            data-testid="drawer-back"
+            aria-label="返回事件"
+            @click="moveToParent"
+          >
+            返回
+          </button>
           <h2 id="drawer-source-title">来源</h2>
-          <button data-testid="drawer-close" aria-label="关闭来源抽屉" @click="moveToParent">关闭</button>
+          <button
+            data-testid="drawer-close"
+            aria-label="关闭来源抽屉"
+            @click="moveToParent"
+          >
+            关闭
+          </button>
         </div>
         <div class="drawer-body">
-          <div v-if="!item && !loading" class="drawer-error" role="alert">无法定位此来源所属的事件。<button @click="moveToParent">返回</button></div>
-          <div v-else-if="item && !selectedSource" class="drawer-error" role="alert">未找到指定来源；它可能不属于这个事件或链接已失效。<button @click="moveToParent">返回事件</button></div>
+          <div v-if="!item && !loading" class="drawer-error" role="alert">
+            无法定位此来源所属的事件。<button @click="moveToParent">
+              返回
+            </button>
+          </div>
+          <div
+            v-else-if="item && !selectedSource"
+            class="drawer-error"
+            role="alert"
+          >
+            未找到指定来源；它可能不属于这个事件或链接已失效。<button
+              @click="moveToParent"
+            >
+              返回事件
+            </button>
+          </div>
           <template v-else-if="selectedSource">
             <h3>{{ selectedSource.title }}</h3>
-            <p v-if="selectedSource.language" class="meta">语言：{{ selectedSource.language }}</p>
-            <p v-if="safeUrl(selectedSource.sourceUrl)"><a :href="selectedSource.sourceUrl" target="_blank" rel="noopener">打开原始来源</a></p>
+            <p v-if="selectedSource.language" class="meta">
+              语言：{{ selectedSource.language }}
+            </p>
+            <p v-if="safeUrl(selectedSource.sourceUrl)">
+              <a :href="selectedSource.sourceUrl" target="_blank" rel="noopener"
+                >打开原始来源</a
+              >
+            </p>
             <p v-else class="drawer-status">该来源未提供可安全打开的链接。</p>
             <h3>关联证据</h3>
-            <p v-if="!selectedSource.evidence.length" class="drawer-status">该来源没有已保存的段落证据。</p>
-            <div v-for="row in selectedSource.evidence" :key="row.id" class="drawer-evidence">
+            <p v-if="!selectedSource.evidence.length" class="drawer-status">
+              该来源没有已保存的段落证据。
+            </p>
+            <div
+              v-for="row in selectedSource.evidence"
+              :key="row.id"
+              class="drawer-evidence"
+            >
               <p>{{ row.title }}</p>
-              <p class="meta">版本 {{ row.article_version_id }} · 段落 {{ row.paragraph_id }}</p>
-              <button data-testid="evidence-open" @click="openEvidence(row)">查看证据</button>
+              <p class="meta">
+                版本 {{ row.article_version_id }} · 段落 {{ row.paragraph_id }}
+              </p>
+              <button data-testid="evidence-open" @click="openEvidence(row)">
+                查看证据
+              </button>
             </div>
           </template>
           <p v-else class="drawer-status">正在读取来源…</p>
@@ -331,22 +414,71 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回来源" @click="moveToParent">返回</button>
+          <button
+            data-testid="drawer-back"
+            aria-label="返回来源"
+            @click="moveToParent"
+          >
+            返回
+          </button>
           <h2 id="drawer-evidence-title">证据</h2>
-          <button data-testid="drawer-close" aria-label="关闭证据抽屉" @click="moveToParent">关闭</button>
+          <button
+            data-testid="drawer-close"
+            aria-label="关闭证据抽屉"
+            @click="moveToParent"
+          >
+            关闭
+          </button>
         </div>
         <div class="drawer-body">
-          <div v-if="!item && !loading" class="drawer-error" role="alert">无法定位此证据所属的事件。<button @click="moveToParent">返回</button></div>
-          <div v-else-if="item && !selectedSource" class="drawer-error" role="alert">未找到指定来源，无法核对该证据。<button @click="moveToParent">返回</button></div>
-          <div v-else-if="selectedSource && !selectedEvidence" class="drawer-error" role="alert">未找到指定证据；它可能不属于这个来源或链接已失效。<button @click="moveToParent">返回来源</button></div>
+          <div v-if="!item && !loading" class="drawer-error" role="alert">
+            无法定位此证据所属的事件。<button @click="moveToParent">
+              返回
+            </button>
+          </div>
+          <div
+            v-else-if="item && !selectedSource"
+            class="drawer-error"
+            role="alert"
+          >
+            未找到指定来源，无法核对该证据。<button @click="moveToParent">
+              返回
+            </button>
+          </div>
+          <div
+            v-else-if="selectedSource && !selectedEvidence"
+            class="drawer-error"
+            role="alert"
+          >
+            未找到指定证据；它可能不属于这个来源或链接已失效。<button
+              @click="moveToParent"
+            >
+              返回来源
+            </button>
+          </div>
           <template v-else-if="selectedEvidence">
             <h3>{{ selectedEvidence.title }}</h3>
-            <blockquote class="drawer-quote">{{ selectedEvidence.quote_text }}</blockquote>
-            <p class="meta">不可变版本：{{ selectedEvidence.article_version_id }}</p>
+            <blockquote class="drawer-quote">
+              {{ selectedEvidence.quote_text }}
+            </blockquote>
+            <p class="meta">
+              不可变版本：{{ selectedEvidence.article_version_id }}
+            </p>
             <p class="meta">段落：{{ selectedEvidence.paragraph_id }}</p>
-            <p class="meta">核验状态：{{ selectedEvidence.verification_status }}</p>
-            <p v-if="safeUrl(selectedEvidence.source_url)"><a :href="selectedEvidence.source_url" target="_blank" rel="noopener">打开原始来源</a></p>
-            <p v-else class="drawer-status">该证据未提供可安全打开的来源链接。</p>
+            <p class="meta">
+              核验状态：{{ selectedEvidence.verification_status }}
+            </p>
+            <p v-if="safeUrl(selectedEvidence.source_url)">
+              <a
+                :href="selectedEvidence.source_url"
+                target="_blank"
+                rel="noopener"
+                >打开原始来源</a
+              >
+            </p>
+            <p v-else class="drawer-status">
+              该证据未提供可安全打开的来源链接。
+            </p>
           </template>
           <p v-else class="drawer-status">正在读取证据…</p>
         </div>
