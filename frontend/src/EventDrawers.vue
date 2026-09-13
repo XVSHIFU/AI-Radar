@@ -285,7 +285,11 @@ watch(evidenceId, async (next, previous) => {
     evidenceOpener?.focus();
   }
 });
+onMounted(() => {
+  window.addEventListener("keydown", handleEscape, true);
+});
 onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleEscape, true);
   generation++;
   controller?.abort();
   unlockScroll();
