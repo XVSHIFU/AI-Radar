@@ -159,7 +159,11 @@ function openEvent(event: MouseEvent, id: string) {
   )
     return;
   event.preventDefault();
-  void router.push({ path: "/", query: { ...query(), event: id } });
+  const drawerQuery = { ...route.query };
+  delete drawerQuery.source;
+  delete drawerQuery.evidence;
+  drawerQuery.event = id;
+  void router.push({ path: "/", query: drawerQuery });
 }
 watch(() => route.query, sync, { immediate: true });
 watch(timeline, (value) => {

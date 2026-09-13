@@ -91,11 +91,10 @@ const selectedEvidence = computed(() =>
 );
 
 function baseQuery(): LocationQueryRaw {
-  const query: LocationQueryRaw = {};
-  for (const key of ["q", "category", "date_from", "date_to", "demo"]) {
-    const value = route.query[key];
-    if (value !== undefined) query[key] = value;
-  }
+  const query: LocationQueryRaw = { ...route.query };
+  delete query.event;
+  delete query.source;
+  delete query.evidence;
   return query;
 }
 function parentQuery(): LocationQueryRaw {
