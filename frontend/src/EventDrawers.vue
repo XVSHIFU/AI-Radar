@@ -1,7 +1,22 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
-import { err, events, type Article, type Event, type Evidence } from "./api";
+import {
+  dataMode,
+  err,
+  events,
+  type Article,
+  type Category,
+  type Event,
+  type Evidence,
+} from "./api";
 
 type SourceChoice = {
   key: string;
@@ -43,6 +58,24 @@ const eventLayer = computed(() =>
   Boolean(eventId.value || sourceKey.value || evidenceId.value),
 );
 const safeUrl = (url: string) => /^https?:\/\//i.test(url);
+const categoryLabels: Record<Category, string> = {
+  model_release: "模型发布",
+  agent_tool: "智能体工具",
+  framework_sdk: "框架与 SDK",
+  research: "研究",
+  product: "产品",
+  industry: "产业",
+};
+const verificationLabel = (status: string) =>
+  status === "synthetic_verified" ? "合成回归：已核对" : status || "未提供";
+const eventDetailHref = computed(() =>
+  eventId.value
+    ? router.resolve({
+        path: `/events/${eventId.value}`,
+        query: route.query.demo === "1" ? { demo: "1" } : {},
+      }).href
+    : "/",
+);
 
 const sources = computed<SourceChoice[]>(() => {
   const rows: SourceChoice[] = [];
@@ -142,6 +175,12 @@ function openEvidence(row: Evidence) {
       evidence: row.id,
     },
   });
+}
+function handleEscape(event: KeyboardEvent) {
+  if (event.key !== "Escape" || !eventLayer.value) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  moveToParent();
 }
 function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   if (!dialog) return;
@@ -264,7 +303,7 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <h2 id="drawer-event-title">事件</h2>
+          <h2 id="drawer-event-title">事件 · 当前层</h2>
           <button
             data-testid="drawer-close"
             aria-label="关闭事件抽屉"
@@ -274,6 +313,9 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="drawer-body">
+          <p v-if="dataMode === 'fixture'" class="drawer-fixture">
+            后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
+          </p>
           <p v-if="loading" class="drawer-status" aria-live="polite">
             正在读取事件与关联证据…
           </p>
@@ -284,6 +326,21 @@ onBeforeUnmount(() => {
           <template v-else-if="item">
             <h3 class="drawer-event-title">{{ item.title_zh }}</h3>
             <p class="muted">{{ item.summary_zh }}</p>
+            <p class="drawer-event-facts">
+              <span class="pill">{{ categoryLabels[item.category] }}</span>
+              <span class="meta tabular">重要度 {{ item.importance }}/5</span>
+            </p>
+            <p v-if="item.entities.length" class="drawer-entities">
+              <span
+                v-for="entity in item.entities"
+                :key="entity"
+                class="pill"
+                >{{ entity }}</span
+              >
+            </p>
+            <p class="drawer-full-page">
+              <a :href="eventDetailHref">打开完整事件页</a>
+            </p>
             <p class="meta tabular">
               {{ item.event_date || "日期未知" }} ·
               {{ item.source_count }} 个来源 ·
@@ -344,7 +401,7 @@ onBeforeUnmount(() => {
           >
             返回
           </button>
-          <h2 id="drawer-source-title">来源</h2>
+          <h2 id="drawer-source-title">事件 › 来源 · 当前层</h2>
           <button
             data-testid="drawer-close"
             aria-label="关闭来源抽屉"
@@ -354,6 +411,9 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="drawer-body">
+          <p v-if="dataMode === 'fixture'" class="drawer-fixture">
+            后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
+          </p>
           <div v-if="!item && !loading" class="drawer-error" role="alert">
             无法定位此来源所属的事件。<button @click="moveToParent">
               返回
@@ -420,7 +480,7 @@ onBeforeUnmount(() => {
           >
             返回
           </button>
-          <h2 id="drawer-evidence-title">证据</h2>
+          <h2 id="drawer-evidence-title">事件 › 来源 › 证据 · 当前层</h2>
           <button
             data-testid="drawer-close"
             aria-label="关闭证据抽屉"
@@ -430,6 +490,9 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="drawer-body">
+          <p v-if="dataMode === 'fixture'" class="drawer-fixture">
+            后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
+          </p>
           <div v-if="!item && !loading" class="drawer-error" role="alert">
             无法定位此证据所属的事件。<button @click="moveToParent">
               返回
@@ -465,7 +528,9 @@ onBeforeUnmount(() => {
             </p>
             <p class="meta">段落：{{ selectedEvidence.paragraph_id }}</p>
             <p class="meta">
-              核验状态：{{ selectedEvidence.verification_status }}
+              核验状态：{{
+                verificationLabel(selectedEvidence.verification_status)
+              }}
             </p>
             <p v-if="safeUrl(selectedEvidence.source_url)">
               <a

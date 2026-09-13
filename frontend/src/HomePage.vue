@@ -238,25 +238,46 @@ onBeforeUnmount(() => {
       <div v-else-if="!loading && !items.length" class="empty">
         这个范围内没有事件。
       </div>
-      <div v-else class="timeline-controls" aria-label="时间线展开控制">
-        <button @click="setAll(true)">展开全部</button
-        ><button @click="setAll(false)">折叠全部</button>
-      </div>
       <section
         v-for="year in timeline"
         :key="year.key"
         class="timeline-year"
         :class="{ 'timeline-year--unknown': year.unknown }"
       >
-        <button
-          class="timeline-year__toggle"
-          data-testid="timeline-year-toggle"
-          :data-key="year.key"
-          :aria-expanded="timelineState[year.key]"
-          @click="toggle(year.key)"
-        >
-          {{ year.label }}
-        </button>
+        <div class="timeline-year__heading">
+          <button
+            class="timeline-year__toggle"
+            data-testid="timeline-year-toggle"
+            :data-key="year.key"
+            :aria-expanded="timelineState[year.key]"
+            @click="toggle(year.key)"
+          >
+            <span class="timeline-year__label">{{ year.label }}</span>
+            <span class="timeline-year__count"
+              >已加载
+              {{
+                year.months.reduce(
+                  (sum, month) =>
+                    sum +
+                    month.days.reduce(
+                      (days, day) => days + day.events.length,
+                      0,
+                    ),
+                  0,
+                )
+              }}
+              条</span
+            >
+          </button>
+          <div
+            v-if="timeline[0]?.key === year.key"
+            class="timeline-year__tools"
+            aria-label="时间线展开控制"
+          >
+            <button @click="setAll(true)">展开全部</button>
+            <button @click="setAll(false)">折叠全部</button>
+          </div>
+        </div>
         <div v-if="timelineState[year.key]">
           <section
             v-for="month in year.months"
@@ -270,7 +291,14 @@ onBeforeUnmount(() => {
               :aria-expanded="timelineState[month.key]"
               @click="toggle(month.key)"
             >
-              {{ month.label }}
+              <span>{{ month.label }}</span>
+              <span class="timeline-month__count"
+                >已加载
+                {{
+                  month.days.reduce((sum, day) => sum + day.events.length, 0)
+                }}
+                条</span
+              >
             </button>
             <div v-if="timelineState[month.key]">
               <section
