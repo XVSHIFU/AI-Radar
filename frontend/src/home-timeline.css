@@ -408,3 +408,21 @@
     animation: none;
   }
 }
+
+@media (min-width: 901px) {
+  .timeline-year {
+    padding-left: 148px;
+  }
+  .timeline-year::before {
+    left: 132px;
+  }
+  .timeline-year__toggle {
+    width: 132px;
+  }
+  .timeline-year__label {
+    white-space: nowrap;
+  }
+  .timeline-year__toggle::after {
+    flex: none;
+  }
+}
