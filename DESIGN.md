@@ -74,6 +74,23 @@ typography:
     fontSize: 12px
     fontWeight: 400
     lineHeight: 1.6
+  timeline-year:
+    fontFamily: Inter, "PingFang SC", "Microsoft YaHei", sans-serif
+    fontSize: 26px
+    fontWeight: 650
+    lineHeight: 1.15
+    letterSpacing: -0.025em
+  drawer-title:
+    fontFamily: Inter, "PingFang SC", "Microsoft YaHei", sans-serif
+    fontSize: 26px
+    fontWeight: 600
+    lineHeight: 1.28
+    letterSpacing: -0.02em
+  drawer-label:
+    fontFamily: Inter, "PingFang SC", "Microsoft YaHei", sans-serif
+    fontSize: 15px
+    fontWeight: 650
+    lineHeight: 1.35
   brand:
     fontFamily: Inter, "PingFang SC", "Microsoft YaHei", sans-serif
     fontSize: 17px
@@ -151,6 +168,22 @@ components:
     backgroundColor: '{colors.paper}'
     rounded: '{rounded.reading}'
     padding: 24px 28px
+  timeline-month:
+    backgroundColor: '{colors.blue-soft}'
+    textColor: '{colors.blue}'
+    rounded: '{rounded.control}'
+    padding: 7px 10px
+  drawer-panel:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.reading}'
+    padding: 0px
+  drawer-body:
+    padding: 24px
+    typography: '{typography.reading}'
+  drawer-body-compact:
+    padding: 20px
+    typography: '{typography.reading}'
   quote:
     backgroundColor: '{colors.quote-bg}'
     textColor: '{colors.ink}'
@@ -179,8 +212,8 @@ components:
 
 **Key Characteristics:**
 - 冷银蓝地面、白色阅读面与安静的上下文面板。
-- 连续事件流采用完整日期和细线节点，移动端回到自然文档顺序。
-- 证据在正文中展开，来源、段落和缺失信息保留明确文字。
+- 连续事件流按可折叠年/月/日组织，完整日期和细线节点维持阅读节奏；移动端回到自然文档顺序。
+- 首页通过事件、来源、证据三层抽屉核对材料；详情和问答继续在正文中展开证据，保留来源、段落和缺失信息的明确文字。
 
 ## Colors
 
@@ -213,7 +246,7 @@ components:
 - **Body / Reading**：界面正文行高1.6；摘要与回答正文行高1.7、最大宽度70ch。
 - **Label / Meta / Date / Pill**：字段标签14px、辅助文字13px、日期15px、标签12px，各司其职。品牌17px、800字重；活动导航700字重。
 
-**The Date Rhythm Rule.** 日期必须按正常阅读顺序完整显示；桌面日期列与节点对齐，移动端移到事件组上方。
+**The Date Rhythm Rule.** 日期必须按正常阅读顺序完整显示；首页以年、月和完整日日期组织层级，桌面年份标记与时间线形成对齐关系，移动端移到事件组上方。
 
 ## Layout
 
@@ -223,18 +256,23 @@ components:
 
 **筛选折叠另用768px边界。** HomePage 的 compact 为 innerWidth < 768，768px起隐藏折叠按钮并显示完整条件；768–900px因此是单列页面加完整筛选，不是桌面轨道。搜索字段占整行，手机折叠与清除在同一操作行；分类用原生单选项，日期用原生日期字段。
 
-桌面日期组左内边距112px，日期标签 left:-8px / width:96px / nowrap / 右对齐，时间线 left:96px。节点继承10px外尺寸、2px描边，在事件内 left:-20px；这些值记录最终源码，不替代截图审查结论。紧凑布局隐藏纵线、日期恢复普通文档流，节点留在事件左侧；首页事件上下内边距14px。桌面事件内边距22px 0 22px 28px。4/8/12/16/24/32/48px是源码声明的间距词汇，20/28px等已实施阅读内边距保留，不强制舍入。
+旧首页日期组规则（仍保留在全局样式，现首页不再使用）：桌面日期组左内边距112px，日期标签 left:-8px / width:96px / nowrap / 右对齐，时间线 left:96px。节点继承10px外尺寸、2px描边，在事件内 left:-20px；这些值记录最终源码，不替代截图审查结论。紧凑布局隐藏纵线、日期恢复普通文档流，节点留在事件左侧；首页事件上下内边距14px。桌面事件内边距22px 0 22px 28px。4/8/12/16/24/32/48px是源码声明的间距词汇，20/28px等已实施阅读内边距保留，不强制舍入。
+
+当前首页时间层级（2026-09-13扩展）：桌面年份组左内边距148px，纵线left:132px、top:70px，年份标记left:-8px、width:132px，标题区最小高度66px；年份与指示符同行，已加载数量单独一行。月份位于正文列，完整日日期在其下。事件内边距14px 0 14px 28px，节点left:-20px、top:21px；900px及以下取消左日期列与纵线，节点left:0。未知日期组不画纵线。
+
+抽屉沿用900px边界：桌面上下距视口24px，高calc(100dvh - 48px)；事件、来源、证据右侧间距依次24/88/152px，宽度依次min(740px, calc(100vw - 48px))、min(708px, calc(100vw - 112px))、min(676px, calc(100vw - 176px))。900px及以下三层均为100vw × 100dvh、贴边无圆角；前景占满屏幕，返回路径留在顶部。
 
 ## Elevation & Depth
 
-主阅读面使用柔和阴影，侧面板、管理块与状态块以浅色底和细边框分层。阴影只属于连续阅读面，不自动分配给每一条事件。没有毛玻璃、渐变光晕或栅格背景。
+主阅读面使用柔和阴影，侧面板、管理块与状态块以浅色底和细边框分层。阴影用于连续阅读面和首页抽屉，不自动分配给每一条事件。没有毛玻璃、渐变光晕或栅格背景。
 
 ### Shadow Vocabulary
 - **阅读面阴影**（box-shadow: 0 12px 30px rgba(34, 61, 93, 0.08)）：首页、详情与问答的白色阅读面。
+- **抽屉阴影**（box-shadow: -18px 10px 34px rgba(34, 61, 93, 0.16)）：首页事件、来源与证据的真实叠层；第一层背景遮罩为rgba(16, 34, 59, 0.16)，后续层背景遮罩透明。
 
 **The Evidence Layer Rule.** 层次服务于阅读与核对：主阅读面使用柔和阴影，摘录使用浅色平面和细边界，不引入字面云景。
 
-摘录插入时使用0.22s ease-out的clip-path展开，从 inset(0 0 100% 0) 到 inset(0)。内容默认可见，移除时没有独立收起动画。prefers-reduced-motion: reduce 下全局关闭动画与过渡；不增设滚动显现、漂浮或页面入场动作。
+摘录插入时使用0.22s ease-out的clip-path展开，从 inset(0 0 100% 0) 到 inset(0)。内容默认可见，移除时没有独立收起动画。prefers-reduced-motion: reduce 下全局关闭动画与过渡；不增设滚动显现、漂浮或页面入场动作。首页抽屉进入或恢复为活动层时，使用0.2s cubic-bezier(0.2, 0.8, 0.2, 1)的水平位移，从translateX(14px)到translateX(0)，没有独立退出动画；这不替代继承的摘录展开。日期指示符旋转过渡为0.18s ease-out。减少动态效果时两者均立即完成，无动画或过渡。
 
 ## Shapes
 
@@ -259,6 +297,18 @@ components:
 
 ### Evidence layer
 证据区顶部间距24px、顶部内边距20px和细分隔线；每项上下内边距16px。按钮以 aria-expanded / aria-controls 表达展开状态；插入的 blockquote 可程序聚焦，内边距12px 16px、外边距12px 0。详情显示保存的版本ID与段落ID；问答显示可用段落ID，并明确写“来源版本未提供”，缺少段落写“未提供”。来源链接只在有效HTTP(S)地址时呈现。摘录、计划、链接允许任意长串换行。
+
+### Collapsible date groups
+年、月、日均使用原生按钮及aria-expanded表达折叠状态，收起隐藏后代，后代自身展开选择仍保留。年标记使用timeline-year令牌，月标签15px/650字重，完整日日期13px；已加载计数12px、灰蓝色。月份采用浅蓝底、8px圆角和细边框，其余日期按钮为透明底；hover保留文字下划线，月份另保留浅蓝底与hover-line边框。指示符用边线绘制，折叠与展开通过旋转区分，焦点继承全局规则。
+
+所有日期计数只统计已加载匹配行；缺少日期单独标明“日期未知”。各层默认展开，追加分页保留现有折叠选择；首个年份旁提供“展开/折叠”文字操作，并以可访问名称说明“全部”。日期按钮最小高度44px。桌面全部操作按钮当前40px高，紧凑布局44px；桌面值是实现偏差，不替代全局44px目标。
+
+### Stacked event / source / evidence drawers
+三层真实原生dialog依次展示事件、来源与保存的段落证据。桌面保留后层白色边缘；非活动层的标题内容和正文visibility:hidden且不可点击，标题分隔线透明，避免后层残字与控件露出。顶部使用返回、路径及关闭文字；返回或Esc逐层退回，事件层另有“返回时间线”。来源、证据层的关闭也是退一层；浏览器历史、筛选条件、时间线滚动位置与可用的触发点焦点保持衔接。事件标题链接继续提供独立详情地址和新标签打开。
+
+桌面抽屉16px圆角与细边框，顶部16px 20px内边距、正文24px；紧凑正文20px。顶部标签使用drawer-label令牌，事件标题使用drawer-title令牌、紧凑布局22px；正文分节18px/600字重、1.35行高。正文独立滚动，层内按钮继承普通按钮和全局焦点；摘录保留既有浅色平面、左边线及长串换行。
+
+各层保留实际加载、缺失与无安全链接的文字，事件和证据读取失败提供重试；无关联证据不得伪造全文。保存的版本、段落与核验状态在证据层可核对，合成模式提示在前景层内可见。此组件扩展不改变详情和问答既有的正文证据展开规则。
 
 ### Feedback / synthetic labels
 模式提示持续说明“前端模拟”或“后端合成数据”；详情摘录与问答模拟流另保留就地标识。错误面板显示实际错误文案并用 role=alert，加载/提交/匹配与取消状态用实际文本及适用的 aria-live。首页加载区最小高度120px；空结果采用居中48px内边距。无资料、未读取、错误、取消与模拟完成分别呈现；费用“实际/估算/未知”保留文字区分。检索计划使用独立浅蓝平面；覆盖计数不能当作全网或真实模型能力证明。

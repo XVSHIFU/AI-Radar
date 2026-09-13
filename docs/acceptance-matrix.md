@@ -7,12 +7,13 @@
 | 早期两版原型比较 | 采用Terra，持续由Terra负责前端 | design-requirements.md、prototype-comparison.md；同32条合成数据，主观评分Sol88/Terra90 |
 | 两原型共用浏览器检查 | 14/14 | prototype-browser-results.json |
 | 本轮四页重设计 | 四项独立审查修复均resolved，ship | ui-redesign-report.md、ui-finish-verdict-final.md；仅该修复范围，不代表完整P0通过 |
+| 时间层级与叠层抽屉 | 浏览器24/24；动效2/2；四项修复resolved，ship | drawer-browser-results.json、drawer-motion-results.json、drawer-ui-report.md |
 | 正式四页浏览器 | 42/42 | frontend-browser-results.json；390/768/1440、分页、取消、引用、错误、实际计划与长文本 |
 | 实际HTTP合成API | 14/14 | api-smoke-results.json；确切ID、日期、别名、分页和证据定位 |
 | 独立确定性计划HTTP | 30/30 | query-plan-regression-results.json；固定Clock、日期、别名、实体跨度、UI冲突 |
 | 原36题的显式结构部分 | 24通过，12待验收 | structure-regression-results.json；不代表36题完整题义全部通过 |
 | 后端单元测试 | 94/94 | local-checks.json、verification日志；无真实PG |
-| 前端单元测试 | 15/15 | SSE、引用、请求取消、计划结构守卫等 |
+| 前端单元测试 | 18/18 | 新增跨年/月、未知日期及分页折叠状态；drawer-ui-report.md |
 | 统一工程检查 | 11/11 | local-checks.json；静态/类型/单测、两层回归、OpenAPI、离线迁移、构建 |
 | 真实连接拒绝故障协议 | 3/3 | database-unavailable-results.json；保留未监听loopback端口，未使用PG服务 |
 | 仅生产依赖启动导入 | 通过 | runtime-validation.json；独立no-dev环境导入API/worker/scheduler，未安装pytest |
@@ -30,4 +31,4 @@
 
 当前预览 http://127.0.0.1:5175 ，API http://127.0.0.1:8002/docs 。启动/停止脚本已实际验证。后续依赖和验收顺序见next-acceptance.md。
 
-Pro周额度起始95%，2026-09-12 13:39最近观测83%；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。
+Pro周额度用户起始报告95%；2026-09-12 13:39观测83%，最新2026-09-13 11:22观测97%，分别记录观测值；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。

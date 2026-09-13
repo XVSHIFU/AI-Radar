@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-12T05:47:20.862888Z",
+  "generatedAt": "2026-09-13T03:20:56.566Z",
   "title": "Design System: AI 革新雷达",
   "extensions": {
     "colorMeta": {
@@ -395,6 +395,18 @@
       "brand": {
         "displayName": "brand",
         "purpose": "应用名称。"
+      },
+      "timeline-year": {
+        "displayName": "年份标记",
+        "purpose": "首页年/月/日层级中的年份，已加载计数另行显示。"
+      },
+      "drawer-title": {
+        "displayName": "抽屉事件标题",
+        "purpose": "事件层正文标题；900px及以下为22px。"
+      },
+      "drawer-label": {
+        "displayName": "抽屉路径",
+        "purpose": "事件、来源、证据前景层顶部路径。"
       }
     },
     "shadows": [
@@ -402,6 +414,11 @@
         "name": "reading-plane",
         "value": "0 12px 30px rgba(34, 61, 93, 0.08)",
         "purpose": "首页、详情和问答连续阅读面。"
+      },
+      {
+        "name": "drawer-plane",
+        "value": "-18px 10px 34px rgba(34, 61, 93, 0.16)",
+        "purpose": "首页事件、来源与证据的真实叠层；非活动层只保留白色边缘。"
       }
     ],
     "motion": [
@@ -414,6 +431,16 @@
         "name": "reduced-motion",
         "value": "animation: none !important; transition: none !important",
         "purpose": "prefers-reduced-motion: reduce下全局关闭。"
+      },
+      {
+        "name": "drawer-plane-arrive",
+        "value": "drawer-plane-arrive 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "进入或恢复活动抽屉时，从translateX(14px)到translateX(0)；无独立退出动画，减少动态效果下animation:none。"
+      },
+      {
+        "name": "timeline-disclosure",
+        "value": "transform 0.18s ease-out",
+        "purpose": "日期边线指示符随aria-expanded旋转；减少动态效果下transition:none。"
       }
     ],
     "breakpoints": [
@@ -511,6 +538,22 @@
       "html": "<div class=\"ds-error\" role=\"alert\">服务未配置或不可用。<button class=\"ds-retry\">重试</button></div>",
       "css": ".ds-error{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;padding:20px;border:1px solid #e8b5ae;border-radius:14px;background:var(--paper, #fff);color:var(--danger, #a5342b)}.ds-retry{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-retry:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-retry:disabled{opacity:.52;cursor:not-allowed}.ds-retry:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}",
       "refersTo": "error-card"
+    },
+    {
+      "name": "年 / 月 / 日日期层级",
+      "kind": "custom",
+      "refersTo": "timeline-month",
+      "description": "已加载日期分组的展开样本；计数仅为合成示意。实际折叠与分页状态由Vue管理，预览保留hover与焦点样式。",
+      "html": "<section class=\"ds-date\"><div class=\"ds-year-heading\"><button class=\"ds-year-toggle\" aria-expanded=\"true\"><span class=\"ds-year-label\">2026 年</span><span class=\"ds-year-count\">已加载 1 条</span></button></div><section class=\"ds-month\"><button class=\"ds-month-toggle\" aria-expanded=\"true\"><span>9 月</span><span class=\"ds-count\">已加载 1 条</span></button><section class=\"ds-day\"><button class=\"ds-day-toggle\" aria-expanded=\"true\"><span>2026-09-13</span><span class=\"ds-loaded\">已加载 1 条</span></button></section></section></section>",
+      "css": ".ds-date{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;position:relative;margin-top:12px;padding-left:148px;line-height:1.6;color:var(--ink,#10223b)}.ds-date::before{content:\"\";position:absolute;inset:70px auto 0 132px;width:1px;background:var(--line,#d4dee9)}.ds-year-heading{position:relative;min-height:66px}.ds-date button{font:inherit;cursor:pointer;min-height:44px;color:var(--blue,#123d73);font-variant-numeric:tabular-nums}.ds-year-toggle{position:absolute;top:0;left:-8px;display:flex;align-content:flex-start;align-items:center;justify-content:flex-end;flex-wrap:wrap;column-gap:6px;width:132px;padding:4px 0;border:0;border-radius:0;background:transparent;text-align:right}.ds-year-label{order:0;font-size:26px;font-weight:650;line-height:1.15;letter-spacing:-.025em;white-space:nowrap}.ds-year-count{order:2;flex-basis:100%}.ds-year-count,.ds-count,.ds-loaded{color:var(--muted,#5b6d82);font-size:12px;font-weight:400}.ds-month{position:relative;padding:8px 0 0}.ds-date .ds-month-toggle{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--blue-soft,#e8f0fa);font-size:15px;font-weight:650}.ds-day{position:relative;margin-top:2px}.ds-date .ds-day-toggle{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0;border:0;border-radius:0;background:transparent;color:var(--muted,#5b6d82);font-size:13px;text-align:left}.ds-loaded{margin-left:auto}.ds-date button::after{content:\"\";display:inline-block;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s ease-out}.ds-year-toggle::after{order:1;flex:none}.ds-month-toggle::after{order:-1;margin:0 2px 0 0}.ds-day-toggle::after{order:-1;margin-left:0}.ds-date button[aria-expanded=\"false\"]::after{transform:rotate(-45deg) translate(1px,-1px)}.ds-date button:hover{text-decoration:underline}.ds-date .ds-month-toggle:hover{border-color:#9cb8d4}.ds-date button:focus{outline:3px solid #78b7d1;outline-offset:2px}.ds-date button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}@media(max-width:900px){.ds-date{padding-left:0}.ds-date::before{display:none}.ds-year-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.ds-year-toggle{position:relative;left:auto;width:auto;text-align:left;justify-content:flex-start}}@media(prefers-reduced-motion:reduce){.ds-date button::after{transition:none}}"
+    },
+    {
+      "name": "事件 / 来源 / 证据抽屉",
+      "kind": "custom",
+      "refersTo": "drawer-panel",
+      "description": "前景层内容与表面样本；固定视口几何、真实dialog堆叠及history/Esc/焦点行为由Vue提供。此预览不模拟层级操作；900px及以下真实抽屉为全屏。",
+      "html": "<section class=\"ds-drawer\"><div class=\"ds-drawer-header\"><button class=\"ds-drawer-button\" aria-label=\"返回来源\">返回</button><h2>事件 › 来源 › 证据 · 当前层</h2><button class=\"ds-drawer-button\" aria-label=\"关闭证据抽屉\">关闭</button></div><div class=\"ds-drawer-body\"><p class=\"ds-drawer-fixture\">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p><h3>合成演示证据</h3><blockquote class=\"ds-drawer-quote\">合成段落摘录</blockquote><p>段落：demo-p-001</p></div></section>",
+      "css": ".ds-drawer{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;padding:0;border:1px solid var(--line,#d4dee9);border-radius:16px;color:var(--ink,#10223b);background:var(--paper,#fff);box-shadow:-18px 10px 34px rgba(34,61,93,.16)}.ds-drawer-header{display:flex;align-items:center;gap:8px;padding:16px 20px;border-bottom:1px solid var(--line,#d4dee9);background:var(--paper,#fff)}.ds-drawer-header h2{flex:1;margin:0;font-size:15px;font-weight:650;line-height:1.35}.ds-drawer-header button{min-width:44px}.ds-drawer-body{min-width:0;overflow:auto;padding:24px;font-size:16px;line-height:1.7}.ds-drawer-body h3{margin:24px 0 10px;font-size:18px;font-weight:600;line-height:1.35}.ds-drawer-fixture{margin:0 0 16px;padding:8px 12px;border:1px solid #f1d396;border-radius:8px;background:#fff8e7;color:#674b00;font-size:13px;line-height:1.6}.ds-drawer-quote{margin:12px 0;padding:12px 16px;border-left:1px solid #9db5ca;background:#f3f7fb;overflow-wrap:anywhere}.ds-drawer-button{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-drawer-button:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-drawer-button:disabled{opacity:.52;cursor:not-allowed}.ds-drawer-button:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}@media(max-width:900px){.ds-drawer{border:0;border-radius:0}.ds-drawer-body{padding:20px}}"
     }
   ],
   "narrative": {
@@ -518,8 +561,8 @@
     "overview": "以桌面阅读空间为主体：冷银蓝底面托起白色连续阅读面，深蓝交互与深墨正文建立稳定层级。云层切面只表现为面板、浅色摘录和证据展开的层次；动作谱只表现为日期、节点与正文的对齐节奏。\n\n这是依据已完成 Vue 页面与最终 CSS 层叠提取的实现记录，替代此前青绿色版本。中文工作字体、紧凑 SVG、留白与轻边界支撑日常阅读；没有栅格素材、云景或舞蹈符号。页面组成见方向契约，产品能力边界仍以 PRODUCT.md 为准。",
     "keyCharacteristics": [
       "冷银蓝地面、白色阅读面与安静的上下文面板。",
-      "连续事件流采用完整日期和细线节点，移动端回到自然文档顺序。",
-      "证据在正文中展开，来源、段落和缺失信息保留明确文字。"
+      "连续事件流按可折叠年/月/日组织，完整日期和细线节点维持阅读节奏；移动端回到自然文档顺序。",
+      "首页通过事件、来源、证据三层抽屉核对材料；详情和问答继续在正文中展开证据，保留来源、段落和缺失信息的明确文字。"
     ],
     "rules": [
       {
@@ -529,7 +572,7 @@
       },
       {
         "name": "The Date Rhythm Rule",
-        "body": "日期必须按正常阅读顺序完整显示；桌面日期列与节点对齐，移动端移到事件组上方。",
+        "body": "日期必须按正常阅读顺序完整显示；首页以年、月和完整日日期组织层级，桌面年份标记与时间线形成对齐关系，移动端移到事件组上方。",
         "section": "typography"
       },
       {

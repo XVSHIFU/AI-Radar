@@ -1,0 +1,219 @@
+{
+  "observed_at": "2026-09-13T03:16:11.4100193+00:00",
+  "base_url": "http://127.0.0.1:5175",
+  "layer": "fixture_api_visual_capture",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "state": "home",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\desktop-home.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "minimumToggleHeight": 44,
+        "panelOverflow": false,
+        "scrollWidth": 1430,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "home-full",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\desktop-home-full.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "minimumToggleHeight": 44,
+        "panelOverflow": false,
+        "scrollWidth": 1430,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "month-collapsed",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\desktop-month-collapsed.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "minimumToggleHeight": 44,
+        "panelOverflow": false,
+        "scrollWidth": 1440,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "event",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\desktop-event.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 1,
+        "minimumToggleHeight": 44,
+        "panelLeft": 676,
+        "panelOverflow": false,
+        "panelRight": 1416,
+        "panelWidth": 740,
+        "scrollWidth": 1440,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "source",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\desktop-source.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 2,
+        "minimumToggleHeight": 44,
+        "panelLeft": 644,
+        "panelOverflow": false,
+        "panelRight": 1352,
+        "panelWidth": 708,
+        "scrollWidth": 1440,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "evidence",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\desktop-evidence.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 3,
+        "minimumToggleHeight": 44,
+        "panelLeft": 612,
+        "panelOverflow": false,
+        "panelRight": 1288,
+        "panelWidth": 676,
+        "scrollWidth": 1440,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "home",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\mobile-home.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "minimumToggleHeight": 44,
+        "panelOverflow": false,
+        "scrollWidth": 380,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "home-full",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\mobile-home-full.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "minimumToggleHeight": 44,
+        "panelOverflow": false,
+        "scrollWidth": 380,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "month-collapsed",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\mobile-month-collapsed.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "minimumToggleHeight": 44,
+        "panelOverflow": false,
+        "scrollWidth": 390,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "event",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\mobile-event.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 1,
+        "minimumToggleHeight": 44,
+        "panelLeft": 0,
+        "panelOverflow": false,
+        "panelRight": 390,
+        "panelWidth": 390,
+        "scrollWidth": 390,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "source",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\mobile-source.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 2,
+        "minimumToggleHeight": 44,
+        "panelLeft": 0,
+        "panelOverflow": false,
+        "panelRight": 390,
+        "panelWidth": 390,
+        "scrollWidth": 390,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "evidence",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\drawers\\reviewer-fix-1\\mobile-evidence.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 3,
+        "minimumToggleHeight": 44,
+        "panelLeft": 0,
+        "panelOverflow": false,
+        "panelRight": 390,
+        "panelWidth": 390,
+        "scrollWidth": 390,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    }
+  ]
+}
