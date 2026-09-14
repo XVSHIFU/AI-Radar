@@ -1,0 +1,92 @@
+{
+  "observed_at": "2026-09-14T03:34:08.863923+00:00",
+  "base_url": "http://127.0.0.1:8002",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "check": "full_fixture_exceeds_first_page",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 32
+    },
+    {
+      "check": "inclusive_one_day",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 5
+    },
+    {
+      "check": "category_range_exact",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 3
+    },
+    {
+      "check": "keyword_combined_category",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 6
+    },
+    {
+      "check": "zero_days_filled",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 0
+    },
+    {
+      "check": "leap_day_inclusive",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 0
+    },
+    {
+      "check": "maximum_366_days",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 32
+    },
+    {
+      "check": "importance_filtered",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 200,
+      "total_events": 13
+    },
+    {
+      "check": "reject_reverse",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 422,
+      "total_events": null
+    },
+    {
+      "check": "reject_367_days",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 422,
+      "total_events": null
+    },
+    {
+      "check": "require_dates",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 422,
+      "total_events": null
+    },
+    {
+      "check": "reject_unknown_category",
+      "layer": "fixture_api_http",
+      "passed": true,
+      "status": 422,
+      "total_events": null
+    }
+  ]
+}

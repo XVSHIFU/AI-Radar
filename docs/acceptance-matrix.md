@@ -9,7 +9,8 @@
 | 本轮四页重设计 | 四项独立审查修复均resolved，ship | ui-redesign-report.md、ui-finish-verdict-final.md；仅该修复范围，不代表完整P0通过 |
 | 时间层级与叠层抽屉 | 浏览器24/24；动效2/2；四项修复resolved，ship | drawer-browser-results.json、drawer-motion-results.json、drawer-ui-report.md |
 | 简化阅读预览 MVP | 浏览器27/27；两项修复resolved，ship | simple-mvp-report.md、simple-mvp-finish-verdict.md；独立预览，8张最终截图，合成数据 |
-| 正式四页浏览器 | 42/42 | frontend-browser-results.json；390/768/1440、分页、取消、引用、错误、实际计划与长文本 |
+| 月份阅读与规则统计总览 | 新交互36/36、问答协议12/12、统计HTTP12/12、前端单元18/18与构建通过 | reading-insights-report.md；默认今日，纯程序汇总，14张桌面/手机截图；真实日采集、PG与模型未验收 |
+| 正式四页浏览器（此前记录） | 42/42 | frontend-browser-results.json；390/768/1440、分页、取消、引用、错误、实际计划与长文本 |
 | 实际HTTP合成API | 14/14 | api-smoke-results.json；确切ID、日期、别名、分页和证据定位 |
 | 独立确定性计划HTTP | 30/30 | query-plan-regression-results.json；固定Clock、日期、别名、实体跨度、UI冲突 |
 | 原36题的显式结构部分 | 24通过，12待验收 | structure-regression-results.json；不代表36题完整题义全部通过 |

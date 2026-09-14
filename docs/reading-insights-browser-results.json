@@ -1,0 +1,335 @@
+{
+  "observed_at": "2026-09-14T04:09:00.5724262+00:00",
+  "base_url": "http://127.0.0.1:5175",
+  "passed": 36,
+  "total": 36,
+  "checks": [
+    {
+      "check": "home_only_month_folds",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "rows": 10
+      }
+    },
+    {
+      "check": "home_month_fold_and_restore",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "home_pointer_selection_no_outer_ring",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "outline": "3px",
+        "passed": true
+      }
+    },
+    {
+      "check": "home_keyboard_focus_remains_visible",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "outline": "3px",
+        "passed": true,
+        "tag": "INPUT"
+      }
+    },
+    {
+      "check": "home_search_clear_recovers_full_scope",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "home_width_390",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 380,
+        "width": 390
+      }
+    },
+    {
+      "check": "home_width_768",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 758,
+        "width": 768
+      }
+    },
+    {
+      "check": "home_width_1440",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1430,
+        "width": 1440
+      }
+    },
+    {
+      "check": "home_width_1680",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1670,
+        "width": 1680
+      }
+    },
+    {
+      "check": "reader_direct_evidence_and_no_page_exit",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "reader_provenance_visible_on_demand",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "reader_internal_blank_keeps_open",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "source_child_right_parent_left",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "childLeft": 948,
+        "parentLeft": 884,
+        "passed": true,
+        "right": 1656
+      }
+    },
+    {
+      "check": "source_outside_click_closes_top_only",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "event_escape_preserves_filter_focus",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "reader_deeplink_modal_focus",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "event_outside_click_closes",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "mobile_event_and_source_fullscreen_return",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "first": 390,
+        "passed": true,
+        "second": 390
+      }
+    },
+    {
+      "check": "preview_reader_parity",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_today_default_no_model",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_custom_full_scope_and_pagination",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_chart_category_drilldown",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_chart_day_drilldown",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_event_drawer_stays_on_ask",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_importance_and_keyword",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_invalid_range_hides_old_counts",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_long_range_month_buckets",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "buckets": [
+          [
+            "2026-08-15",
+            "2026-08-31"
+          ],
+          [
+            "2026-09-01",
+            "2026-09-30"
+          ],
+          [
+            "2026-10-01",
+            "2026-10-15"
+          ]
+        ],
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_width_390",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 380,
+        "width": 390
+      }
+    },
+    {
+      "check": "insights_width_768",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 758,
+        "width": 768
+      }
+    },
+    {
+      "check": "insights_width_1440",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1430,
+        "width": 1440
+      }
+    },
+    {
+      "check": "insights_width_1680",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "scroll": 1670,
+        "width": 1680
+      }
+    },
+    {
+      "check": "insights_month_click_preserves_bucket_boundaries",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "rule_plan_explicit_apply",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "ask_real_model_unavailable_keeps_overview",
+      "layer": "fixture_api_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_fault_not_fake_zero_and_retry",
+      "layer": "injected_failure_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "check": "insights_list_failure_keeps_statistics",
+      "layer": "injected_failure_browser",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    }
+  ]
+}
