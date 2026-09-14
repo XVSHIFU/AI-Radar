@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from radar.config import get_settings
 from radar.ingest.core import DocumentParseError
+from radar.ingest.dns import configured_resolver
 from radar.ingest.public_transport import PublicAsyncTransport
 from radar.ingest.worker_service import LeaseLost, WorkerService
 from radar.ingest_repository import IngestRepository
@@ -39,10 +40,13 @@ async def run() -> None:
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         repository = IngestRepository(sessions)
         owner = f"{socket.gethostname()}:{os.getpid()}"
+        resolver = configured_resolver(settings.fetch_dns_mode)
         async with httpx.AsyncClient(
-            transport=PublicAsyncTransport(), follow_redirects=False, trust_env=False
+            transport=PublicAsyncTransport(resolver=resolver),
+            follow_redirects=False,
+            trust_env=False,
         ) as client:
-            service = WorkerService(sessions, client)
+            service = WorkerService(sessions, client, resolver=resolver)
             while True:
                 job = await repository.claim(owner)
                 if job is None:

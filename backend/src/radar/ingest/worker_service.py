@@ -17,6 +17,8 @@ from ..models import (
     SourceRow,
 )
 from .core import fetch_public, parse_document, parse_feed
+from .dates import published_datetime
+from .public_transport import Resolver
 
 
 class LeaseLost(RuntimeError):
@@ -29,9 +31,15 @@ def article_job_key(run_id: object, canonical_url: str) -> str:
 
 
 class WorkerService:
-    def __init__(self, sessions: async_sessionmaker[AsyncSession], client: httpx.AsyncClient):
+    def __init__(
+        self,
+        sessions: async_sessionmaker[AsyncSession],
+        client: httpx.AsyncClient,
+        resolver: Resolver | None = None,
+    ):
         self.sessions = sessions
         self.client = client
+        self.resolver = resolver
 
     async def process(self, job: IngestJobRow) -> None:
         if job.stage == "feed_discovery":
@@ -68,7 +76,11 @@ class WorkerService:
     async def _discover(self, job: IngestJobRow) -> None:
         source = await self._source(job)
         feed = await fetch_public(
-            self.client, source.feed_url, etag=source.etag, last_modified=source.last_modified
+            self.client,
+            source.feed_url,
+            etag=source.etag,
+            last_modified=source.last_modified,
+            resolver=self.resolver,
         )
         entries = [] if feed.status == 304 else parse_feed(feed.body)
         async with self.sessions() as session, session.begin():
@@ -135,7 +147,7 @@ class WorkerService:
 
     async def _fetch_article(self, job: IngestJobRow) -> None:
         requested_url = str(job.payload["canonical_url"])
-        response = await fetch_public(self.client, requested_url)
+        response = await fetch_public(self.client, requested_url, resolver=self.resolver)
         canonical_url = response.final_url
         document = parse_document(response.body)
         async with self.sessions() as session, session.begin():
@@ -179,7 +191,7 @@ class WorkerService:
                         article_id=article_id,
                         title=discovery.title if discovery else "",
                         source_url=response.final_url,
-                        published_at=None,
+                        published_at=published_datetime(discovery.published if discovery else None),
                         paragraphs=document.paragraphs,
                         content_hash=document.content_hash,
                     )
@@ -187,6 +199,13 @@ class WorkerService:
                     .returning(ArticleVersionRow.id)
                 )
             ).scalar_one_or_none()
+            version_id = inserted_version_id or await session.scalar(
+                select(ArticleVersionRow.id).where(
+                    ArticleVersionRow.article_id == article_id,
+                    ArticleVersionRow.content_hash == document.content_hash,
+                )
+            )
+            assert version_id is not None
             if inserted_version_id is not None and not is_new:
                 run.updated_articles += 1
             discoveries = list(
@@ -209,12 +228,13 @@ class WorkerService:
                             id=uuid4(),
                             run_id=job.run_id,
                             source_id=item.source_id,
+                            article_version_id=version_id,
                             canonical_url=canonical_url,
                             original_url=item.original_url,
                             title=item.title,
                             status="needs_review",
                         )
-                        .on_conflict_do_nothing(index_elements=["source_id", "canonical_url"])
+                        .on_conflict_do_nothing(index_elements=["source_id", "article_version_id"])
                         .returning(ArticleCandidateRow.id)
                     )
                 ).scalar_one_or_none()

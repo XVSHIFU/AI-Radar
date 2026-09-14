@@ -15,25 +15,28 @@ from radar.ingest.core import (
     parse_feed,
     validate_quote,
 )
+from radar.config import get_settings
+from radar.ingest.dns import configured_resolver
 from radar.ingest.public_transport import PublicAsyncTransport
 from validate_sources_catalog import SOURCES
 
 
 async def probe(name: str, url: str) -> dict:
     result = {"name": name, "feed_url": url, "feed_status": "failed", "body_status": "not_run"}
+    resolver = configured_resolver(get_settings().fetch_dns_mode)
     async with httpx.AsyncClient(
-        transport=PublicAsyncTransport(), follow_redirects=False, trust_env=False,
+        transport=PublicAsyncTransport(resolver=resolver), follow_redirects=False, trust_env=False,
         headers={"User-Agent": "AI-Radar-SourceValidation/0.1"},
     ) as client:
         try:
-            feed = await asyncio.wait_for(fetch_public(client, url, max_bytes=2_000_000), 45)
+            feed = await asyncio.wait_for(fetch_public(client, url, max_bytes=2_000_000, resolver=resolver), 45)
             entries = parse_feed(feed.body)
             result.update(feed_status="parsed", feed_http_status=feed.status, entry_count=len(entries))
             if not entries:
                 raise ValueError("feed contains no entries")
             entry = entries[0]
             result.update(article_title=entry.title, article_url=entry.url, source_published=entry.published)
-            fetched = await asyncio.wait_for(fetch_public(client, entry.url), 45)
+            fetched = await asyncio.wait_for(fetch_public(client, entry.url, resolver=resolver), 45)
             document = parse_document(fetched.body)
             # This checks only local paragraph addressing, not semantic relevance or extracted events.
             paragraph_id, text = next(iter(document.paragraphs.items()))

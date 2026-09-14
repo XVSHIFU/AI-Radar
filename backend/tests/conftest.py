@@ -8,8 +8,8 @@ from radar.main import app
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setenv("RADAR_DATA_MODE", "fixture")
-    monkeypatch.delenv("LLM_API_KEY", raising=False)
-    monkeypatch.delenv("ADMIN_TOKEN", raising=False)
+    monkeypatch.setenv("LLM_API_KEY", "")
+    monkeypatch.setenv("ADMIN_TOKEN", "")
     get_settings.cache_clear()
     with TestClient(app) as test_client:
         yield test_client

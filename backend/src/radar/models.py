@@ -197,6 +197,9 @@ class ArticleCandidateRow(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ingest_runs.id", ondelete="CASCADE"))
     source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
+    article_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("article_versions.id")
+    )
     canonical_url: Mapped[str] = mapped_column(Text)
     original_url: Mapped[str] = mapped_column(Text)
     title: Mapped[str] = mapped_column(Text)
@@ -205,7 +208,7 @@ class ArticleCandidateRow(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     __table_args__ = (
-        UniqueConstraint("source_id", "canonical_url", name="uq_candidate_source_url"),
+        UniqueConstraint("source_id", "article_version_id", name="uq_candidate_source_version"),
     )
 
 
