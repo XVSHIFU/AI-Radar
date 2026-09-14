@@ -149,6 +149,7 @@ function closeAll() {
   void router.replace({ path: pagePath.value, query: baseQuery() });
 }
 function closeFromBackdrop(event: MouseEvent, layer: "event" | "source" | "evidence") {
+  if (event.target !== event.currentTarget) return;
   const surface = event.currentTarget as HTMLDialogElement;
   const rect = surface.getBoundingClientRect();
   const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;

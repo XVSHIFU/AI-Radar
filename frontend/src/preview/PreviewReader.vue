@@ -50,6 +50,7 @@ function handleCancel(event: globalThis.Event) {
   close();
 }
 function handleBackdrop(event: MouseEvent) {
+  if (event.target !== event.currentTarget) return;
   const surface = event.currentTarget as HTMLDialogElement;
   const rect = surface.getBoundingClientRect();
   const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
