@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-14T07:00:15.0596075Z",
+  "generatedAt": "2026-09-14T10:14:12.699986+00:00",
   "title": "Design System: AI 革新雷达",
   "extensions": {
     "colorMeta": {
@@ -354,102 +354,79 @@
           "oklch(95.00% 0.02891 238.28)"
         ]
       },
-      "chart-model": {
-        "role": "secondary",
-        "displayName": "chart-model",
-        "tonalRamp": [
-          "oklch(15.00% 0.10882 247.72)",
-          "oklch(26.43% 0.10882 247.72)",
-          "oklch(37.86% 0.10882 247.72)",
-          "oklch(49.29% 0.10882 247.72)",
-          "oklch(60.71% 0.10882 247.72)",
-          "oklch(72.14% 0.10882 247.72)",
-          "oklch(83.57% 0.10882 247.72)",
-          "oklch(95.00% 0.10882 247.72)"
-        ]
-      },
-      "chart-agent": {
-        "role": "secondary",
-        "displayName": "chart-agent",
-        "tonalRamp": [
-          "oklch(15.00% 0.08884 143.31)",
-          "oklch(26.43% 0.08884 143.31)",
-          "oklch(37.86% 0.08884 143.31)",
-          "oklch(49.29% 0.08884 143.31)",
-          "oklch(60.71% 0.08884 143.31)",
-          "oklch(72.14% 0.08884 143.31)",
-          "oklch(83.57% 0.08884 143.31)",
-          "oklch(95.00% 0.08884 143.31)"
-        ]
-      },
-      "chart-framework": {
-        "role": "secondary",
-        "displayName": "chart-framework",
-        "tonalRamp": [
-          "oklch(15.00% 0.09502 65.10)",
-          "oklch(26.43% 0.09502 65.10)",
-          "oklch(37.86% 0.09502 65.10)",
-          "oklch(49.29% 0.09502 65.10)",
-          "oklch(60.71% 0.09502 65.10)",
-          "oklch(72.14% 0.09502 65.10)",
-          "oklch(83.57% 0.09502 65.10)",
-          "oklch(95.00% 0.09502 65.10)"
-        ]
-      },
-      "chart-research": {
-        "role": "secondary",
-        "displayName": "chart-research",
-        "tonalRamp": [
-          "oklch(15.00% 0.10917 305.35)",
-          "oklch(26.43% 0.10917 305.35)",
-          "oklch(37.86% 0.10917 305.35)",
-          "oklch(49.29% 0.10917 305.35)",
-          "oklch(60.71% 0.10917 305.35)",
-          "oklch(72.14% 0.10917 305.35)",
-          "oklch(83.57% 0.10917 305.35)",
-          "oklch(95.00% 0.10917 305.35)"
-        ]
-      },
-      "chart-product": {
-        "role": "secondary",
-        "displayName": "chart-product",
-        "tonalRamp": [
-          "oklch(15.00% 0.11090 9.51)",
-          "oklch(26.43% 0.11090 9.51)",
-          "oklch(37.86% 0.11090 9.51)",
-          "oklch(49.29% 0.11090 9.51)",
-          "oklch(60.71% 0.11090 9.51)",
-          "oklch(72.14% 0.11090 9.51)",
-          "oklch(83.57% 0.11090 9.51)",
-          "oklch(95.00% 0.11090 9.51)"
-        ]
-      },
-      "chart-industry": {
-        "role": "secondary",
-        "displayName": "chart-industry",
-        "tonalRamp": [
-          "oklch(15.00% 0.06716 196.71)",
-          "oklch(26.43% 0.06716 196.71)",
-          "oklch(37.86% 0.06716 196.71)",
-          "oklch(49.29% 0.06716 196.71)",
-          "oklch(60.71% 0.06716 196.71)",
-          "oklch(72.14% 0.06716 196.71)",
-          "oklch(83.57% 0.06716 196.71)",
-          "oklch(95.00% 0.06716 196.71)"
-        ]
-      },
-      "heat-ink": {
+      "heat-zero": {
         "role": "neutral",
-        "displayName": "heat-ink",
+        "displayName": "热图零值浅灰",
+        "canonical": "#edf0f2",
         "tonalRamp": [
-          "oklch(15.00% 0.05638 249.75)",
-          "oklch(26.43% 0.05638 249.75)",
-          "oklch(37.86% 0.05638 249.75)",
-          "oklch(49.29% 0.05638 249.75)",
-          "oklch(60.71% 0.05638 249.75)",
-          "oklch(72.14% 0.05638 249.75)",
-          "oklch(83.57% 0.05638 249.75)",
-          "oklch(95.00% 0.05638 249.75)"
+          "oklch(15.00% 0.00420 236.50)",
+          "oklch(26.43% 0.00420 236.50)",
+          "oklch(37.86% 0.00420 236.50)",
+          "oklch(49.29% 0.00420 236.50)",
+          "oklch(60.71% 0.00420 236.50)",
+          "oklch(72.14% 0.00420 236.50)",
+          "oklch(83.57% 0.00420 236.50)",
+          "oklch(95.00% 0.00420 236.50)"
+        ]
+      },
+      "heat-red-start": {
+        "role": "secondary",
+        "displayName": "热图正值红色低端",
+        "canonical": "#a63a34",
+        "tonalRamp": [
+          "oklch(15.00% 0.14365 26.73)",
+          "oklch(26.43% 0.14365 26.73)",
+          "oklch(37.86% 0.14365 26.73)",
+          "oklch(49.29% 0.14365 26.73)",
+          "oklch(60.71% 0.14365 26.73)",
+          "oklch(72.14% 0.14365 26.73)",
+          "oklch(83.57% 0.14365 26.73)",
+          "oklch(95.00% 0.14365 26.73)"
+        ]
+      },
+      "heat-red-max": {
+        "role": "secondary",
+        "displayName": "热图最大值深红",
+        "canonical": "#5c1713",
+        "tonalRamp": [
+          "oklch(15.00% 0.10111 27.65)",
+          "oklch(26.43% 0.10111 27.65)",
+          "oklch(37.86% 0.10111 27.65)",
+          "oklch(49.29% 0.10111 27.65)",
+          "oklch(60.71% 0.10111 27.65)",
+          "oklch(72.14% 0.10111 27.65)",
+          "oklch(83.57% 0.10111 27.65)",
+          "oklch(95.00% 0.10111 27.65)"
+        ]
+      },
+      "heat-zero-ink": {
+        "role": "neutral",
+        "displayName": "热图零值深墨字",
+        "canonical": "#172b3f",
+        "tonalRamp": [
+          "oklch(15.00% 0.04532 249.71)",
+          "oklch(26.43% 0.04532 249.71)",
+          "oklch(37.86% 0.04532 249.71)",
+          "oklch(49.29% 0.04532 249.71)",
+          "oklch(60.71% 0.04532 249.71)",
+          "oklch(72.14% 0.04532 249.71)",
+          "oklch(83.57% 0.04532 249.71)",
+          "oklch(95.00% 0.04532 249.71)"
+        ]
+      },
+      "assistant-answer-ink": {
+        "role": "neutral",
+        "displayName": "助手回答深墨",
+        "canonical": "#16324c",
+        "tonalRamp": [
+          "oklch(15.00% 0.05809 248.66)",
+          "oklch(26.43% 0.05809 248.66)",
+          "oklch(37.86% 0.05809 248.66)",
+          "oklch(49.29% 0.05809 248.66)",
+          "oklch(60.71% 0.05809 248.66)",
+          "oklch(72.14% 0.05809 248.66)",
+          "oklch(83.57% 0.05809 248.66)",
+          "oklch(95.00% 0.05809 248.66)"
         ]
       }
     },
@@ -516,12 +493,17 @@
       {
         "name": "drawer-plane",
         "value": "-18px 10px 34px rgba(34, 61, 93, 0.16)",
-        "purpose": "事件、来源及兼容证据层；活动层右24px，后层右56px，只保留白色边缘。"
+        "purpose": "助手收起时距视口24px；助手打开时紧邻其左侧并全高无圆角。桌面非模态，手机模态。"
       },
       {
         "name": "assistant-panel",
         "value": "-12px 0 30px rgba(34, 61, 93, 0.10)",
         "purpose": "桌面右侧并排助手；移动端全宽覆盖。"
+      },
+      {
+        "name": "history-overlay",
+        "value": "-12px 0 28px rgba(34,61,93,.14)",
+        "purpose": "901–1120px历史覆盖面板。"
       }
     ],
     "motion": [
@@ -551,14 +533,19 @@
         "purpose": "统计原生details的指示符。"
       },
       {
-        "name": "chart-flow-pulse",
-        "value": "chart-flow-pulse 1.2s ease-in-out infinite",
-        "purpose": "主动播放A流向，stroke-dasharray:12 8，dash offset到-20；可暂停，后台与卸载停止；减少动态效果下关闭。"
+        "name": "insight-in",
+        "value": "insight-in .22s ease-out",
+        "purpose": "图表挂载opacity .55到1，自动结束；reduced-motion关闭。"
       },
       {
-        "name": "chart-date-playback",
-        "value": "900ms interval",
-        "purpose": "主动播放B，逐桶更新面积与游标；暂停、后台和卸载停止；初始减少动态效果偏好下禁用播放。"
+        "name": "assistant-welcome-composer",
+        "value": "transform .18s ease-out, opacity .18s ease-out",
+        "purpose": "欢迎及输入区声明过渡；当前位置由布局切换，未插值；reduced-motion关闭CSS过渡。"
+      },
+      {
+        "name": "message-scroll",
+        "value": "scrollTo({behavior: \"smooth\"})",
+        "purpose": "回到最新消息；当前JS未按reduced-motion分支，不能宣称所有动态关闭。"
       }
     ],
     "breakpoints": [
@@ -573,6 +560,14 @@
       {
         "name": "desktop-layout-min",
         "value": "901px"
+      },
+      {
+        "name": "history-overlay-desktop-max",
+        "value": "1120px"
+      },
+      {
+        "name": "history-columns-min",
+        "value": "1121px"
       }
     ]
   },
@@ -669,7 +664,7 @@
       "name": "事件 / 来源抽屉",
       "kind": "custom",
       "refersTo": "drawer-panel",
-      "description": "当前层直接显示保存摘录，来源信息用原生details；普通流程为事件到来源，兼容证据查询层仍保留。预览不模拟固定定位、dialog历史、遮罩或焦点恢复。",
+      "description": "当前层直接显示保存摘录，来源信息用原生details；桌面非模态且紧邻打开的助手左侧，手机模态并可加入对话后切换；预览不模拟固定定位、dialog历史、遮罩或焦点恢复。",
       "html": "<section class=\"ds-drawer\"><div class=\"ds-drawer-header\"><button class=\"ds-drawer-button\" aria-label=\"返回事件\"><svg viewBox=\"0 0 18 18\" aria-hidden=\"true\"><path d=\"M11.5 3.5 6 9l5.5 5.5M6.5 9h7\"/></svg>返回</button><h2>来源</h2></div><div class=\"ds-drawer-body\"><p class=\"ds-drawer-fixture\">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p><h3>合成演示来源</h3><blockquote class=\"ds-drawer-quote\">合成段落摘录</blockquote><details class=\"ds-source-details\"><summary>来源信息</summary><p>不可变版本：demo-v-001</p><p>段落：demo-p-001</p><p>核验状态：合成回归示意</p></details></div></section>",
       "css": ".ds-drawer{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;padding:0;border:1px solid var(--line,#d4dee9);border-radius:16px;color:var(--ink,#10223b);background:var(--paper,#fff);box-shadow:-18px 10px 34px rgba(34,61,93,.16)}.ds-drawer-header{display:flex;align-items:center;gap:8px;padding:16px 20px;border-bottom:1px solid var(--line,#d4dee9);background:var(--paper,#fff)}.ds-drawer-header h2{flex:1;margin:0;font-size:15px;font-weight:650;line-height:1.35}.ds-drawer-body{min-width:0;overflow:auto;padding:24px;font-size:16px;line-height:1.7}.ds-drawer-body h3{margin:24px 0 10px;font-size:18px;font-weight:600;line-height:1.35}.ds-drawer-fixture{margin:0 0 16px;padding:8px 12px;border:1px solid #f1d396;border-radius:8px;background:#fff8e7;color:#674b00;font-size:13px;line-height:1.6}.ds-drawer-quote{margin:12px 0;padding:12px 16px;border-left:1px solid #9db5ca;background:#f3f7fb;overflow-wrap:anywhere}.ds-drawer-button{display:inline-flex;align-items:center;gap:4px;min-width:0;min-height:44px;padding:0 6px;border:0;border-radius:8px;background:transparent;box-shadow:none;color:var(--blue,#123d73);font:inherit;cursor:pointer}.ds-drawer-button:hover{border:0;background:transparent;color:var(--ink,#10223b)}.ds-drawer-button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ds-drawer-button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-source-details{margin-top:10px}.ds-source-details summary{display:inline-flex;align-items:center;min-height:44px;list-style:none;cursor:pointer;color:var(--blue,#123d73)}.ds-source-details summary::-webkit-details-marker{display:none}.ds-source-details summary::before{display:inline-block;width:7px;height:7px;margin:0 8px 2px 1px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;content:\"\";transform:rotate(-45deg)}.ds-source-details[open] summary::before{transform:rotate(45deg) translateY(-2px)}.ds-source-details p{overflow-wrap:anywhere}@media(max-width:900px){.ds-drawer{border:0;border-radius:0}.ds-drawer-body{padding:20px}}"
     },
@@ -685,26 +680,26 @@
       "name": "全站研究助手",
       "kind": "custom",
       "refersTo": "assistant-panel",
-      "description": "面板样本：正式应用固定右侧宽364px并给正文留位，手机全宽覆盖。首次提问后显式采用新范围，保留最近回答快照；预览不模拟模型或会话行为。",
-      "html": "<aside class=\"ds-assistant\"><header class=\"ds-assistant-header\"><div><strong>研究助手</strong><p>基于已收录事件回答，不使用维护权限。</p></div><button class=\"ds-assistant-return\">返回</button></header><section class=\"ds-assistant-scope\"><strong>当前动态列表范围</strong><p>当前列表范围：未限定单个事件</p></section><label class=\"ds-assistant-label\">问题<textarea class=\"ds-assistant-input\" rows=\"4\" placeholder=\"输入需要核查的 AI 进展问题\"></textarea></label></aside>",
-      "css": ".ds-assistant{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;width:364px;padding:22px;background:var(--paper,#fff);color:var(--ink,#10223b);border-left:1px solid var(--line,#d4dee9);box-shadow:-12px 0 30px rgba(34,61,93,.10)}.ds-assistant-header{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:18px;padding:22px 0 10px;background:var(--paper,#fff)}.ds-assistant p{margin:4px 0;color:var(--muted,#5b6d82);font-size:13px}.ds-assistant-return{flex:none;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--blue,#123d73);font:inherit;white-space:nowrap;cursor:pointer}.ds-assistant-return:hover{background:var(--blue-soft,#e8f0fa)}.ds-assistant-return:focus-visible,.ds-assistant-input:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-assistant-scope{margin:16px 0;padding-top:14px;border-top:1px solid var(--line,#d4dee9)}.ds-assistant-label{display:grid;gap:4px;font-size:14px}.ds-assistant-input{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--paper,#fff);color:var(--ink,#10223b);font:inherit;font-size:16px;caret-color:var(--blue,#123d73);resize:vertical}.ds-assistant-input:focus{border-color:var(--blue,#123d73)}@media(max-width:900px){.ds-assistant{width:100%;padding:18px 16px}}"
+      "description": "静态合成界面示意，不执行模型或持久化。正式助手初始460px、最多50vw；>1120px展开历史总宽至少520px，主列约340px、历史至少180px；不足则覆盖历史，手机在sticky导航正常流入口打开单面板。完整会话和IndexedDB语义见DESIGN.md。",
+      "html": "<aside class=\"ds-assistant\"><header class=\"ds-assistant-header\"><strong>研究助手</strong><button class=\"ds-assistant-return\">返回</button></header><section class=\"ds-assistant-scope\"><strong>当前动态列表范围</strong><p>已采用范围随本轮保存</p></section><article class=\"ds-message\"><p>助手 · 模拟数据</p><p>模拟流，仅用于演示。</p><p>此处为合成消息示意。</p></article><label class=\"ds-assistant-label\">问题<textarea class=\"ds-assistant-input\" rows=\"3\" placeholder=\"输入需要核查的问题\"></textarea></label><button class=\"ds-assistant-return\">发送</button><button class=\"ds-assistant-return\">历史</button><button class=\"ds-assistant-return\">新建</button></aside>",
+      "css": ".ds-assistant{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;width:min(460px,100%);padding:18px;background:var(--paper,#fff);color:var(--ink,#10223b);border-left:1px solid var(--line,#d4dee9);box-shadow:-12px 0 30px rgba(34,61,93,.10)}.ds-assistant-header{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:18px;padding:22px 0 10px;background:var(--paper,#fff)}.ds-assistant p{margin:4px 0;color:var(--muted,#5b6d82);font-size:13px}.ds-assistant-return{flex:none;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--blue,#123d73);font:inherit;white-space:nowrap;cursor:pointer}.ds-assistant-return:hover{background:var(--blue-soft,#e8f0fa)}.ds-assistant-return:focus-visible,.ds-assistant-input:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-assistant-scope{margin:16px 0;padding-top:14px;border-top:1px solid var(--line,#d4dee9)}.ds-assistant-label{display:grid;gap:4px;font-size:14px}.ds-assistant-input{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--paper,#fff);color:var(--ink,#10223b);font:inherit;font-size:16px;caret-color:var(--blue,#123d73);resize:vertical}.ds-assistant-input:focus{border-color:var(--blue,#123d73)}@media(max-width:900px){.ds-assistant{width:100%;padding:18px}}.ds-message{padding:12px 0;border-bottom:1px solid var(--line,#d4dee9);overflow-wrap:anywhere;color:#16324c}"
     },
     {
-      "name": "统计视图与分类图例",
+      "name": "分类排行 / 每日计数 / 紧密热图",
       "kind": "custom",
       "refersTo": "statistics-plane",
-      "description": "A/B/C选项及B图例的静态控件样本；六个色块对应同一分类映射。真实联合计数、播放和筛选由Vue提供；不在预览中编造统计数据。",
-      "html": "<section class=\"ds-statistics\"><h2>分类趋势</h2><div class=\"ds-chart-tabs\"><button>A 分类流向</button><button aria-pressed=\"true\">B 堆叠面积</button><button>C 热力矩阵</button></div><p class=\"ds-chart-mobile\">左右滑动查看全部日期</p><div class=\"ds-chart-legend\"><button style=\"--legend-color:#1d5f95\">模型发布</button><button style=\"--legend-color:#4f7d4d\">智能体工具</button><button style=\"--legend-color:#92602a\">框架与 SDK</button><button style=\"--legend-color:#7b5a9e\">研究</button><button style=\"--legend-color:#a04d5d\">产品</button><button style=\"--legend-color:#3d7f80\">产业</button></div></section>",
-      "css": ".ds-statistics{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;padding:18px 0;border-radius:0;background:transparent;box-shadow:none;color:var(--ink,#10223b)}.ds-statistics h2{margin:0 0 6px;font-size:20px}.ds-chart-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ds-statistics button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--paper,#fff);color:var(--ink,#10223b);cursor:pointer}.ds-statistics button:hover{background:var(--blue-soft,#e8f0fa);border-color:#9cb8d4}.ds-statistics button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-chart-tabs button[aria-pressed=\"true\"]{background:var(--blue,#123d73);color:#fff}.ds-chart-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ds-chart-legend button{display:inline-flex;align-items:center;gap:6px;color:var(--ink,#10223b);background:#f7faff;border-color:var(--line,#d4dee9)}.ds-chart-legend button::before{width:12px;height:12px;flex:none;background:var(--legend-color);content:\"\"}.ds-chart-mobile{display:none}@media(max-width:900px){.ds-chart-mobile{display:block;margin:8px 0;color:var(--muted,#5b6d82);font-size:13px}}"
+      "description": "A横向分类排行、B每日数量、C默认日期×分类；脚本统计，不调用模型。以下为合成0/1/2计数格静态样本，不是真实新闻统计；背景依据同图M=2公式，不模拟实际筛选。",
+      "html": "<section class=\"ds-statistics\"><h2>统计视图</h2><div class=\"ds-chart-tabs\"><button>A 分类排行</button><button>B 每日数量</button><button aria-pressed=\"true\">C 日期×分类</button></div><p>合成数据示意</p><div class=\"ds-heat\"><span></span><span>09-12</span><span>09-13</span><strong>模型发布</strong><button style=\"--heat:#edf0f2;color:#172b3f\">0</button><button style=\"--heat:rgb(92 23 19);color:#fff\">2</button><strong>研究</strong><button style=\"--heat:rgb(129 40 35);color:#fff\">1</button><button style=\"--heat:#edf0f2;color:#172b3f\">0</button></div><p class=\"ds-legend\">色标：0 浅灰 · 2 深红</p></section>",
+      "css": ".ds-statistics{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;padding:18px 0;border-radius:0;background:transparent;box-shadow:none;color:var(--ink,#10223b)}.ds-statistics h2{margin:0 0 6px;font-size:20px}.ds-chart-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ds-statistics button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--paper,#fff);color:var(--ink,#10223b);cursor:pointer}.ds-statistics button:hover{background:var(--blue-soft,#e8f0fa);border-color:#9cb8d4}.ds-statistics button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-chart-tabs button[aria-pressed=\"true\"]{background:var(--blue,#123d73);color:#fff}.ds-heat{display:grid;grid-template-columns:minmax(88px,auto) repeat(2,minmax(34px,1fr));gap:1px;overflow:auto;font-variant-numeric:tabular-nums}.ds-heat>*{min-width:34px;min-height:30px;padding:2px;border:0;border-radius:0;font-size:12px}.ds-heat strong{display:flex;align-items:center;background:var(--paper,#fff)}.ds-heat button{min-height:30px;padding:2px;border:0;border-radius:0;background:var(--heat);font-size:12px;box-shadow:none}.ds-heat button:hover{background:var(--heat);border-color:transparent}.ds-heat button:focus-visible{outline:2px solid var(--blue,#123d73);outline-offset:-2px}.ds-legend{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted,#5b6d82)}.ds-legend:before{content:\"\";width:88px;height:12px;background:linear-gradient(90deg,#edf0f2,#a63a34,#5c1713)}"
     }
   ],
   "narrative": {
     "northStar": "桌面阅读空间 · 云层切面 · 动作谱",
-    "overview": "以桌面阅读空间为主体：冷银蓝底面直接承载首页事件流和独立统计，深蓝交互与深墨正文建立稳定层级。白色保留给上下文面板、研究助手、详情阅读面和抽屉；云层切面表现为证据核对的层次，动作谱表现为日期与正文的连续节奏。\n\n这是依据正式 Vue 页面与最终 CSS 层叠同步的实现记录，沿用现有中文工作字体、紧凑 SVG、留白与轻边界。固定浅色，不提供主题切换；没有新增字体下载、栅格素材、云景或舞蹈符号。页面策略见 `.impeccable/surfaces/global-assistant.md`，产品能力边界仍以 PRODUCT.md 为准；文档同步不等于视觉裁决或上线批准。",
+    "overview": "以桌面阅读空间为主体：冷银蓝底面直接承载首页事件流和独立统计，深蓝交互与深墨正文建立稳定层级。白色保留给上下文面板、研究助手、详情阅读面和抽屉；云层切面表现为证据核对的层次，动作谱表现为日期与正文的连续节奏。\n\n这是依据正式 Vue 页面与最终 CSS 层叠同步的实现记录，沿用现有中文工作字体、紧凑 SVG、留白与轻边界。固定浅色，不提供主题切换；没有新增字体下载、栅格素材、云景或舞蹈符号。页面策略见 `.impeccable/surfaces/readable-insights-conversations.md`，产品能力边界仍以 PRODUCT.md 为准；文档同步不等于视觉裁决或上线批准。",
     "keyCharacteristics": [
       "冷银蓝直接阅读面、白色辅助面板与按需打开的研究助手。",
       "年份和完整日日期负责定位，仅月份可折叠；桌面与移动端都按自然文档顺序阅读。",
-      "事件与来源抽屉直接呈现保存段落；统计 A/B/C 共用日期与分类计数，助手回答保留提问时的范围快照。"
+      "事件与来源抽屉直接呈现保存段落；统计默认紧密红色热图，另有分类排行和每日计数；助手多会话在本浏览器保存每轮范围、消息与引用。"
     ],
     "rules": [
       {
@@ -725,11 +720,11 @@
     ],
     "dos": [
       "Do 保留合成数据、模拟流、检索范围、覆盖不足与错误的明确文字标识。",
-      "Do 为按钮、字段与导航保留至少44px高度及可见焦点；热力格当前32px，不把它当作全站触摸目标合规证明。",
+      "Do 为按钮、字段与导航保留至少44px高度及可见焦点；热力格当前最小34×30px，不把它当作全站触摸目标合规证明。",
       "Do 保留日期、统计数字的等宽数字特性，让链接、计划与摘录长文本换行。",
       "Do 让证据展开可由键盘操作，聚焦已展开摘录，并保留来源与段落可用性说明。",
       "Do 使用已实现的平面层次、细线、SVG和中文字体回退，优先让内容可读。",
-      "Do 在提问后明确采用页面新范围，并保留回答绑定范围；窄屏图表提供横向浏览提示。"
+      "Do 在提问后明确采用页面新范围，并保留每轮绑定范围与本地会话；窄屏图表允许横向滚动。"
     ],
     "donts": [
       "Don't 把服务失败、模拟回答或合成事件呈现成真实成功或真实新闻。",

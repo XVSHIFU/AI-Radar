@@ -1,0 +1,260 @@
+[
+  {
+    "name": "desktop-a",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 1440,
+      "view": "A",
+      "width": 1440
+    }
+  },
+  {
+    "name": "desktop-b",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 1440,
+      "view": "B",
+      "width": 1440
+    }
+  },
+  {
+    "name": "desktop-c",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 1440,
+      "view": "C",
+      "width": 1440
+    }
+  },
+  {
+    "name": "mobile-a",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 390,
+      "view": "A",
+      "width": 390
+    }
+  },
+  {
+    "name": "mobile-b",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 390,
+      "view": "B",
+      "width": 390
+    }
+  },
+  {
+    "name": "mobile-c",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 390,
+      "view": "C",
+      "width": 390
+    }
+  },
+  {
+    "name": "desktop-empty-assistant",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 1100,
+        "right": 1440,
+        "top": 0,
+        "width": 340,
+        "x": 1100,
+        "y": 0
+      },
+      "scroll": 1440,
+      "width": 1440
+    }
+  },
+  {
+    "name": "desktop-conversation",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 1100,
+        "right": 1440,
+        "top": 0,
+        "width": 340,
+        "x": 1100,
+        "y": 0
+      },
+      "scroll": 1440,
+      "width": 1440
+    }
+  },
+  {
+    "name": "desktop-history",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 920,
+        "right": 1440,
+        "top": 0,
+        "width": 520,
+        "x": 920,
+        "y": 0
+      },
+      "scroll": 1440,
+      "width": 1440
+    }
+  },
+  {
+    "name": "desktop-reader-assistant",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 1100,
+        "right": 1440,
+        "top": 0,
+        "width": 340,
+        "x": 1100,
+        "y": 0
+      },
+      "scroll": 1440,
+      "width": 1440
+    }
+  },
+  {
+    "name": "mobile-conversation",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "width": 390,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 390,
+      "width": 390
+    }
+  },
+  {
+    "name": "mobile-history",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "width": 390,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 390,
+      "width": 390
+    }
+  },
+  {
+    "name": "mobile-reader",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "scroll": 390,
+      "width": 390
+    }
+  },
+  {
+    "name": "user-1680-workspace",
+    "passed": true,
+    "geometry": {
+      "assistant": {
+        "bottom": 1000,
+        "height": 1000,
+        "left": 1340,
+        "right": 1680,
+        "top": 0,
+        "width": 340,
+        "x": 1340,
+        "y": 0
+      },
+      "scroll": 1680,
+      "width": 1680
+    }
+  }
+]

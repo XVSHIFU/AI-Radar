@@ -1,0 +1,210 @@
+{
+  "observed_at": "2026-09-14T09:44:33.9748392+00:00",
+  "layer": "browser_fixture_with_synthetic_ask_response",
+  "passed": 16,
+  "total": 16,
+  "checks": [
+    {
+      "name": "new_conversation",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "first_message",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "second_preserves_first_and_context",
+      "passed": true,
+      "actual": {
+        "history": [
+          {
+            "content": "第一轮验收",
+            "filters": {},
+            "role": "user"
+          },
+          {
+            "content": "合成验收回答：第一轮验收",
+            "role": "assistant"
+          }
+        ],
+        "passed": true
+      }
+    },
+    {
+      "name": "composer_below_messages",
+      "passed": true,
+      "actual": {
+        "composer": {
+          "bottom": 982,
+          "height": 227.359375,
+          "left": 1109,
+          "right": 1412,
+          "top": 754.640625,
+          "width": 303,
+          "x": 1109,
+          "y": 754.640625
+        },
+        "messages": {
+          "bottom": 754.640625,
+          "height": 551.65625,
+          "left": 1109,
+          "right": 1412,
+          "top": 202.984375,
+          "width": 303,
+          "x": 1109,
+          "y": 202.984375
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "citation_ids_unique_per_turn",
+      "passed": true,
+      "actual": {
+        "ids": [
+          "assistant-citation-a6dc757a-2380-40d3-b451-daf00a329793-2",
+          "assistant-citation-2d5b10f4-5681-4848-a5cd-c65892a3997e-2"
+        ],
+        "passed": true
+      }
+    },
+    {
+      "name": "draft_before_reload",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "reload_restores_turns_and_draft",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "history_toggle",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "resize_focus",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "resize_half_screen_limit",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "viewport": 1440,
+        "width": 520
+      }
+    },
+    {
+      "name": "reader_left_and_assistant_operable",
+      "passed": true,
+      "actual": {
+        "assistant": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 910,
+          "right": 1430,
+          "top": 0,
+          "width": 520,
+          "x": 910,
+          "y": 0
+        },
+        "passed": true,
+        "reader": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 170,
+          "right": 910,
+          "top": 0,
+          "width": 740,
+          "x": 170,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "attach_event_for_next_question",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "escape_only_reader",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "attachment_payload",
+      "passed": true,
+      "actual": {
+        "event_ids": [
+          "00000000-0000-4000-8000-000000000005"
+        ],
+        "passed": true
+      }
+    },
+    {
+      "name": "mobile_controls_visible",
+      "passed": true,
+      "actual": {
+        "composer": {
+          "bottom": 982,
+          "height": 171.359375,
+          "left": 19,
+          "right": 372,
+          "top": 810.640625,
+          "width": 353,
+          "x": 19,
+          "y": 810.640625
+        },
+        "passed": true,
+        "return": {
+          "bottom": 84,
+          "height": 44,
+          "left": 316,
+          "right": 372,
+          "top": 40,
+          "width": 56,
+          "x": 316,
+          "y": 40
+        }
+      }
+    },
+    {
+      "name": "short_viewport_composer_visible",
+      "passed": true,
+      "actual": {
+        "composer": {
+          "bottom": 582,
+          "height": 171.359375,
+          "left": 19,
+          "right": 372,
+          "top": 410.640625,
+          "width": 353,
+          "x": 19,
+          "y": 410.640625
+        },
+        "passed": true
+      }
+    }
+  ]
+}

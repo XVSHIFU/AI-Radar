@@ -1,0 +1,168 @@
+{
+  "observed_at": "2026-09-14T10:04:59.7863105+00:00",
+  "layer": "browser_layout_and_indexeddb_with_synthetic_ask",
+  "passed": 17,
+  "total": 17,
+  "checks": [
+    {
+      "name": "initial_composer_is_welcome_state",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "top": 417.375
+      }
+    },
+    {
+      "name": "first_send_moves_composer_down",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "top": 754.640625
+      }
+    },
+    {
+      "name": "keyboard_actually_changes_width",
+      "passed": true,
+      "actual": {
+        "after": 360,
+        "before": 340,
+        "passed": true
+      }
+    },
+    {
+      "name": "pointer_maximum_half_screen",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "width": 720
+      }
+    },
+    {
+      "name": "history_visible_and_resizable",
+      "passed": true,
+      "actual": {
+        "history": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 1230,
+          "right": 1430,
+          "top": 0,
+          "width": 200,
+          "x": 1230,
+          "y": 0
+        },
+        "panel": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 710,
+          "right": 1430,
+          "top": 0,
+          "width": 720,
+          "x": 710,
+          "y": 0
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "history_auto_title_and_rename",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "export_full_local_conversation",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "pending_attachment_and_draft_survive_switch",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "pending_attachment_and_draft_survive_refresh",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "assistant_click_keeps_reader",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "page_background_closes_reader",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "history_delete_only_selected_test_conversation",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "mobile_history_full_panel_and_return",
+      "passed": true,
+      "actual": {
+        "history": {
+          "bottom": 600,
+          "height": 600,
+          "left": 1,
+          "right": 390,
+          "top": 0,
+          "width": 389,
+          "x": 1,
+          "y": 0
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "mobile_event_to_chat_and_back",
+      "passed": true,
+      "actual": {
+        "chat": true,
+        "passed": true,
+        "returnControl": "查看事件"
+      }
+    },
+    {
+      "name": "adopt_week_scope_before_reload",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "reload_keeps_frozen_scope_for_next_request",
+      "passed": true,
+      "actual": {
+        "filters": {
+          "date_from": "2026-09-08",
+          "date_to": "2026-09-14"
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "storage_failure_visible_memory_usable",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    }
+  ]
+}

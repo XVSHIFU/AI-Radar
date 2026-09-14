@@ -1,0 +1,117 @@
+{
+  "observed_at": "2026-09-14T10:04:50.5130165+00:00",
+  "layer": "finish_review_layout_regression",
+  "passed": 4,
+  "total": 4,
+  "checks": [
+    {
+      "name": "history_readable_from_saved_340_at_1440",
+      "passed": true,
+      "actual": {
+        "history": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 1250,
+          "right": 1430,
+          "top": 0,
+          "width": 180,
+          "x": 1250,
+          "y": 0
+        },
+        "main": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 911,
+          "right": 1250,
+          "top": 0,
+          "width": 339,
+          "x": 911,
+          "y": 0
+        },
+        "panel": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 910,
+          "right": 1430,
+          "top": 0,
+          "width": 520,
+          "x": 910,
+          "y": 0
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "history_readable_from_saved_340_at_1680",
+      "passed": true,
+      "actual": {
+        "history": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 1490,
+          "right": 1670,
+          "top": 0,
+          "width": 180,
+          "x": 1490,
+          "y": 0
+        },
+        "main": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 1151,
+          "right": 1490,
+          "top": 0,
+          "width": 339,
+          "x": 1151,
+          "y": 0
+        },
+        "panel": {
+          "bottom": 1000,
+          "height": 1000,
+          "left": 1150,
+          "right": 1670,
+          "top": 0,
+          "width": 520,
+          "x": 1150,
+          "y": 0
+        },
+        "passed": true
+      }
+    },
+    {
+      "name": "mobile_entry_has_own_navigation_space",
+      "passed": true,
+      "actual": {
+        "entry": {
+          "bottom": 116,
+          "height": 44,
+          "left": 205,
+          "right": 267,
+          "top": 72,
+          "width": 62,
+          "x": 205,
+          "y": 72
+        },
+        "passed": true,
+        "rail": {
+          "bottom": 196,
+          "height": 196,
+          "left": 0,
+          "right": 390,
+          "top": 0,
+          "width": 390,
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "ABC_scroll_has_no_entry_overlap",
+      "passed": true,
+      "actual": {
+        "overlaps": [],
+        "passed": true
+      }
+    }
+  ]
+}

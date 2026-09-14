@@ -1,0 +1,93 @@
+{
+  "observed_at": "2026-09-14T09:24:33.928181+00:00",
+  "layer": "fixture_api_http_no_model",
+  "passed": 17,
+  "total": 17,
+  "checks": [
+    {
+      "name": "legacy_request_remains_valid",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "reject_system_history",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "reject_seven_history_messages",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "reject_oversized_message",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "reject_oversized_total_context",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "reject_non_uuid_attachment",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "reject_four_attachments",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "attachment_uses_authoritative_title",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "attachment_date_conflict_is_visible",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "attachment_conflict_blocks_ask",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "unknown_attachment_is_not_silently_dropped",
+      "passed": true,
+      "status": 422
+    },
+    {
+      "name": "attachment_does_not_fake_generation",
+      "passed": true,
+      "status": 503
+    },
+    {
+      "name": "assistant_history_does_not_override_explicit_scope",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "followup_keeps_frozen_dates",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "unfrozen_relative_history_is_clarified",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "acknowledgement_does_not_hide_prior_scope",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "partial_current_date_does_not_resolve_unfrozen_history",
+      "passed": true,
+      "status": 200
+    }
+  ]
+}
