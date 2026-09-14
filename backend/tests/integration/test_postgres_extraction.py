@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from radar.deepseek_client import Completion, DeepSeekClient, DeepSeekError, ProviderUsage
+from radar.extraction_schemas import ExtractionResult
 from radar.extraction_service import ExtractionService
 
 pytestmark = pytest.mark.postgres
@@ -313,6 +314,166 @@ async def test_auth_failure_stops_batch_immediately(postgres_database: Any) -> N
                     "SELECT count(*) FROM article_candidates WHERE status='needs_review'"
                 )
                 >= 1
+            )
+        finally:
+            await connection.close()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_only_latest_uncalled_article_version_is_eligible(postgres_database: Any) -> None:
+    connection = await postgres_database.connect()
+    try:
+        await connection.execute(
+            "UPDATE llm_calls SET error_code=NULL "
+            "WHERE error_code IN ('authentication_failed','insufficient_balance')"
+        )
+    finally:
+        await connection.close()
+    article_id, old_version = await _seed_version(
+        postgres_database,
+        sources=1,
+        published_at=datetime(2026, 8, 5, 2, tzinfo=UTC),
+        paragraph="Example AI released old model.",
+    )
+    _, new_version = await _seed_version(
+        postgres_database,
+        article_id=article_id,
+        sources=1,
+        published_at=datetime(2026, 8, 5, 3, tzinfo=UTC),
+        paragraph="Example AI released new model.",
+    )
+    connection = await postgres_database.connect()
+    try:
+        await connection.execute(
+            "UPDATE article_versions SET fetched_at=$1 WHERE id=$2",
+            datetime(2026, 8, 5, 4, tzinfo=UTC),
+            old_version,
+        )
+        await connection.execute(
+            "UPDATE article_versions SET fetched_at=$1 WHERE id=$2",
+            datetime(2026, 8, 5, 5, tzinfo=UTC),
+            new_version,
+        )
+    finally:
+        await connection.close()
+    engine = create_async_engine(postgres_database.rendered_url, pool_pre_ping=True)
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    client = StubClient([_event_json("released new model")])
+    service = ExtractionService(sessions, cast(DeepSeekClient, client))
+    try:
+        result = await service.run(date(2026, 8, 5), date(2026, 8, 5), 1)
+        remaining = await service._eligible_versions(date(2026, 8, 5), date(2026, 8, 5), 1)
+        assert (result.claimed, result.published, client.calls) == (1, 1, 1)
+        assert remaining == []
+        connection = await postgres_database.connect()
+        try:
+            assert (
+                await connection.fetchval(
+                    "SELECT count(*) FROM llm_calls WHERE article_version_id=$1",
+                    new_version,
+                )
+                == 1
+            )
+            assert (
+                await connection.fetchval(
+                    "SELECT count(*) FROM llm_calls WHERE article_version_id=$1",
+                    old_version,
+                )
+                == 0
+            )
+        finally:
+            await connection.close()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_claimed_old_version_cannot_overwrite_newer_publication(
+    postgres_database: Any,
+) -> None:
+    connection = await postgres_database.connect()
+    try:
+        await connection.execute(
+            "UPDATE llm_calls SET error_code=NULL "
+            "WHERE error_code IN ('authentication_failed','insufficient_balance')"
+        )
+    finally:
+        await connection.close()
+    article_id, old_version = await _seed_version(
+        postgres_database,
+        sources=1,
+        published_at=datetime(2026, 8, 6, 2, tzinfo=UTC),
+        paragraph="Example AI released old model.",
+    )
+    engine = create_async_engine(postgres_database.rendered_url, pool_pre_ping=True)
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    service = ExtractionService(sessions, cast(DeepSeekClient, StubClient([])))
+    old_call = await service._claim(old_version)
+    assert old_call is not None
+    old_row = await service._version(old_version)
+    _, new_version = await _seed_version(
+        postgres_database,
+        article_id=article_id,
+        sources=1,
+        published_at=datetime(2026, 8, 6, 3, tzinfo=UTC),
+        paragraph="Example AI released new model.",
+    )
+    connection = await postgres_database.connect()
+    try:
+        await connection.execute(
+            "UPDATE article_versions SET fetched_at=$1 WHERE id=$2",
+            datetime(2026, 8, 6, 4, tzinfo=UTC),
+            old_version,
+        )
+        await connection.execute(
+            "UPDATE article_versions SET fetched_at=$1 WHERE id=$2",
+            datetime(2026, 8, 6, 5, tzinfo=UTC),
+            new_version,
+        )
+    finally:
+        await connection.close()
+    new_client = StubClient([_event_json("released new model", title="较新模型")])
+    new_service = ExtractionService(sessions, cast(DeepSeekClient, new_client))
+    try:
+        published = await new_service.run(date(2026, 8, 6), date(2026, 8, 6), 1)
+        assert (published.claimed, published.published) == (1, 1)
+        old_extraction = ExtractionResult.model_validate_json(
+            _event_json("released old model", title="过时模型")
+        )
+        await service._publish(
+            old_call,
+            old_row,
+            date(2026, 8, 6),
+            old_extraction,
+            Completion("old", "old-response", ProviderUsage(10, 5, 15)),
+        )
+        connection = await postgres_database.connect()
+        try:
+            event = await connection.fetchrow(
+                "SELECT events.* FROM events JOIN event_articles "
+                "ON event_articles.event_id=events.id WHERE event_articles.article_id=$1",
+                article_id,
+            )
+            assert event["title_zh"] == "较新模型"
+            assert event["content_version"] == 1
+            assert (
+                await connection.fetchval(
+                    "SELECT count(*) FROM evidence WHERE event_id=$1", event["id"]
+                )
+                == 1
+            )
+            assert (
+                await connection.fetchval("SELECT status FROM llm_calls WHERE id=$1", old_call)
+                == "superseded"
+            )
+            assert (
+                await connection.fetchval(
+                    "SELECT status FROM article_candidates WHERE article_version_id=$1",
+                    old_version,
+                )
+                == "superseded"
             )
         finally:
             await connection.close()

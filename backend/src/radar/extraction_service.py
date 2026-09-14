@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from sqlalchemy import func, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import aliased
 
 from .deepseek_client import Completion, DeepSeekClient, DeepSeekError
 from .extraction_schemas import ExtractionResult
@@ -147,6 +148,22 @@ class ExtractionService:
         self, date_from: date, date_to: date, limit: int
     ) -> list[tuple[UUID, date]]:
         async with self._sessions() as session:
+            latest_version = aliased(ArticleVersionRow)
+            latest_version_id = (
+                select(latest_version.id)
+                .where(latest_version.article_id == ArticleVersionRow.article_id)
+                .order_by(latest_version.fetched_at.desc(), latest_version.id.desc())
+                .limit(1)
+                .scalar_subquery()
+            )
+            already_called = (
+                select(LlmCallRow.id)
+                .where(
+                    LlmCallRow.article_version_id == ArticleVersionRow.id,
+                    LlmCallRow.purpose == "event_extraction",
+                )
+                .exists()
+            )
             statement = (
                 select(
                     ArticleCandidateRow.article_version_id,
@@ -169,6 +186,8 @@ class ExtractionService:
                 .where(
                     ArticleCandidateRow.status == "needs_review",
                     ArticleCandidateRow.article_version_id.is_not(None),
+                    ArticleVersionRow.id == latest_version_id,
+                    ~already_called,
                 )
                 .order_by(SourceRow.name, ArticleCandidateRow.article_version_id)
             )
@@ -249,6 +268,16 @@ class ExtractionService:
                 text("SELECT pg_advisory_xact_lock(hashtextextended(:article_id, 0))"),
                 {"article_id": str(version.article_id)},
             )
+            latest_version_id = await session.scalar(
+                select(ArticleVersionRow.id)
+                .where(ArticleVersionRow.article_id == version.article_id)
+                .order_by(ArticleVersionRow.fetched_at.desc(), ArticleVersionRow.id.desc())
+                .limit(1)
+            )
+            if latest_version_id != version.id:
+                await self._mark_candidates(session, version.id, "superseded")
+                await self._complete_call(session, call_id, completion, "superseded")
+                return
             source_count = int(
                 (
                     await session.scalar(
