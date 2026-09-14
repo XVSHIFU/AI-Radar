@@ -35,9 +35,11 @@ def check(name, filters, expected_status=200):
                      (r["title_zh"] + " " + r["summary_zh"] + " " + " ".join(r["entities"])).casefold())]
             expected_daily = {str(lo + timedelta(days=i)): 0 for i in range((hi-lo).days+1)}
             expected_cats = dict.fromkeys(["model_release","agent_tool","framework_sdk","research","product","industry"],0)
+            expected_joint = {(day, category): 0 for day in expected_daily for category in expected_cats}
             for row in rows:
                 expected_daily[row["event_date"]] += 1
                 expected_cats[row["category"]] += 1
+                expected_joint[(row["event_date"], row["category"])] += 1
             assert actual["total_events"] == len(rows), actual
             assert actual["total_relation"] == "eq" and actual["data_mode"] == "fixture"
             assert actual["date_from"] == str(lo) and actual["date_to"] == str(hi)
@@ -46,6 +48,10 @@ def check(name, filters, expected_status=200):
             assert len(actual["daily"]) == len(expected_daily)
             assert {c["category"]:c["count"] for c in actual["categories"]} == expected_cats
             assert len(actual["categories"]) == 6
+            joint = actual["daily_categories"]
+            assert [(r["date"], r["category"]) for r in joint] == list(expected_joint)
+            assert {(r["date"], r["category"]): r["count"] for r in joint} == expected_joint
+            assert sum(r["count"] for r in joint) == len(rows)
             assert sum(d["count"] for d in actual["daily"]) == sum(c["count"] for c in actual["categories"]) == actual["total_events"]
             assert actual["as_of"] and actual["data_revision"] and actual["request_id"]
         else:
