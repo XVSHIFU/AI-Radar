@@ -179,6 +179,7 @@ class WorkerService:
                 select(ArticleDiscoveryRow)
                 .where(
                     ArticleDiscoveryRow.run_id == job.run_id,
+                    ArticleDiscoveryRow.source_id == job.source_id,
                     ArticleDiscoveryRow.canonical_url == requested_url,
                 )
                 .order_by(ArticleDiscoveryRow.discovered_at)
@@ -208,6 +209,8 @@ class WorkerService:
             assert version_id is not None
             if inserted_version_id is not None and not is_new:
                 run.updated_articles += 1
+            # One article job per run+URL, after all feed jobs finish:
+            # fan out source-specific candidates over the same frozen version.
             discoveries = list(
                 (
                     await session.scalars(
