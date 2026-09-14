@@ -146,7 +146,7 @@ function moveToParent() {
     router.back();
   else void router.replace({ path: pagePath.value, query });
 }
-function attachToConversation(item: Event) { window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: item.id, title: item.title_zh } })); }
+function attachToConversation(item: Event) { window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: item.id, title: item.title_zh } })); if (matchMedia("(max-width: 900px)").matches) closeAll(); }
 function closeAll() {
   void router.replace({ path: pagePath.value, query: baseQuery() });
 }
@@ -189,7 +189,9 @@ function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   if (!dialog) return;
   if (open && !dialog.open) {
     try {
-      dialog.showModal();
+      if (matchMedia("(max-width: 900px)").matches) dialog.showModal();
+
+      else dialog.show();
     } catch {
       // A dialog can already be closing during a browser history transition.
     }
@@ -266,7 +268,7 @@ watch(
     if (next && !previous) {
       const active = document.activeElement;
       if (active instanceof HTMLElement) eventOpener = active;
-      lockScroll();
+      if (matchMedia("(max-width: 900px)").matches) lockScroll();
     }
     if (!next && previous) {
       unlockScroll();
@@ -288,6 +290,16 @@ watch(evidenceId, async (next, previous) => {
     evidenceOpener?.focus();
   }
 });
+const onEscape = (event: KeyboardEvent) => {
+
+  if (event.key === "Escape" && eventLayer.value && !event.defaultPrevented) { event.preventDefault(); moveToParent(); }
+
+};
+
+onMounted(() => document.addEventListener("keydown", onEscape));
+
+
+
 onBeforeUnmount(() => {
   generation++;
   controller?.abort();

@@ -218,11 +218,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
           <div v-if="chartView === 'A'" class="rank-chart">
             <button v-for="row in rankedCategories" :key="row.category" class="rank-row" :data-category="row.category" @click="selectCategory(row.category)"><span>{{ categoryName[row.category] }}</span><i :style="{ width: (row.count / rankMax * 100) + '%' }"></i><b>{{ row.count }} · {{ row.share }}%</b></button>
           </div>
-          <div v-else-if="chartView === 'B'" class="daily-chart">
-            <p v-if="dailyBins.length === 1" class="meta">只有一天数据，不显示趋势。</p><p v-else class="meta">峰值：{{ peakDays.map((row) => row.label + ' ' + row.count + '条').join('、') }}</p>
-            <button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button>
-          </div>
-          <div v-else class="heat-compact" role="grid" aria-label="日期和分类热力图">
+          <div v-else-if="chartView === 'B'"><p v-if="dailyBins.length === 1" class="meta">只有一天数据，不显示趋势。</p><p v-else class="meta">峰值：{{ peakDays.map((row) => row.label + ' ' + row.count + '条').join('、') }}</p><div class="daily-chart"><button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button></div></div><div v-else class="heat-compact" role="grid" aria-label="日期和分类热力图" :style="{ gridTemplateColumns: 'minmax(88px, auto) repeat(' + jointBuckets.length + ', minmax(34px, 1fr))' }">
             <span></span><span v-for="bucket in jointBuckets" :key="bucket.date">{{ bucket.label }}</span>
             <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
           </div>
