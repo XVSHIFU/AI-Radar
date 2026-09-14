@@ -1,6 +1,6 @@
 # 全站助手与统计 finish verdict
 
-2026-09-14 · 第1次 verdict pass  
+2026-09-14 · 第1次 verdict pass
 Disposition：**ship**
 
 本次只复核 `docs/global-finish-review.md` 的三项 material fixes，不新增设计检查。受审源码为 3d73e29。已实际打开更新后的 desktop-b.png、mobile-a.png、mobile-b.png、mobile-c.png 四张定向复拍；截图反映 01fff9a 的静态外观，其后变更仅涉及键盘聚焦、hover 与换行编码。没有运行浏览器或编辑产品源码。
