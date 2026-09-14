@@ -1,0 +1,72 @@
+{
+  "checks": [
+    {
+      "name": "month_42_six_categories",
+      "passed": true
+    },
+    {
+      "name": "week_20",
+      "passed": true
+    },
+    {
+      "name": "custom_day_2",
+      "passed": true
+    },
+    {
+      "name": "invalid_range",
+      "passed": true
+    },
+    {
+      "name": "empty_range",
+      "passed": true
+    },
+    {
+      "name": "matrix_and",
+      "passed": true
+    },
+    {
+      "name": "matrix_columns_7_14_1",
+      "passed": true
+    },
+    {
+      "name": "sidebar_restore",
+      "passed": true
+    },
+    {
+      "name": "answer_scope_current",
+      "passed": true
+    },
+    {
+      "name": "month_fold",
+      "passed": true
+    },
+    {
+      "name": "more_events",
+      "passed": true
+    },
+    {
+      "name": "drawer_escape_focus",
+      "passed": true
+    },
+    {
+      "name": "bottom_answer_sheet_escape",
+      "passed": true
+    },
+    {
+      "name": "play_pause",
+      "passed": true
+    },
+    {
+      "name": "selected_cell_survives_render",
+      "passed": true
+    },
+    {
+      "name": "visible_sheet_close_restores_focus",
+      "passed": true
+    }
+  ],
+  "layer": "isolated_synthetic_design_preview",
+  "observed_at": "2026-09-14T05:17:17.157Z",
+  "passed": 16,
+  "total": 16
+}

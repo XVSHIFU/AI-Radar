@@ -1,0 +1,186 @@
+{
+  "title": "把助手放到整个产品里",
+  "question": "三个方案均可在统计、事件和来源页面随时打开，并保留会话。这里选择的是全站助手布局草图；图表交互草案仍在 http://127.0.0.1:5175/design-lab.html 。正式页面尚未替换。",
+  "options": [
+    {
+      "id": "global-float",
+      "label": "随行助手浮窗",
+      "kicker": "THE ROLL",
+      "thesis": "每页同一个助手入口，打开可移动的小对话窗并自动带入当前内容。",
+      "palette": [
+        "#edf2f7",
+        "#173e68",
+        "#177c89"
+      ],
+      "materials": [
+        "全站固定入口",
+        "可移动对话窗",
+        "当前页面上下文"
+      ],
+      "viewport": "统计或事件占整页，助手浮窗按需出现，切页后会话保留。",
+      "risk": "窗口可能挡住图表，需要用户偶尔挪动。",
+      "comp": ".impeccable/mocks/decision/global-float.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {
+            "label": "全站导航",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 10
+          },
+          {
+            "label": "当前统计 / 事件",
+            "x": 2,
+            "y": 0,
+            "w": 10,
+            "h": 5,
+            "accent": true
+          },
+          {
+            "label": "阅读区域",
+            "x": 2,
+            "y": 5,
+            "w": 5,
+            "h": 5
+          },
+          {
+            "label": "随行助手浮窗",
+            "x": 7,
+            "y": 5,
+            "w": 5,
+            "h": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "global-workspace",
+      "label": "助手工作台",
+      "thesis": "任何页面一键进入完整助手工作区，带着当前范围继续研究。",
+      "palette": [
+        "#edf2f7",
+        "#173e68",
+        "#177c89"
+      ],
+      "materials": [
+        "全局会话记录",
+        "当前页面上下文",
+        "完整研究空间"
+      ],
+      "viewport": "展开为完整工作区，左侧保留当前事件或统计摘要，一键回到原页面。",
+      "risk": "适合深入研究，临时问一句时切换感较强。",
+      "comp": ".impeccable/mocks/decision/global-workspace.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {
+            "label": "返回当前页 · 全局助手",
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 1
+          },
+          {
+            "label": "会话历史",
+            "x": 0,
+            "y": 1,
+            "w": 2,
+            "h": 9
+          },
+          {
+            "label": "当前事件 / 筛选范围",
+            "x": 2,
+            "y": 1,
+            "w": 3,
+            "h": 9
+          },
+          {
+            "label": "研究、问答与证据",
+            "x": 5,
+            "y": 1,
+            "w": 7,
+            "h": 8,
+            "accent": true
+          },
+          {
+            "label": "继续提问",
+            "x": 5,
+            "y": 9,
+            "w": 7,
+            "h": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "global-split",
+      "label": "并排助手",
+      "thesis": "全站固定入口，打开右侧助手后并排阅读，切页保持同一会话。",
+      "palette": [
+        "#edf2f7",
+        "#173e68",
+        "#177c89"
+      ],
+      "materials": [
+        "全站固定入口",
+        "可收起右侧栏",
+        "可确认的上下文"
+      ],
+      "viewport": "默认完整统计或事件页，打开后约七成阅读、三成助手；手机为可返回的底部面板。",
+      "risk": "开启时会减少主内容宽度，宽图需要自适应。",
+      "comp": ".impeccable/mocks/decision/global-split.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {
+            "label": "全站导航",
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 10
+          },
+          {
+            "label": "统计 / 事件 / 证据",
+            "x": 1,
+            "y": 0,
+            "w": 7,
+            "h": 10,
+            "accent": true
+          },
+          {
+            "label": "当前上下文 · 可切换",
+            "x": 8,
+            "y": 0,
+            "w": 4,
+            "h": 2
+          },
+          {
+            "label": "助手会话",
+            "x": 8,
+            "y": 2,
+            "w": 4,
+            "h": 7
+          },
+          {
+            "label": "提问",
+            "x": 8,
+            "y": 9,
+            "w": 4,
+            "h": 1
+          }
+        ]
+      }
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "buildPath": {
+    "value": "code",
+    "toggle": true
+  }
+}
