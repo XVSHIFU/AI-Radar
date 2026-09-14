@@ -28,7 +28,7 @@ from .ingest.core import FeedEntry, fetch_public, parse_feed
 from .ingest.dns import configured_resolver
 from .ingest.public_transport import PublicAsyncTransport, Resolver
 from .ingest.throttle import retry_after_seconds
-from .ingest.worker_service import article_job_key
+from .ingest.worker_service import WorkerService, article_job_key
 from .models import (
     ArticleCandidateRow,
     ArticleDiscoveryRow,
@@ -198,7 +198,9 @@ async def enqueue(
     key = f"backfill:{start}:{end}"
     async with sessions() as session, session.begin():
         await session.execute(select(func.pg_advisory_xact_lock(func.hashtext(key))))
-        run = await session.scalar(select(IngestRunRow).where(IngestRunRow.idempotency_key == key))
+        run = await session.scalar(
+            select(IngestRunRow).where(IngestRunRow.idempotency_key == key).with_for_update()
+        )
         if run is None:
             run = IngestRunRow(
                 id=uuid4(),
@@ -330,8 +332,11 @@ async def enqueue(
                 IngestJobRow.state.in_(("queued", "retry_wait", "running")),
             )
         )
-        run.status = "queued" if pending else "success"
-        run.finished_at = None if pending else datetime.now(UTC)
+        if pending:
+            run.status = "queued"
+            run.finished_at = None
+        else:
+            await WorkerService._complete_run_if_done(session, run)
         return {
             "run_id": str(run.id),
             "new_discoveries": discovered,

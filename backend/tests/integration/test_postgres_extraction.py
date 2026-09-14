@@ -238,8 +238,11 @@ async def test_irrelevant_and_invalid_evidence_are_not_published(postgres_databa
                     "SELECT article_version_id,status FROM article_candidates"
                 )
             }
-            assert statuses[irrelevant_version] == "filtered"
-            assert statuses[invalid_version] == "extraction_failed"
+            # Source UUID ordering is intentionally independent of insertion order.
+            assert {statuses[irrelevant_version], statuses[invalid_version]} == {
+                "filtered",
+                "extraction_failed",
+            }
         finally:
             await connection.close()
     finally:

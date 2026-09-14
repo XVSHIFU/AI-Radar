@@ -3,7 +3,7 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from radar.backfill import enqueue
@@ -98,6 +98,15 @@ async def test_history_resume_reuses_frozen_versions_and_deduplicates_shared_job
                 )
                 == 1
             )
+        async with sessions() as session, session.begin():
+            await session.execute(
+                update(IngestJobRow)
+                .where(IngestJobRow.payload["canonical_url"].astext == new_url)
+                .values(state="failed", last_error="fixture failure")
+            )
+        failed_replay = await enqueue(sessions, selections, date(2026, 8, 1), date(2026, 9, 15))
+        assert failed_replay["status"] == "failed"
+        assert failed_replay["new_jobs"] == 0
     finally:
         async with sessions() as session, session.begin():
             for model in (ArticleCandidateRow, ArticleDiscoveryRow, IngestJobRow):
