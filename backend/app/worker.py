@@ -9,6 +9,7 @@ from radar.config import get_settings
 from radar.ingest.core import DocumentParseError
 from radar.ingest.dns import configured_resolver
 from radar.ingest.public_transport import PublicAsyncTransport
+from radar.ingest.throttle import retry_after_seconds
 from radar.ingest.worker_service import LeaseLost, WorkerService
 from radar.ingest_repository import IngestRepository
 
@@ -69,10 +70,12 @@ async def run() -> None:
                         False,
                         f"{type(exc).__name__}: {str(exc) or 'operation failed'}"[:1000],
                         parser_failure=isinstance(exc, DocumentParseError),
+                        retry_after_seconds=retry_after_seconds(exc),
                     )
                 finally:
                     heartbeat.cancel()
                     await asyncio.gather(heartbeat, return_exceptions=True)
+                await asyncio.sleep(settings.fetch_interval_seconds)
     finally:
         await engine.dispose()
 

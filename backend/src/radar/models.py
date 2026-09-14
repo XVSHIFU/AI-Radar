@@ -40,6 +40,7 @@ class SourceRow(Base):
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     canonical_host: Mapped[str] = mapped_column(String(255), default="")
     channel_type: Mapped[str] = mapped_column(String(24), default="rss")
+    cooldown_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class EventRow(Base):

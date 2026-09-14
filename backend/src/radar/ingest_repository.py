@@ -142,6 +142,12 @@ class IngestRepository:
             job = await session.scalar(
                 select(IngestJobRow)
                 .where(
+                    ~exists(
+                        select(1).where(
+                            SourceRow.id == IngestJobRow.source_id,
+                            SourceRow.cooldown_until > now,
+                        )
+                    ),
                     or_(IngestJobRow.stage != "article_fetch", article_is_unblocked),
                     IngestJobRow.attempts < IngestJobRow.max_attempts,
                     IngestJobRow.not_before <= now,
@@ -197,6 +203,7 @@ class IngestRepository:
         error: str | None = None,
         *,
         parser_failure: bool = False,
+        retry_after_seconds: int | None = None,
     ) -> bool:
         now = datetime.now(UTC)
         async with self._database_boundary(), self.sessions() as session, session.begin():
@@ -221,7 +228,18 @@ class IngestRepository:
             job.lease_owner = None
             job.lease_until = None
             job.last_error = error
-            if not success and job.stage == "feed_discovery":
+            if not success and retry_after_seconds is not None:
+                cooldown = now + timedelta(seconds=max(1, retry_after_seconds))
+                await session.execute(
+                    update(SourceRow)
+                    .where(SourceRow.id == job.source_id)
+                    .values(
+                        cooldown_until=func.greatest(SourceRow.cooldown_until, cooldown),
+                        health="rate_limited",
+                    )
+                )
+                job.not_before = cooldown
+            if not success and job.stage == "feed_discovery" and retry_after_seconds is None:
                 source = await session.scalar(
                     select(SourceRow).where(SourceRow.id == job.source_id).with_for_update()
                 )
@@ -235,7 +253,7 @@ class IngestRepository:
                     .where(IngestRunRow.id == job.run_id)
                     .values(parser_failures=IngestRunRow.parser_failures + 1)
                 )
-            if job.state == "retry_wait":
+            if job.state == "retry_wait" and retry_after_seconds is None:
                 job.not_before = now + timedelta(seconds=min(300, 2**generation))
             await session.flush()
             await self._summarize_run(session, job.run_id, now)

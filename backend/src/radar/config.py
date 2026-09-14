@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     db_password: str | None = None
     admin_token: str | None = None
     business_timezone: str = "Asia/Shanghai"
+    fetch_interval_seconds: float = Field(default=10.0, ge=1.0, le=3600.0)
     fetch_dns_mode: Literal["system", "cloudflare"] = "system"
     llm_api_key: str | None = None
     cursor_secret: str = Field(default="development-only-change-me", min_length=16)
