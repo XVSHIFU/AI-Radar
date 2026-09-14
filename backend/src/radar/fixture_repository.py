@@ -8,7 +8,7 @@ from uuid import UUID
 from .cursor import decode_cursor, encode_cursor
 from .normalize import normalize_text
 from .queryplanner import EntityResolution, ResolvedEntity, resolve_confirmed_entities
-from .repository import InvalidCursor, Page
+from .repository import InsightsSnapshot, InvalidCursor, Page
 from .schemas import Article, Event, Evidence, Filters
 
 DEEPSEEK_ID = UUID("10000000-0000-4000-8000-000000000001")
@@ -56,8 +56,8 @@ class FixtureRepository:
         }
         return resolve_confirmed_entities(normalized, alias_candidates)
 
-    async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
-        events = list(self.events)
+    def _matching_events(self, filters: Filters) -> list[Event]:
+        events = list({event.id: event for event in self.events}.values())
         if filters.category:
             events = [event for event in events if event.category == filters.category]
         if filters.date_from:
@@ -103,6 +103,10 @@ class FixtureRepository:
                     if query
                     in normalize_text(" ".join((event.title_zh, event.summary_zh, *event.entities)))
                 ]
+        return events
+
+    async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
+        events = self._matching_events(filters)
         events.sort(
             key=lambda event: (
                 event.event_date is not None,
@@ -182,26 +186,17 @@ class FixtureRepository:
             "data_revision": self.dataset,
         }
 
-    async def insights(self) -> dict[str, object]:
-        today = self.now.date()
-        headlines = sorted(
-            [event for event in self.events if event.event_date == today],
-            key=lambda event: (event.importance, event.id),
-            reverse=True,
-        )[:3]
-        tags = [
-            {"name": name, "count": count}
-            for name, count in Counter(
-                name for item in self.events for name in item.entities
-            ).most_common(8)
-        ]
-        return {
-            "headlines": headlines,
-            "tags": tags,
-            "scope": "global",
-            "as_of": self.now,
-            "data_revision": self.dataset,
-        }
+    async def insights(self, filters: Filters) -> InsightsSnapshot:
+        events = self._matching_events(filters)
+        return InsightsSnapshot(
+            total_events=len(events),
+            daily=dict(
+                Counter(event.event_date for event in events if event.event_date is not None)
+            ),
+            categories=dict(Counter(event.category for event in events)),
+            as_of=self.now,
+            data_revision=self.dataset,
+        )
 
     async def sources(self) -> list[dict[str, object]]:
         return [

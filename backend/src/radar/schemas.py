@@ -64,6 +64,30 @@ class EventPage(BaseModel):
     data_mode: Literal["fixture", "postgres"]
 
 
+class DailyInsight(BaseModel):
+    date: date
+    count: int = Field(ge=0)
+
+
+class CategoryInsight(BaseModel):
+    category: Category
+    count: int = Field(ge=0)
+
+
+class InsightsResponse(BaseModel):
+    date_from: date
+    date_to: date
+    timezone: str
+    total_events: int = Field(ge=0)
+    total_relation: Literal["eq"] = "eq"
+    daily: list[DailyInsight]
+    categories: list[CategoryInsight]
+    as_of: datetime
+    data_revision: str
+    data_mode: Literal["fixture", "postgres"]
+    request_id: str
+
+
 class Evidence(BaseModel):
     id: UUID
     event_id: UUID

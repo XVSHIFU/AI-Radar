@@ -1,6 +1,158 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 
+from radar.repository import RepositoryUnavailable
+
+CATEGORIES = [
+    "model_release",
+    "agent_tool",
+    "framework_sdk",
+    "research",
+    "product",
+    "industry",
+]
+
+
+def test_insights_aggregates_complete_inclusive_range(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/insights",
+        params={"date_from": "2026-09-08", "date_to": "2026-09-12"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["date_from"] == "2026-09-08"
+    assert body["date_to"] == "2026-09-12"
+    assert body["timezone"] == "Asia/Shanghai"
+    assert body["total_events"] == 25
+    assert body["total_relation"] == "eq"
+    assert body["daily"] == [{"date": f"2026-09-{day:02d}", "count": 5} for day in range(8, 13)]
+    assert [item["category"] for item in body["categories"]] == CATEGORIES
+    assert sum(item["count"] for item in body["categories"]) == body["total_events"]
+    assert sum(item["count"] for item in body["daily"]) == body["total_events"]
+    assert body["as_of"]
+    assert body["data_revision"]
+    assert body["data_mode"] == "fixture"
+    assert body["request_id"]
+
+
+def test_insights_combines_query_and_category_filters(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/insights",
+        params={
+            "q": "深度求索",
+            "category": "model_release",
+            "date_from": "2026-09-06",
+            "date_to": "2026-09-12",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_events"] == 6
+    assert [item["count"] for item in body["daily"]] == [1, 1, 0, 1, 1, 1, 1]
+    counts = {item["category"]: item["count"] for item in body["categories"]}
+    assert counts == {
+        category: (6 if category == "model_release" else 0) for category in CATEGORIES
+    }
+
+
+def test_insights_applies_minimum_importance_to_all_aggregates(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/insights",
+        params={
+            "date_from": "2026-09-08",
+            "date_to": "2026-09-12",
+            "min_importance": 4,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_events"] == 13
+    assert [item["count"] for item in body["daily"]] == [3, 2, 2, 3, 3]
+    assert [item["count"] for item in body["categories"]] == [2, 3, 2, 2, 2, 2]
+
+
+def test_insights_zero_result_still_fills_daily_and_categories(client: TestClient) -> None:
+    body = client.get(
+        "/api/v1/insights",
+        params={
+            "q": "绝对不存在的合成事件",
+            "date_from": "2026-09-10",
+            "date_to": "2026-09-12",
+        },
+    ).json()
+
+    assert body["total_events"] == 0
+    assert [item["count"] for item in body["daily"]] == [0, 0, 0]
+    assert [item["count"] for item in body["categories"]] == [0] * 6
+
+
+def test_insights_rejects_missing_inverted_and_overlong_ranges(client: TestClient) -> None:
+    cases = [
+        ({"date_to": "2026-09-12"}, "date_from 和 date_to 为必填参数"),
+        (
+            {"date_from": "2026-09-12", "date_to": "2026-09-11"},
+            "date_from 不能晚于 date_to",
+        ),
+        (
+            {"date_from": "2024-02-29", "date_to": "2025-03-01"},
+            "时间范围最多为 366 天",
+        ),
+    ]
+
+    for params, message in cases:
+        response = client.get("/api/v1/insights", params=params)
+        assert response.status_code == 422
+        assert response.json()["code"] == "INVALID_DATE_RANGE"
+        assert response.json()["message"] == message
+
+
+def test_insights_allows_366_inclusive_days_across_leap_day(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/insights",
+        params={"date_from": "2024-02-29", "date_to": "2025-02-28"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["daily"]) == 366
+    assert body["daily"][0] == {"date": "2024-02-29", "count": 0}
+    assert body["daily"][-1] == {"date": "2025-02-28", "count": 0}
+
+
+def test_insights_uses_existing_unconfigured_database_503(client: TestClient) -> None:
+    client.app.state.repository = None
+
+    response = client.get(
+        "/api/v1/insights",
+        params={"date_from": "2026-09-12", "date_to": "2026-09-12"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["code"] == "DATABASE_UNAVAILABLE"
+    assert response.json()["retryable"] is True
+
+
+class BrokenInsightsRepository:
+    async def insights(self, _filters: object) -> None:
+        raise RepositoryUnavailable("database offline")
+
+
+def test_insights_runtime_failure_uses_existing_retryable_503(client: TestClient) -> None:
+    client.app.state.repository = BrokenInsightsRepository()
+
+    response = client.get(
+        "/api/v1/insights",
+        params={"date_from": "2026-09-12", "date_to": "2026-09-12"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["code"] == "RETRIEVAL_FAILED"
+    assert response.json()["retryable"] is True
+    assert response.json()["request_id"]
+
 
 def test_date_bounds_are_inclusive(client: TestClient) -> None:
     response = client.get(

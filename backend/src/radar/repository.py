@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Protocol
 from uuid import UUID
 
 from .queryplanner import EntityResolution
-from .schemas import Article, Event, Evidence, Filters
+from .schemas import Article, Category, Event, Evidence, Filters
 
 
 @dataclass(frozen=True)
@@ -12,6 +12,15 @@ class Page:
     items: list[Event]
     total: int
     next_cursor: str | None
+    as_of: datetime
+    data_revision: str
+
+
+@dataclass(frozen=True)
+class InsightsSnapshot:
+    total_events: int
+    daily: dict[date, int]
+    categories: dict[Category, int]
     as_of: datetime
     data_revision: str
 
@@ -31,7 +40,7 @@ class EventRepository(Protocol):
 
     async def stats(self) -> dict[str, object]: ...
 
-    async def insights(self) -> dict[str, object]: ...
+    async def insights(self, filters: Filters) -> InsightsSnapshot: ...
 
     async def sources(self) -> list[dict[str, object]]: ...
 

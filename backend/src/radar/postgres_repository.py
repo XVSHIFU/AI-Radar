@@ -19,8 +19,8 @@ from .models import (
 )
 from .normalize import normalize_text
 from .queryplanner import EntityResolution, ResolvedEntity, resolve_confirmed_entities
-from .repository import EvidenceInvalid, Page, RepositoryUnavailable
-from .schemas import Article, Event, Evidence, Filters
+from .repository import EvidenceInvalid, InsightsSnapshot, Page, RepositoryUnavailable
+from .schemas import Article, Category, Event, Evidence, Filters
 
 
 class PostgresRepository:
@@ -289,31 +289,45 @@ class PostgresRepository:
             "data_revision": "postgres-live",
         }
 
-    async def insights(self) -> dict[str, object]:
-        today = datetime.now(self.timezone).date()
-        statement = (
-            select(EventRow)
-            .options(selectinload(EventRow.entities).selectinload(EventEntityRow.entity))
-            .where(
-                EventRow.status == "published",
-                EventRow.date_precision == "day",
-                EventRow.event_date == today,
-            )
-            .order_by(EventRow.importance.desc(), EventRow.id.desc())
-            .limit(3)
-        )
+    async def insights(self, filters: Filters) -> InsightsSnapshot:
+        clauses = self._filters(filters)
         try:
-            async with self.sessions() as session:
-                rows = list((await session.scalars(statement)).all())
+            async with self.sessions() as session, session.begin():
+                await session.execute(
+                    text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+                )
+                total = int(
+                    (
+                        await session.scalar(
+                            select(func.count()).select_from(EventRow).where(*clauses)
+                        )
+                    )
+                    or 0
+                )
+                daily_rows = (
+                    await session.execute(
+                        select(EventRow.event_date, func.count())
+                        .where(*clauses)
+                        .group_by(EventRow.event_date)
+                        .order_by(EventRow.event_date)
+                    )
+                ).all()
+                category_rows = (
+                    await session.execute(
+                        select(EventRow.category, func.count())
+                        .where(*clauses)
+                        .group_by(EventRow.category)
+                    )
+                ).all()
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
-        return {
-            "headlines": [self._event(row) for row in rows],
-            "tags": [],
-            "scope": "global",
-            "as_of": datetime.now(UTC),
-            "data_revision": "postgres-live",
-        }
+        return InsightsSnapshot(
+            total_events=total,
+            daily={row[0]: int(row[1]) for row in daily_rows},
+            categories={Category(str(row[0])): int(row[1]) for row in category_rows},
+            as_of=datetime.now(UTC),
+            data_revision="postgres-live",
+        )
 
     async def sources(self) -> list[dict[str, object]]:
         try:

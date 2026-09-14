@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, cast
 from uuid import UUID, uuid4
@@ -27,6 +27,7 @@ from .schemas import (
     IngestRun,
     IngestRunCreated,
     IngestRunRequest,
+    InsightsResponse,
     QueryPlan,
 )
 
@@ -94,7 +95,21 @@ async def handle_http_error(_request: Request, exc: HTTPException) -> JSONRespon
 
 
 @app.exception_handler(RequestValidationError)
-async def handle_validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:
+async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+    missing_insight_dates = request.url.path == "/api/v1/insights" and any(
+        item["type"] == "missing" and item["loc"] in {("query", "date_from"), ("query", "date_to")}
+        for item in exc.errors()
+    )
+    if missing_insight_dates:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "code": "INVALID_DATE_RANGE",
+                "message": "date_from 和 date_to 为必填参数",
+                "retryable": False,
+                "request_id": str(uuid4()),
+            },
+        )
     details = [
         {"location": list(item["loc"]), "message": item["msg"], "type": item["type"]}
         for item in exc.errors()
@@ -289,15 +304,49 @@ async def stats(
     }
 
 
-@app.get("/api/v1/insights")
+@app.get("/api/v1/insights", response_model=InsightsResponse)
 async def insights(
-    request: Request, repository: Annotated[EventRepository, Depends(get_repository)]
-) -> dict[str, object]:
-    return {
-        **await repository.insights(),
-        "data_mode": data_mode(request),
-        "synthetic": data_mode(request) == "fixture",
-    }
+    request: Request,
+    repository: Annotated[EventRepository, Depends(get_repository)],
+    date_from: Annotated[date, Query()],
+    date_to: Annotated[date, Query()],
+    q: str | None = None,
+    category: Category | None = None,
+    min_importance: Annotated[int | None, Query(ge=1, le=5)] = None,
+) -> InsightsResponse:
+    if date_from > date_to:
+        raise api_error("INVALID_DATE_RANGE", "date_from 不能晚于 date_to", 422)
+    if date_to - date_from > timedelta(days=365):
+        raise api_error("INVALID_DATE_RANGE", "时间范围最多为 366 天", 422)
+    snapshot = await repository.insights(
+        Filters(
+            q=q,
+            category=category,
+            min_importance=min_importance,
+            date_from=date_from,
+            date_to=date_to,
+        )
+    )
+    return InsightsResponse(
+        date_from=date_from,
+        date_to=date_to,
+        timezone=request.app.state.settings.business_timezone,
+        total_events=snapshot.total_events,
+        daily=[
+            {
+                "date": date_from + timedelta(days=offset),
+                "count": snapshot.daily.get(date_from + timedelta(days=offset), 0),
+            }
+            for offset in range((date_to - date_from).days + 1)
+        ],
+        categories=[
+            {"category": item, "count": snapshot.categories.get(item, 0)} for item in Category
+        ],
+        as_of=snapshot.as_of,
+        data_revision=snapshot.data_revision,
+        data_mode=data_mode(request),
+        request_id=str(uuid4()),
+    )
 
 
 @app.get("/api/v1/sources")

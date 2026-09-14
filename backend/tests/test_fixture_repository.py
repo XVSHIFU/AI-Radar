@@ -52,23 +52,31 @@ async def test_entity_alias_does_not_match_title_only_mention(tmp_path: Path) ->
 
 
 @pytest.mark.asyncio
-async def test_headlines_rank_all_today_events_before_limit(tmp_path: Path) -> None:
+async def test_insights_excludes_unknown_dates_and_counts_event_identity_once(
+    tmp_path: Path,
+) -> None:
     fixture = tmp_path / "fixture.json"
     fixture.write_text('{"dataset":"test","items":[]}', encoding="utf-8")
+    known = item(1, "范围内事件", 5, ["示例研究团队"])
+    unknown = item(2, "日期未知事件", 5, ["示例研究团队"])
+    unknown["event_date"] = None
+    unknown["date_precision"] = "unknown"
     repository = FixtureRepository(
         fixture,
         "secret-secret-secret",
         items=[
-            item(1, "最高重要度但最小 ID", 5, ["示例研究团队"]),
-            item(2, "普通二", 2, ["示例研究团队"]),
-            item(3, "普通三", 3, ["示例研究团队"]),
-            item(4, "普通四", 4, ["示例研究团队"]),
+            known,
+            known,
+            unknown,
         ],
     )
-    headlines = (await repository.insights())["headlines"]
-    ids = {event.id for event in headlines}
-    assert UUID("50000000-0000-4000-8000-000000000001") in ids
-    assert len(ids) == 3
+    snapshot = await repository.insights(
+        Filters(date_from=repository.now.date(), date_to=repository.now.date())
+    )
+
+    assert snapshot.total_events == 1
+    assert snapshot.daily == {repository.now.date(): 1}
+    assert sum(snapshot.categories.values()) == 1
 
 
 @pytest.mark.asyncio

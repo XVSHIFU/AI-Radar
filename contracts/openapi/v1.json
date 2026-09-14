@@ -86,6 +86,24 @@
         "title": "Category",
         "type": "string"
       },
+      "CategoryInsight": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category",
+          "count"
+        ],
+        "title": "CategoryInsight",
+        "type": "object"
+      },
       "ClarificationCandidate": {
         "properties": {
           "entity_id": {
@@ -110,6 +128,26 @@
           "entity_id"
         ],
         "title": "ClarificationCandidate",
+        "type": "object"
+      },
+      "DailyInsight": {
+        "properties": {
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "count"
+        ],
+        "title": "DailyInsight",
         "type": "object"
       },
       "Event": {
@@ -746,6 +784,84 @@
         "title": "IngestRunRequest",
         "type": "object"
       },
+      "InsightsResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryInsight"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/DailyInsight"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
+          "data_mode": {
+            "enum": [
+              "fixture",
+              "postgres"
+            ],
+            "title": "Data Mode",
+            "type": "string"
+          },
+          "data_revision": {
+            "title": "Data Revision",
+            "type": "string"
+          },
+          "date_from": {
+            "format": "date",
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "format": "date",
+            "title": "Date To",
+            "type": "string"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "total_events": {
+            "minimum": 0.0,
+            "title": "Total Events",
+            "type": "integer"
+          },
+          "total_relation": {
+            "const": "eq",
+            "default": "eq",
+            "title": "Total Relation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date_from",
+          "date_to",
+          "timezone",
+          "total_events",
+          "daily",
+          "categories",
+          "as_of",
+          "data_revision",
+          "data_mode",
+          "request_id"
+        ],
+        "title": "InsightsResponse",
+        "type": "object"
+      },
       "QueryPlan": {
         "properties": {
           "business_date": {
@@ -1330,18 +1446,98 @@
     "/api/v1/insights": {
       "get": {
         "operationId": "insights_api_v1_insights_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_importance",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 5,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Importance"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Insights Api V1 Insights Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/InsightsResponse"
                 }
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Insights"
