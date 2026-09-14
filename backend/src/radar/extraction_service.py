@@ -93,11 +93,13 @@ class ExtractionService:
                 extraction = ExtractionResult.model_validate_json(completion.content)
                 extraction.validate_publishable(version.paragraphs)
                 if extraction.relevant:
-                    await self._publish(call_id, version, report_date, extraction, completion)
+                    published = await self._publish(
+                        call_id, version, report_date, extraction, completion
+                    )
                     result = BatchResult(
                         result.claimed,
-                        result.published + 1,
-                        result.filtered,
+                        result.published + int(published),
+                        result.filtered + int(not published),
                         result.failed,
                         result.stopped,
                     )
@@ -262,7 +264,7 @@ class ExtractionService:
         report_date: date,
         extraction: ExtractionResult,
         completion: Completion,
-    ) -> None:
+    ) -> bool:
         async with self._sessions() as session, session.begin():
             await session.execute(
                 text("SELECT pg_advisory_xact_lock(hashtextextended(:article_id, 0))"),
@@ -277,7 +279,7 @@ class ExtractionService:
             if latest_version_id != version.id:
                 await self._mark_candidates(session, version.id, "superseded")
                 await self._complete_call(session, call_id, completion, "superseded")
-                return
+                return False
             source_count = int(
                 (
                     await session.scalar(
@@ -378,6 +380,7 @@ class ExtractionService:
                     )
             await self._mark_candidates(session, version.id, "published")
             await self._complete_call(session, call_id, completion, "completed")
+            return True
 
     def _source_report_date(
         self, published_at: datetime | None, published_text: str | None
