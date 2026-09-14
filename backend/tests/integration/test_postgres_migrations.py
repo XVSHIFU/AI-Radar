@@ -24,7 +24,7 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
 ) -> None:
     migration_database.upgrade()
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0004_candidate_versions",
+        "0005_source_cooldown",
         True,
     )
 
@@ -80,6 +80,26 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
 
     assert asyncio.run(verify_preserved_rows()) == (1, 1, 1)
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0004_candidate_versions",
+        "0005_source_cooldown",
+        True,
+    )
+
+    migration_database.downgrade("base")
+
+    async def verify_base() -> tuple[object, bool]:
+        connection = await migration_database.connect()
+        try:
+            sources_table = await connection.fetchval("SELECT to_regclass('public.sources')")
+            vector = await connection.fetchval(
+                "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector')"
+            )
+            return sources_table, bool(vector)
+        finally:
+            await connection.close()
+
+    assert asyncio.run(verify_base()) == (None, True)
+    migration_database.upgrade()
+    assert asyncio.run(_revision_and_vector(migration_database)) == (
+        "0005_source_cooldown",
         True,
     )

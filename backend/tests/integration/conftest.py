@@ -107,6 +107,8 @@ def _database_fixture() -> Iterator[DatabaseHarness]:
     if os.environ.get("RADAR_RUN_POSTGRES_TESTS") != "1":
         pytest.skip("set RADAR_RUN_POSTGRES_TESTS=1 to run live PostgreSQL tests")
     server_url = _configured_url()
+    if server_url.host not in {"127.0.0.1", "localhost", "::1"}:
+        pytest.fail("live PostgreSQL tests require an explicitly configured loopback server")
     harness = asyncio.run(_create_database(server_url))
     try:
         yield harness
