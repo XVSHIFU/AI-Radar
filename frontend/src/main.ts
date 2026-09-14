@@ -8,6 +8,8 @@ const router = createRouter({
     { path: "/", component: () => import("./HomePage.vue") },
     { path: "/events/:id", component: () => import("./DetailPage.vue") },
     { path: "/ask", component: () => import("./AskPage.vue") },
+    { path: "/preview", component: () => import("./preview/PreviewHome.vue") },
+    { path: "/preview/ask", component: () => import("./AskPage.vue"), props: { streamlined: true } },
     { path: "/ingest", component: () => import("./IngestPage.vue") },
   ],
 });
