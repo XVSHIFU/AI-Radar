@@ -1,6 +1,6 @@
 # DeepSeek Flash offline event extraction
 
-The extractor publishes reviewed AI events from immutable `ArticleVersion` rows. It is an
+The extractor publishes structurally validated AI events from immutable `ArticleVersion` rows. It is an
 operator-run batch and does not enable the public ask endpoint.
 
 ## Configuration
