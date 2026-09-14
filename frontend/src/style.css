@@ -1045,3 +1045,9 @@ select:focus {
 @media (max-width:900px) { .assistant-workspace { max-width:none!important; min-width:0!important; } .assistant-trigger { top:12px; bottom:auto; } }
 .assistant-empty,.assistant-composer { transition: transform .18s ease-out, opacity .18s ease-out; }
 @media (prefers-reduced-motion:reduce) { .assistant-empty,.assistant-composer { transition:none; } }
+#assistant-mobile-slot { display:none; }
+@media (max-width:900px) {
+  .app-rail { position:sticky; top:0; z-index:25; background:var(--paper); }
+  #assistant-mobile-slot { display:block; margin-left:auto; }
+  .assistant-trigger--mobile { position:static!important; display:inline-flex; align-items:center; justify-content:center; min-height:44px; margin:0; }
+}
