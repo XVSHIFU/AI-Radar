@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import {
   ask,
   err,
@@ -11,7 +11,7 @@ import {
 import { parseSse } from "./sse";
 import { askView } from "./ask-result";
 import { queryPlanFrom, type QueryPlan } from "./query-plan";
-defineProps<{ streamlined?: boolean }>();
+const props = defineProps<{ streamlined?: boolean }>();
 let generation = 0;
 const question = ref(""),
   category = ref<Category | "">(""),
@@ -36,6 +36,11 @@ const question = ref(""),
   >(),
   expanded = ref<number>(),
   plan = ref<QueryPlan>();
+const conditionSummary = computed(() => {
+  const selected = category.value ? categoryName[category.value] || category.value : "全部分类";
+  const dates = from.value || to.value ? ` · ${from.value || "不限"} 至 ${to.value || "不限"}` : "";
+  return `${selected}${dates}`;
+});
 const categoryName: Record<string, string> = {
   model_release: "模型发布",
   agent_tool: "智能体工具",
@@ -193,7 +198,7 @@ onBeforeUnmount(() => {
         />
       </label>
       <details v-if="streamlined" class="ask-conditions ask-conditions--details">
-        <summary>研究条件（可选）</summary>
+        <summary>研究条件（可选）<span v-if="category || from || to">：{{ conditionSummary }}</span></summary>
         <div class="ask-conditions__fields">
           <label>分类<select v-model="category" class="control"><option value="">全部</option><option v-for="(label, key) in categoryName" :value="key">{{ label }}</option></select></label>
           <label>从<input v-model="from" type="date" class="control" /></label><label>至<input v-model="to" type="date" class="control" /></label>
@@ -213,6 +218,7 @@ onBeforeUnmount(() => {
           开始分析</button
         ><button v-if="running" @click="cancel">取消</button>
       </div>
+      <p v-if="streamlined" class="ask-streamline-note">回答中的事实可回查到保存的来源段落。</p>
       <p aria-live="polite" class="meta">{{ status }}</p>
       <div v-if="error" class="card error" role="alert">
         <strong>{{ error.code }}</strong
@@ -306,7 +312,7 @@ onBeforeUnmount(() => {
         </p>
       </article>
     </div>
-    <aside class="context-panel">
+    <aside v-if="!streamlined" class="context-panel">
       <h2>研究说明</h2>
       <p class="meta">回答中的事实应回查到保存的来源段落。</p>
     </aside>

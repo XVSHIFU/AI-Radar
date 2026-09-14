@@ -18,13 +18,13 @@ const viewKey = computed(
       <nav class="preview-shell-nav" aria-label="预览导航">
         <RouterLink :to="link('/preview')">AI 动态</RouterLink>
         <RouterLink :to="link('/preview/ask')">问答</RouterLink>
-        <RouterLink :to="link('/ingest')">维护入口</RouterLink>
       </nav>
       <RouterLink :to="link('/')" class="preview-shell-return">返回原版</RouterLink>
     </header>
     <p v-if="demoEnabled" class="demo" role="note">前端模拟：仅用于交互演示，不代表真实服务结果。</p>
     <p v-else-if="dataMode === 'fixture'" class="demo" role="note">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
     <main class="preview-shell-main"><RouterView :key="viewKey" /></main>
+    <footer class="preview-shell-footer"><RouterLink :to="link('/ingest')">维护入口</RouterLink></footer>
   </div>
   <div v-else class="app-shell">
     <header class="app-rail">
