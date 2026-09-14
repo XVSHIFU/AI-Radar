@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import { dataMode } from "./api";
 import AssistantPanel from "./AssistantPanel.vue";
+import { setAssistantScope } from "./assistant-scope";
 import "./preview/preview.css";
 const route = useRoute();
 const demoEnabled = computed(() => route.query.demo === "1");
 const previewEnabled = computed(() => route.path.startsWith("/preview"));
+watch(() => route.path, (path) => { if (path === "/ingest") setAssistantScope({ label: "公共资料范围", filters: {}, snapshot: "维护页面不传递令牌或维护条件；检索全部已收录事件" }); }, { immediate: true });
 const link = (path: string) => (demoEnabled.value ? `${path}?demo=1` : path);
 const viewKey = computed(
   () => `${route.path}|${demoEnabled.value ? "demo" : "api"}`,

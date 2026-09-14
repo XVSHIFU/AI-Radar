@@ -7,6 +7,8 @@ import { insights, type InsightResult } from "./insights-api";
 import { parseSse } from "./sse";
 import { askView } from "./ask-result";
 import { queryPlanFrom, type QueryPlan } from "./query-plan";
+import { setAssistantScope } from "./assistant-scope";
+import { categoryBuckets, chartCategories } from "./insight-charts";
 
 const route = useRoute();
 const router = useRouter();
@@ -95,6 +97,19 @@ const categories = computed(() => {
   return allCategories.map((value) => ({ category: value, count: counts.get(value) || 0 }));
 });
 const maxCategory = computed(() => Math.max(0, ...categories.value.map((row) => row.count)));
+const chartView = ref<"flow" | "area" | "heat">("flow");
+const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
+const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
+const jointTotal = computed(() => Math.max(1, ...jointBuckets.value.map((bucket) => bucket.total)));
+const activeBucket = ref(0);
+const playing = ref(false);
+let playback: number | undefined;
+function chartX(index: number) { return jointBuckets.value.length < 2 ? 360 : 40 + index * 640 / (jointBuckets.value.length - 1); }
+function flowPath(category: Category, categoryIndex: number) { return jointBuckets.value.map((bucket, index) => `${index ? "L" : "M"}${chartX(index)} ${24 + categoryIndex * 23 - bucket.counts[category] / jointMax.value * 12}`).join(" "); }
+function areaPath(category: Category) { const upper = jointBuckets.value.map((bucket, index) => { const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `${index ? "L" : "M"}${chartX(index)} ${146 - (previous + bucket.counts[category]) / jointTotal.value * 122}`; }); const lower = [...jointBuckets.value].reverse().map((bucket, offset) => { const index = jointBuckets.value.length - 1 - offset; const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `L${chartX(index)} ${146 - previous / jointTotal.value * 122}`; }); return `${upper.join(" ")} ${lower.join(" ")} Z`; }
+function heatOpacity(count: number) { return 0.14 + count / jointMax.value * 0.78; }
+function chooseBucket(bucket: { from: string; to: string }) { selectDay(bucket.from, bucket.to); }
+function togglePlayback() { playing.value = !playing.value; if (playing.value) { clearInterval(playback); playback = window.setInterval(() => { activeBucket.value = jointBuckets.value.length ? (activeBucket.value + 1) % jointBuckets.value.length : 0; }, 900); } else clearInterval(playback); }
 const rangeLabel = computed(() => `${from.value || "未选择"} 至 ${to.value || "未选择"}（Asia/Shanghai，起止均包含）`);
 const filterLabel = computed(() => [category.value ? `分类：${categoryName[category.value] || category.value}` : "", keyword.value ? `关键词：${keyword.value}` : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean).join(" · "));
 const validUrl = (url: string) => /^https?:\/\//i.test(url);
@@ -293,14 +308,19 @@ async function submit() {
 function cancel() { answerGeneration++; controller.value?.abort(); timers.forEach(clearTimeout); timers = []; running.value = false; status.value = "已取消，未自动重试。"; }
 async function toggle(index: number) { expanded.value = expanded.value === index ? undefined : index; await nextTick(); document.getElementById(`citation-${index}`)?.focus(); }
 watch([keyword, category, from, to, minImportance], scheduleOverview);
+watch([keyword, category, from, to, minImportance], () => {
+  const filters = { q: keyword.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined, min_importance: minImportance.value ? 4 : undefined };
+  const parts = ["日期：" + (from.value || "未选择") + " 至 " + (to.value || "未选择"), category.value ? "分类：" + (categoryName[category.value] || category.value) : "", keyword.value ? "关键词「" + keyword.value + "」" : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean);
+  setAssistantScope({ label: "当前统计范围", filters, snapshot: parts.join(" · "), applyPlan: (plan) => { if (plan.entity_ids?.length || plan.category && !(plan.category in categoryName)) return false; if (plan.category) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; rangeMode.value = "custom"; return true; } });
+}, { immediate: true });
 watch(question, () => {
   ruleGeneration++;
   ruleController?.abort();
   rulePlan.value = undefined;
   ruleError.value = "";
 });
-onMounted(() => void loadOverview());
-onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.value?.abort(); overviewController?.abort(); ruleController?.abort(); timers.forEach(clearTimeout); clearTimeout(timer); });
+onMounted(() => { void loadOverview(); document.addEventListener("visibilitychange", () => { if (document.hidden && playing.value) togglePlayback(); }); });
+onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.value?.abort(); overviewController?.abort(); ruleController?.abort(); timers.forEach(clearTimeout); clearTimeout(timer); clearInterval(playback); });
 </script>
 
 <template>
@@ -338,69 +358,41 @@ onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.val
     <template v-else-if="overview">
       <p v-if="!overview.total_events" class="ask-empty">当前范围暂无已收录事件。<button v-if="rangeMode === 'today'" @click="setRange('week')">查看近7天</button></p>
       <div v-else class="ask-charts">
-        <section class="ask-chart" data-testid="insights-daily">
-          <h2>事件数量</h2>
-          <p class="meta">{{ spanDays > 31 ? "按月汇总；边界月仅计选定区间" : "按日统计" }} · 轴刻度：0 / {{ maxDaily }} 条</p>
-          <div class="daily-bars" role="list" aria-label="每日事件数">
-            <button v-for="row in chartBuckets" :key="row.date" class="daily-bar" :data-date-from="row.from" :data-date-to="row.to" :aria-label="`${row.label}，${row.count} 条`" :style="{ '--bar-height': `${maxDaily ? row.count / maxDaily * 150 : 0}px` }" @click="selectDay(row.from, row.to)">
-              <span class="daily-bar__value">{{ row.count }}</span>
-              <i class="daily-bar__fill"></i>
-              <small>{{ row.label }}</small>
-            </button>
+        <section class="ask-chart" data-testid="insights-visual" :data-view="chartView">
+          <h2>分类趋势</h2>
+          <p class="meta">{{ spanDays > 31 ? "按自然月汇总，边界月仅计选定日期" : "按日统计" }} · 联合分类计数总和 {{ overview.total_events }} 条</p>
+          <div class="chart-tabs" role="tablist" aria-label="统计视图">
+            <button data-view="A" :aria-pressed="chartView === 'flow'" @click="chartView = 'flow'">A 分类流向</button>
+            <button data-view="B" :aria-pressed="chartView === 'area'" @click="chartView = 'area'">B 堆叠面积</button>
+            <button data-view="C" :aria-pressed="chartView === 'heat'" @click="chartView = 'heat'">C 热力矩阵</button>
           </div>
-          <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th>事件数</th></tr></thead><tbody><tr v-for="row in chartBuckets" :key="row.date"><td>{{ row.from === row.to ? row.date : `${row.from} 至 ${row.to}` }}</td><td>{{ row.count }}</td></tr></tbody></table></details>
-        </section>
-        <section class="ask-chart" data-testid="insights-categories">
-          <h2>事件数量</h2>
-          <p class="meta">按分类 · 点击条形筛选</p>
-          <div class="category-bars" role="list">
-            <button v-for="row in categories" :key="row.category" :data-category="row.category" @click="selectCategory(row.category)">
-              <span>{{ categoryName[row.category] || row.category }}</span>
-              <i v-if="row.count" :style="{ width: `${maxCategory ? row.count / maxCategory * 100 : 0}%` }"></i>
-              <em v-else aria-hidden="true"></em><b>{{ row.count }}</b>
-            </button>
-          </div>
-          <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>分类</th><th>事件数</th></tr></thead><tbody><tr v-for="row in categories" :key="row.category"><td>{{ categoryName[row.category] || row.category }}</td><td>{{ row.count }}</td></tr></tbody></table></details>
+          <template v-if="chartView === 'flow'">
+            <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="按日期和分类的流向图">
+              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey">
+                <path class="chart-flow" :d="flowPath(categoryKey, categoryIndex)" :class="'chart-flow--' + categoryIndex" />
+                <text x="2" :y="28 + categoryIndex * 23">{{ categoryName[categoryKey] }}</text>
+              </g>
+              <g v-for="(bucket, index) in jointBuckets" :key="bucket.date"><circle v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :cx="chartX(index)" :cy="24 + categoryIndex * 23 - bucket.counts[categoryKey] / jointMax * 12" r="5" role="button" tabindex="0" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :aria-label="bucket.label + `，` + categoryName[categoryKey] + `，` + bucket.counts[categoryKey] + `条`" @click="category = categoryKey; chooseBucket(bucket)" @keydown.enter.prevent="category = categoryKey; chooseBucket(bucket)" /><text :x="chartX(index)" y="184">{{ bucket.label }}</text></g>
+            </svg></div>
+          </template>
+          <template v-else-if="chartView === 'area'">
+            <p><button :aria-pressed="playing" @click="togglePlayback">{{ playing ? "暂停播放" : "播放日期" }}</button><span class="meta"> {{ jointBuckets[activeBucket]?.label || "无日期" }}</span></p>
+            <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="分类堆叠面积图">
+              <path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
+              <line x1="18" y1="146" x2="282" y2="146" />
+              <circle v-if="jointBuckets.length === 1" cx="150" :cy="146 - jointBuckets[0].total / jointTotal * 122" r="5" />
+            </svg></div>
+          </template>
+          <template v-else>
+            <div class="heatmap" role="grid" aria-label="日期和分类热力矩阵" :style="{ gridTemplateColumns: `minmax(90px, auto) repeat(${jointBuckets.length}, minmax(56px, 1fr))` }">
+              <span></span><button v-for="bucket in jointBuckets" :key="'head-' + bucket.date" @click="chooseBucket(bucket)">{{ bucket.label }}</button>
+              <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" class="heatmap-cell" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :style="{ '--heat': heatOpacity(bucket.counts[categoryKey]) }" :aria-label="bucket.label + '，' + categoryName[categoryKey] + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)">{{ bucket.counts[categoryKey] }}</button></template>
+            </div>
+          </template>
+          <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
         </section>
       </div>
     </template>
-    <section class="ask-question">
-      <h2>对这个范围提问</h2>
-      <label>问题<textarea v-model="question" class="control" rows="4" placeholder="输入需要核查的 AI 进展问题" /></label>
-      <div class="row"><button class="primary" :disabled="running || !question || missingDates || invalid || tooWide" @click="submit">开始分析</button><button :disabled="planning || !question" @click="planFromQuestion">按问题筛选</button><button v-if="running" @click="cancel">取消</button></div>
-      <p v-if="ruleError" class="error" role="alert">{{ ruleError }}</p>
-      <section v-if="rulePlan" class="query-plan">
-        <h3>规则解析预览</h3>
-        <p>拟应用：分类 {{ rulePlan.filters.category ? (categoryName[rulePlan.filters.category] || rulePlan.filters.category) : "沿用当前" }} · 日期 {{ rulePlan.filters.date_from || from }} 至 {{ rulePlan.filters.date_to || to }}。</p>
-        <p class="meta">将沿用当前条件：{{ keyword ? `关键词「${keyword}」` : "无关键词" }} · {{ minImportance ? "重要度 4 及以上" : "不限重要度" }}。规则解析不会替代这些条件。</p>
-        <p v-if="rulePlan.requires_clarification || rulePlan.free_text || rulePlan.filters.entity_ids?.length || hasNarrowEntityRole(rulePlan)" class="meta">部分条件无法完整映射到当前筛选，请改用筛选控件。</p>
-        <button @click="applyRulePlan">应用到总览</button>
-      </section>
-      <p class="meta" aria-live="polite">{{ status }}</p>
-      <div v-if="error" class="card error" role="alert"><strong>{{ error.code }}</strong>：{{ errorDescription(error) }}</div>
-      <section v-if="plan" class="card query-plan" aria-label="检索范围" data-testid="query-plan">
-        <h2>检索范围</h2>
-        <p>业务日期：{{ plan.business_date }} · 时区：{{ plan.timezone }}</p>
-        <p>分类：{{ plan.filters.category ? (categoryName[plan.filters.category] || plan.filters.category) : "全部分类" }} · 日期：{{ plan.filters.date_from || "不限" }} 至 {{ plan.filters.date_to || "不限" }}（起止日期均包含）</p>
-        <p>实体：{{ plan.filters.entity_ids?.length ? `已采用 ${plan.filters.entity_ids.length} 个实体条件（${plan.filters.entity_match === "all" ? "同时匹配" : "任一匹配"}）` : "未限定实体" }}</p>
-        <p v-if="plan.requires_clarification">需要澄清：<span v-for="item in plan.clarification_candidates" :key="item.label">{{ item.label }} </span></p>
-        <p v-if="plan.free_text">未理解限制：{{ plan.free_text }}</p>
-        <p v-if="plan.entity_roles?.length">实体角色：{{ plan.entity_roles.map((role) => role === "subject" ? "主体" : "产品").join("、") }}</p>
-        <ul v-if="plan.warnings.length"><li v-for="warning in plan.warnings" :key="warning">{{ warning }}</li></ul>
-      </section>
-      <article v-if="result || tokens" class="evidence-layer" data-testid="ask-answer">
-        <p v-if="isDemo()" class="demo">模拟流，仅用于演示。</p>
-        <h2>回答</h2><p class="answer-body">{{ tokens || result?.answer }}</p>
-        <div v-for="source in sources" :key="source.index" class="evidence-item">
-          <button :aria-expanded="expanded === source.index" :aria-controls="`citation-${source.index}`" @click="toggle(source.index)">[{{ source.index }}] {{ source.title }}</button>
-          <blockquote v-if="expanded === source.index" :id="`citation-${source.index}`" tabindex="-1">{{ source.quote_text || "无段落摘录" }}<footer class="meta">段落 {{ source.paragraph_id || "未提供" }} · 来源版本未提供</footer></blockquote>
-          <a v-if="validUrl(source.source_url)" :href="source.source_url" target="_blank" rel="noopener">打开来源</a>
-        </div>
-        <p v-if="result?.answer_status === 'no_answer'">没有可回答的资料。</p>
-        <p v-if="metrics?.coverage === 'partial'" class="meta">覆盖不完整：答案仅基于部分匹配资料。</p>
-        <p v-if="metrics" class="meta tabular">完整匹配 {{ metrics.scope_total }} · 取回 {{ metrics.retrieved_count }} · 总结 {{ metrics.summarized_count }} · 引用 {{ metrics.citation_count }} · 覆盖：{{ metrics.coverage }}</p>
-      </article>
-    </section>
     <section class="ask-events" data-testid="insights-events">
       <h2>匹配事件</h2><p v-if="listLoading" class="meta">正在读取事件…</p><p v-else-if="listError" class="error">{{ listError }}</p><p v-else-if="!listItems.length" class="meta">当前范围没有可列出的事件。</p>
       <article v-for="item in listItems" :key="item.id"><span class="pill">{{ categoryName[item.category] || item.category }}</span><h3><a :href="eventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a></h3><p class="muted">{{ item.summary_zh }}</p></article>
