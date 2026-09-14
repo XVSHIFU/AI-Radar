@@ -592,11 +592,13 @@ def ingest_repository(request: Request) -> IngestRepository:
 async def ingest_runs(request: Request) -> dict[str, list[IngestRun]]:
     repository = ingest_repository(request)
     items = []
-    for item in await repository.runs():
+    runs = await repository.runs()
+    counts = await repository.published_counts([item.id for item in runs])
+    for item in runs:
         response = IngestRun.model_validate(item).model_copy(
             update={
                 "found": item.discovered_urls,
-                "kept": 0,
+                "kept": counts.get(item.id, 0),
                 "candidates": item.event_candidates,
                 "versions": item.new_articles + item.updated_articles,
             }
