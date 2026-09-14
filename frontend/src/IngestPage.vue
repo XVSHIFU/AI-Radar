@@ -64,7 +64,7 @@ async function start() {
 <template>
   <section>
     <h1 class="page-title">采集管理</h1>
-    <p class="page-subtitle">管理令牌仅保留在当前页面内存中。</p>
+    <p class="page-subtitle">管理令牌仅保留在当前页面内存中。</p><p class="meta">候选来源用于人工核验和后续采集；默认来源仍为禁用状态，未验证前不会自动采集或发布。</p>
     <div class="admin-grid">
       <section class="card">
         <label

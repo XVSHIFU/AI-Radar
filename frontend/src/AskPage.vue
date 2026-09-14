@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ask, err, events, isDemo, type AskResult, type Category, type Citation, type Event } from "./api";
+import { events, type Category, type Event } from "./api";
 import EventDrawers from "./EventDrawers.vue";
 import { insights, type InsightResult } from "./insights-api";
 import { parseSse } from "./sse";
 import { askView } from "./ask-result";
-import { queryPlanFrom, type QueryPlan } from "./query-plan";
 import { setAssistantScope } from "./assistant-scope";
 import { categoryBuckets, chartCategories } from "./insight-charts";
 
@@ -42,61 +41,14 @@ const listItems = ref<Event[]>([]);
 const listNext = ref<string | null>(null);
 const listLoading = ref(false);
 const listError = ref("");
-const running = ref(false);
-const controller = ref<AbortController>();
-const result = ref<AskResult>();
-const error = ref<ReturnType<typeof err>>();
-const status = ref("");
-const tokens = ref("");
-const sources = ref<Citation[]>([]);
-const metrics = ref<Pick<AskResult, "scope_total" | "retrieved_count" | "summarized_count" | "citation_count" | "coverage"> & { status?: string }>();
-const expanded = ref<number>();
-const plan = ref<QueryPlan>();
-const rulePlan = ref<QueryPlan>();
-const ruleError = ref("");
-const planning = ref(false);
-let ruleController: AbortController | undefined;
-let ruleGeneration = 0;
 let overviewController: AbortController | undefined;
 let overviewGeneration = 0;
-let answerGeneration = 0;
 let timer: number | undefined;
-let timers: number[] = [];
-const errorGuidance: Record<string, string> = {
-  MODEL_UNAVAILABLE: "生成模型尚未配置，已显示可用的检索范围。",
-  QUERY_UNSUPPORTED: "当前问题包含暂不支持的检索表达。",
-  CLARIFICATION_REQUIRED: "需要先澄清检索条件后才能继续。",
-};
-const errorDescription = (value: ReturnType<typeof err>) => errorGuidance[value.code] ? `${errorGuidance[value.code]} ${value.message}` : value.message;
 const missingDates = computed(() => !from.value || !to.value);
 const invalid = computed(() => Boolean(from.value && to.value && from.value > to.value));
 const spanDays = computed(() => missingDates.value ? 0 : Math.floor((Date.parse(`${to.value}T00:00:00Z`) - Date.parse(`${from.value}T00:00:00Z`)) / 86400000) + 1);
 const tooWide = computed(() => !invalid.value && spanDays.value > 366);
 const filters = computed(() => ({ q: keyword.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined, min_importance: minImportance.value ? 4 : undefined }));
-const chartRows = computed(() => {
-  if (!overview.value || spanDays.value > 31 || missingDates.value) return overview.value?.daily || [];
-  const counts = new Map(overview.value.daily.map((row) => [row.date, row.count]));
-  const rows: { date: string; count: number }[] = [];
-  for (let date = from.value; date <= to.value; date = addDays(date, 1)) rows.push({ date, count: counts.get(date) || 0 });
-  return rows;
-});
-const chartBuckets = computed(() => {
-  if (spanDays.value <= 31) return chartRows.value.map((row) => ({ ...row, from: row.date, to: row.date, label: row.date.slice(5) }));
-  const buckets = new Map<string, { date: string; count: number; from: string; to: string; label: string }>();
-  for (const row of chartRows.value) {
-    const month = row.date.slice(0, 7);
-    const bucket = buckets.get(month);
-    if (bucket) { bucket.count += row.count; bucket.to = row.date; }
-    else buckets.set(month, { date: month, count: row.count, from: row.date, to: row.date, label: month });
-  }
-  return [...buckets.values()];
-});
-const maxDaily = computed(() => Math.max(0, ...chartBuckets.value.map((row) => row.count)));
-const categories = computed(() => {
-  const counts = new Map(overview.value?.categories.map((row) => [row.category, row.count]) || []);
-  return allCategories.map((value) => ({ category: value, count: counts.get(value) || 0 }));
-});
-const maxCategory = computed(() => Math.max(0, ...categories.value.map((row) => row.count)));
 const chartView = ref<"flow" | "area" | "heat">("flow");
 const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
 const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
@@ -105,50 +57,18 @@ const activeBucket = ref(0);
 const playing = ref(false);
 let playback: number | undefined;
 function chartX(index: number) { return jointBuckets.value.length < 2 ? 360 : 40 + index * 640 / (jointBuckets.value.length - 1); }
-function flowPath(category: Category, categoryIndex: number) { return jointBuckets.value.map((bucket, index) => `${index ? "L" : "M"}${chartX(index)} ${24 + categoryIndex * 23 - bucket.counts[category] / jointMax.value * 12}`).join(" "); }
-function areaPath(category: Category) { const upper = jointBuckets.value.map((bucket, index) => { const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `${index ? "L" : "M"}${chartX(index)} ${146 - (previous + bucket.counts[category]) / jointTotal.value * 122}`; }); const lower = [...jointBuckets.value].reverse().map((bucket, offset) => { const index = jointBuckets.value.length - 1 - offset; const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `L${chartX(index)} ${146 - previous / jointTotal.value * 122}`; }); return `${upper.join(" ")} ${lower.join(" ")} Z`; }
+function flowBand(category: Category, categoryIndex: number, bucketIndex: number) { const count = jointBuckets.value[bucketIndex]?.counts[category] || 0; if (!count) return ""; const thickness = 3 + count / jointMax.value * 15; const sourceY = 32 + categoryIndex * 25; const targetY = jointBuckets.value.length < 2 ? 96 : 30 + bucketIndex * 130 / (jointBuckets.value.length - 1); return `M 180 ${sourceY - thickness / 2} C 310 ${sourceY - thickness / 2}, 450 ${targetY - thickness / 2}, 560 ${targetY - thickness / 2} L 560 ${targetY + thickness / 2} C 450 ${targetY + thickness / 2}, 310 ${sourceY + thickness / 2}, 180 ${sourceY + thickness / 2} Z`; }
+function areaPath(category: Category, reveal = jointBuckets.value.length) { const visible = jointBuckets.value.slice(0, reveal); const upper = visible.map((bucket, index) => { const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `${index ? "L" : "M"}${chartX(index)} ${146 - (previous + bucket.counts[category]) / jointTotal.value * 122}`; }); const lower = [...visible].reverse().map((bucket, offset) => { const index = visible.length - 1 - offset; const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `L${chartX(index)} ${146 - previous / jointTotal.value * 122}`; }); return `${upper.join(" ")} ${lower.join(" ")} Z`; }
 function heatOpacity(count: number) { return 0.14 + count / jointMax.value * 0.78; }
 function chooseBucket(bucket: { from: string; to: string }) { selectDay(bucket.from, bucket.to); }
 function togglePlayback() { playing.value = !playing.value; if (playing.value) { clearInterval(playback); playback = window.setInterval(() => { activeBucket.value = jointBuckets.value.length ? (activeBucket.value + 1) % jointBuckets.value.length : 0; }, 900); } else clearInterval(playback); }
 const rangeLabel = computed(() => `${from.value || "未选择"} 至 ${to.value || "未选择"}（Asia/Shanghai，起止均包含）`);
 const filterLabel = computed(() => [category.value ? `分类：${categoryName[category.value] || category.value}` : "", keyword.value ? `关键词：${keyword.value}` : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean).join(" · "));
-const validUrl = (url: string) => /^https?:\/\//i.test(url);
-function slowStream() {
-  let control: ReadableStreamDefaultController<Uint8Array>;
-  const emit = (value: string, ms: number) => timers.push(window.setTimeout(() => control.enqueue(new TextEncoder().encode(value)), ms));
-  return new ReadableStream<Uint8Array>({
-    start(c) {
-      control = c;
-      emit('event: status\ndata: {"phase":"retrieving"}\n\n', 150);
-      emit('event: token\ndata: {"text":"这是"}\n\n', 450);
-      emit('event: token\ndata: {"text":"明确标注的模拟回答。[2]"}\n\n', 850);
-      emit('event: sources\ndata: {"items":[{"index":2,"title":"合成演示来源","source_url":"https://example.invalid/demo","quote_text":"合成段落摘录","paragraph_id":"demo-p-001"}]}\n\n', 1150);
-      emit('event: done\ndata: {"status":"completed","scope_total":1,"retrieved_count":1,"summarized_count":1,"citation_count":1,"coverage":"complete"}\n\n', 1450);
-      timers.push(window.setTimeout(() => c.close(), 1600));
-    },
-    cancel() { timers.forEach(clearTimeout); timers = []; },
-  });
-}
 function setRange(mode: "today" | "week" | "month" | "custom") {
   rangeMode.value = mode;
   if (mode === "today") from.value = to.value = today;
   if (mode === "week") { from.value = addDays(today, -6); to.value = today; }
   if (mode === "month") { from.value = `${today.slice(0, 8)}01`; to.value = today; }
-}
-function resetAnswer() {
-  const hadAnswer = running.value || Boolean(result.value || tokens.value || sources.value.length || metrics.value);
-  answerGeneration++;
-  controller.value?.abort();
-  timers.forEach(clearTimeout);
-  timers = [];
-  running.value = false;
-  result.value = undefined;
-  tokens.value = "";
-  sources.value = [];
-  metrics.value = undefined;
-  plan.value = undefined;
-  error.value = undefined;
-  status.value = hadAnswer ? "范围已更新，之前的回答已清除。" : "";
 }
 function clearOverviewState() {
   overview.value = undefined;
@@ -210,50 +130,10 @@ function scheduleOverview() {
   clearOverviewState();
   overviewLoading.value = !missingDates.value && !invalid.value && !tooWide.value;
   listLoading.value = overviewLoading.value;
-  resetAnswer();
+
   timer = window.setTimeout(() => void loadOverview(), 260);
 }
 function selectDay(date: string, end = date) { rangeMode.value = "custom"; from.value = date; to.value = end; }
-async function planFromQuestion() {
-  const current = ++ruleGeneration;
-  ruleController?.abort();
-  ruleController = new AbortController();
-  ruleError.value = "";
-  rulePlan.value = undefined;
-  planning.value = true;
-  try {
-    const response = await fetch("/api/v1/query-plan", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: question.value, filters: {}, timezone: "Asia/Shanghai", client_request_id: crypto.randomUUID() }), signal: ruleController.signal });
-    if (!response.ok) throw new Error("规则解析请求失败");
-    const raw = await response.json();
-    if (current !== ruleGeneration) return;
-    const parsed = queryPlanFrom({ query_plan_public: raw });
-    if (!parsed) throw new Error("规则解析结果无效");
-    rulePlan.value = parsed;
-  } catch (cause) {
-    if (current === ruleGeneration && (cause as Error).name !== "AbortError") ruleError.value = cause instanceof Error ? cause.message : "规则解析失败";
-  } finally { if (current === ruleGeneration) planning.value = false; }
-}
-function hasNarrowEntityRole(value: QueryPlan) {
-  const roles = value.entity_roles || [];
-  return roles.length > 0 && !(roles.includes("subject") && roles.includes("product"));
-}
-function applyRulePlan() {
-  const value = rulePlan.value;
-  if (!value) return;
-  if (value.requires_clarification || value.free_text || value.filters.entity_ids?.length || hasNarrowEntityRole(value)) {
-    ruleError.value = "该解析包含当前筛选无法完整表达的条件，请改用分类、关键词和日期筛选。";
-    return;
-  }
-  if (value.filters.category && !(value.filters.category in categoryName)) {
-    ruleError.value = "解析出的分类无法由当前筛选表达。";
-    return;
-  }
-  if (value.filters.category) category.value = value.filters.category as Category;
-  if (value.filters.date_from) from.value = value.filters.date_from;
-  if (value.filters.date_to) to.value = value.filters.date_to;
-  rangeMode.value = "custom";
-  rulePlan.value = undefined;
-}
 function selectCategory(value: Category) { category.value = value; }
 function openEvent(event: MouseEvent, id: string) {
   if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
@@ -261,66 +141,15 @@ function openEvent(event: MouseEvent, id: string) {
   void router.push({ path: route.path, query: { ...route.query, event: id } });
 }
 function eventHref(id: string) { return router.resolve({ path: `/events/${id}`, query: route.query.demo === "1" ? { demo: "1" } : {} }).href; }
-async function submit() {
-  if (!question.value || missingDates.value || invalid.value || tooWide.value) return;
-  const current = ++answerGeneration;
-  controller.value?.abort();
-  timers.forEach(clearTimeout);
-  timers = [];
-  controller.value = new AbortController();
-  result.value = undefined;
-  plan.value = undefined;
-  error.value = undefined;
-  tokens.value = "";
-  sources.value = [];
-  metrics.value = undefined;
-  running.value = true;
-  try {
-    if (isDemo()) {
-      for await (const event of parseSse(slowStream(), controller.value.signal)) {
-        if (current !== answerGeneration) return;
-        if (event.event === "status") status.value = "模拟流：正在检索";
-        if (event.event === "token") tokens.value += JSON.parse(event.data).text;
-        if (event.event === "sources") sources.value = JSON.parse(event.data).items as Citation[];
-        if (event.event === "done") {
-          const done = JSON.parse(event.data) as Pick<AskResult, "scope_total" | "retrieved_count" | "summarized_count" | "citation_count" | "coverage"> & { status?: string };
-          metrics.value = done;
-          status.value = done.status === "completed" ? "模拟流已完成" : "模拟流失败";
-        }
-      }
-    } else {
-      status.value = "正在检索并汇总…";
-      const response = await ask({ question: question.value, filters: filters.value, timezone: "Asia/Shanghai", answer_mode: "concise", client_request_id: crypto.randomUUID() }, controller.value.signal);
-      if (current !== answerGeneration) return;
-      plan.value = queryPlanFrom(response);
-      const view = askView(response);
-      result.value = response;
-      sources.value = view.citations;
-      metrics.value = response;
-      status.value = view.status;
-    }
-  } catch (cause) {
-    if (current !== answerGeneration) return;
-    if ((cause as Error).name === "AbortError") status.value = "已取消，未自动重试。";
-    else { error.value = err(cause); plan.value = queryPlanFrom(cause); }
-  } finally { if (current === answerGeneration) running.value = false; }
-}
-function cancel() { answerGeneration++; controller.value?.abort(); timers.forEach(clearTimeout); timers = []; running.value = false; status.value = "已取消，未自动重试。"; }
-async function toggle(index: number) { expanded.value = expanded.value === index ? undefined : index; await nextTick(); document.getElementById(`citation-${index}`)?.focus(); }
 watch([keyword, category, from, to, minImportance], scheduleOverview);
 watch([keyword, category, from, to, minImportance], () => {
   const filters = { q: keyword.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined, min_importance: minImportance.value ? 4 : undefined };
   const parts = ["日期：" + (from.value || "未选择") + " 至 " + (to.value || "未选择"), category.value ? "分类：" + (categoryName[category.value] || category.value) : "", keyword.value ? "关键词「" + keyword.value + "」" : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean);
-  setAssistantScope({ label: "当前统计范围", filters, snapshot: parts.join(" · "), applyPlan: (plan) => { if (plan.entity_ids?.length || plan.category && !(plan.category in categoryName)) return false; if (plan.category) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; rangeMode.value = "custom"; return true; } });
+  setAssistantScope({ label: "当前统计范围", filters, snapshot: parts.join(" · ") });
 }, { immediate: true });
-watch(question, () => {
-  ruleGeneration++;
-  ruleController?.abort();
-  rulePlan.value = undefined;
-  ruleError.value = "";
-});
-onMounted(() => { void loadOverview(); document.addEventListener("visibilitychange", () => { if (document.hidden && playing.value) togglePlayback(); }); });
-onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.value?.abort(); overviewController?.abort(); ruleController?.abort(); timers.forEach(clearTimeout); clearTimeout(timer); clearInterval(playback); });
+const onAssistantPlan = (event: globalThis.Event) => { const plan = (event as unknown as globalThis.CustomEvent<{ category?: string; date_from?: string; date_to?: string }>).detail; if (plan.category && plan.category in categoryName) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; rangeMode.value = "custom"; };
+onMounted(() => { window.addEventListener("assistant-apply-plan", onAssistantPlan as EventListener); void loadOverview(); document.addEventListener("visibilitychange", () => { if (document.hidden && playing.value) togglePlayback(); }); });
+onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clearTimeout(timer); clearInterval(playback); window.removeEventListener("assistant-apply-plan", onAssistantPlan as EventListener); });
 </script>
 
 <template>
@@ -367,20 +196,17 @@ onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.val
             <button data-view="C" :aria-pressed="chartView === 'heat'" @click="chartView = 'heat'">C 热力矩阵</button>
           </div>
           <template v-if="chartView === 'flow'">
-            <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="按日期和分类的流向图">
-              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey">
-                <path class="chart-flow" :d="flowPath(categoryKey, categoryIndex)" :class="'chart-flow--' + categoryIndex" />
-                <text x="2" :y="28 + categoryIndex * 23">{{ categoryName[categoryKey] }}</text>
-              </g>
-              <g v-for="(bucket, index) in jointBuckets" :key="bucket.date"><circle v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :cx="chartX(index)" :cy="24 + categoryIndex * 23 - bucket.counts[categoryKey] / jointMax * 12" r="5" role="button" tabindex="0" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :aria-label="bucket.label + `，` + categoryName[categoryKey] + `，` + bucket.counts[categoryKey] + `条`" @click="category = categoryKey; chooseBucket(bucket)" @keydown.enter.prevent="category = categoryKey; chooseBucket(bucket)" /><text :x="chartX(index)" y="184">{{ bucket.label }}</text></g>
+            <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="分类到日期的事件流向图">
+              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey"><text x="4" :y="36 + categoryIndex * 25">{{ categoryName[categoryKey] }}</text><rect x="150" :y="25 + categoryIndex * 25" width="28" height="14" :class="'chart-area--' + categoryIndex" /></g>
+              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="'flows-' + categoryKey"><template v-for="(bucket, bucketIndex) in jointBuckets" :key="bucket.date"><path v-if="bucket.counts[categoryKey]" :d="flowBand(categoryKey, categoryIndex, bucketIndex)" :class="'chart-flow chart-flow--' + categoryIndex" role="button" tabindex="0" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :aria-label="categoryName[categoryKey] + ' 至 ' + bucket.label + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)" @keydown.enter.prevent="category = categoryKey; chooseBucket(bucket)" /><text v-if="bucket.counts[categoryKey]" x="566" :y="34 + bucketIndex * (jointBuckets.length < 2 ? 0 : 130 / (jointBuckets.length - 1))">{{ bucket.counts[categoryKey] }}</text></template></g>
+              <g v-for="(bucket, index) in jointBuckets" :key="bucket.date"><text x="590" :y="34 + index * (jointBuckets.length < 2 ? 0 : 130 / (jointBuckets.length - 1))">{{ bucket.label }} · {{ bucket.total }}</text></g>
             </svg></div>
-          </template>
-          <template v-else-if="chartView === 'area'">
+          </template>          <template v-else-if="chartView === 'area'">
             <p><button :aria-pressed="playing" @click="togglePlayback">{{ playing ? "暂停播放" : "播放日期" }}</button><span class="meta"> {{ jointBuckets[activeBucket]?.label || "无日期" }}</span></p>
             <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="分类堆叠面积图">
-              <path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
-              <line x1="18" y1="146" x2="282" y2="146" />
-              <circle v-if="jointBuckets.length === 1" cx="150" :cy="146 - jointBuckets[0].total / jointTotal * 122" r="5" />
+              <path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey, playing ? activeBucket + 1 : jointBuckets.length)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
+              <line x1="40" y1="146" x2="680" y2="146" /><line v-if="playing" :x1="chartX(activeBucket)" y1="20" :x2="chartX(activeBucket)" y2="146" class="chart-cursor" />
+              <circle v-if="jointBuckets.length === 1" cx="360" :cy="146 - jointBuckets[0].total / jointTotal * 122" r="5" />
             </svg></div>
           </template>
           <template v-else>
