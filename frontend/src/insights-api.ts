@@ -63,7 +63,7 @@ export async function insights(
   const params = new URLSearchParams(
     Object.entries(query).filter(([, value]) => value !== undefined && value !== "") as [string, string][],
   );
-  const response = await fetch(`/api/v1/insights?${params}`, { signal });
+  const response = await fetch(`/api/v1/insights/summary?${params}`, { signal });
   if (!response.ok) throw new Error("统计请求失败");
   const value = (await response.json()) as InsightResult;
   updateDataMode(value);
