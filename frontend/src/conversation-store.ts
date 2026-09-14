@@ -10,7 +10,7 @@ export type ConversationMessage = {
   filters?: Record<string, unknown>; mode: "demo" | "live"; citations?: { index: number; title: string; quote_text?: string; source_url: string; paragraph_id?: string }[];
   status?: "running" | "completed" | "cancelled" | "interrupted" | "error"; attachment?: Attachment; plan?: StoredPlan; metrics?: { scope_total?: number; retrieved_count?: number; summarized_count?: number; citation_count?: number; coverage?: string }; error?: { code: string; message: string };
 };
-export type Conversation = { id: string; title: string; draft: string; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
+export type Conversation = { id: string; title: string; draft: string; attachment?: Attachment; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
 const storeName = "conversations"; const rowsKey = "all"; const activeKey = "active";
 let memory: Conversation[] = []; let writes = Promise.resolve();
 export const storageState = reactive({ failed: false });
@@ -23,19 +23,13 @@ export function restoreConversations(value: unknown): Conversation[] {
   return copy(value).map((conversation) => ({ ...conversation, messages: conversation.messages.map((message) => message.status === "running" ? { ...message, status: "interrupted", text: message.text || "本次请求在页面关闭前中断，未自动重试。" } : message) }));
 }
 export function boundedHistory(messages: ConversationMessage[], currentUserId: string) {
-  const complete: { role: "user" | "assistant"; content: string; filters?: Record<string, unknown> }[] = [];
+  const pairs: { user:{ role:"user";content:string;filters?:Record<string,unknown>}; assistant:{role:"assistant";content:string} }[]=[];
   let user: ConversationMessage | undefined;
-  for (const message of messages) {
-    if (message.id === currentUserId) continue;
-    if (message.role === "user") user = message;
-    else if (user && message.status === "completed" && message.text) { complete.push({ role: "user", content: user.text, filters: user.filters }, { role: "assistant", content: message.text }); user = undefined; }
-  }
-  const output: typeof complete = [];
-  let total = 0;
-  for (const item of complete.slice(-6).reverse()) { const content = item.content.slice(0, 4000); if (total + content.length > 12000) continue; output.unshift({ ...item, content }); total += content.length; }
-  return output;
-}
-function openDatabase(): Promise<IDBDatabase> { return new Promise((resolve, reject) => { if (typeof indexedDB === "undefined") return reject(new Error("IndexedDB 不可用")); const request = indexedDB.open("ai-radar-conversations", 1); request.onupgradeneeded = () => request.result.createObjectStore(storeName); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
+  for (const message of messages) { if(message.id===currentUserId) continue; if(message.role==="user") user=message; else if(user&&message.status==="completed") { pairs.push({user:{role:"user",content:user.text.slice(0,4000),filters:user.filters},assistant:{role:"assistant",content:message.text.slice(0,4000)}});user=undefined; } }
+  const selected: typeof pairs=[]; let total=0;
+  for(const pair of pairs.slice(-3).reverse()){const size=pair.user.content.length+pair.assistant.content.length;if(total+size>12000)continue;selected.unshift(pair);total+=size;}
+  return selected.flatMap((pair)=>[pair.user,pair.assistant]);
+}function openDatabase(): Promise<IDBDatabase> { return new Promise((resolve, reject) => { if (typeof indexedDB === "undefined") return reject(new Error("IndexedDB 不可用")); const request = indexedDB.open("ai-radar-conversations", 1); request.onupgradeneeded = () => request.result.createObjectStore(storeName); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
 async function read(key: string): Promise<unknown> { const db = await openDatabase(); try { return await new Promise((resolve, reject) => { const tx = db.transaction(storeName); const request = tx.objectStore(storeName).get(key); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); tx.onabort = () => reject(tx.error); }); } finally { db.close(); } }
 async function write(key: string, value: unknown) { const db = await openDatabase(); try { await new Promise<void>((resolve, reject) => { const tx = db.transaction(storeName, "readwrite"); tx.objectStore(storeName).put(copy(value), key); tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error); }); } finally { db.close(); } }
 export async function loadConversations() { try { memory = restoreConversations(await read(rowsKey)); return copy(memory); } catch { storageState.failed = true; return copy(memory); } }
