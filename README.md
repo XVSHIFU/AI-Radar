@@ -9,8 +9,14 @@
 - `frontend/`：Vue3、TypeScript、Vite、Tailwind4 四页与API适配。
 - `backend/`：FastAPI、SQLAlchemy、PostgreSQL仓储与显式合成演示仓储。
 - `contracts/`：接口基线、共享演示数据、新版SSE协议样本。
-- `scripts/`：本地启动/停止、验证、RSS入口验证和Codex周额度检查。
+- `scripts/`：本地启动/停止、验证、RSS入口验证与 Ubuntu 服务管理。
 - `docs/`：设计、原型比较、实施记录和逐项验收证据。
+
+## 当前 Ubuntu 开发环境
+
+已将工程迁移到 Ubuntu，真实 PostgreSQL、API、采集 worker 和每小时调度已启动。
+页面：http://192.168.194.129:5173/ 。详细环境、备份恢复与服务命令见 [Ubuntu 开发记录](docs/ubuntu-development.md)。
+前端已由用户接受；本阶段先完成数据库与采集，模型服务暂缓确定。
 
 ## 本地安装与启动
 
@@ -31,7 +37,7 @@ Set-Location ..
 
 ## 接入 PostgreSQL
 
-本机未安装可用Docker/PG，WSL启动返回HCS服务不可用；用户已同意先推进工程。环境就绪后：
+Windows 本机原先无可用 Docker/PG；现已在 Ubuntu 上运行，参见上述记录。新环境初始化示例：
 
 ```powershell
 # 仅首次复制，不覆盖已填好的配置
@@ -44,7 +50,7 @@ Set-Location ..
 ./scripts/start-dev.ps1
 ```
 
-默认模式为PostgreSQL；数据库未配置/不可用应显示明确故障，不返回虚假的空事件库。模型凭据和付费预算未配置时不得伪造问答。镜像采用规格的 `pgvector/pgvector:0.8.6-pg16-bookworm`，本机尚未拉取验证digest。
+默认模式为PostgreSQL；数据库未配置/不可用应显示明确故障，不返回虚假的空事件库。模型凭据和付费预算未配置时不得伪造问答。镜像采用规格的 `pgvector/pgvector:0.8.6-pg16-bookworm`，Ubuntu 已拉取并记录 digest，见 Ubuntu 开发记录。
 
 ## 验证
 
@@ -53,29 +59,27 @@ Set-Location ..
 ./scripts/check-frontend.ps1 -BaseUrl http://127.0.0.1:5173
 python scripts/check-api.py --base-url http://127.0.0.1:8000
 python scripts/validate-sources.py
-./scripts/check-codex-quota.ps1
 ```
 
-`verify.ps1` 执行静态检查、单元测试、24项显式过滤结构回归、30项确定性计划HTTP检查、3项连接拒绝检查、OpenAPI对齐和离线迁移 SQL 生成；当前尚无可运行的真实 PostgreSQL 集成测试。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
+`verify.ps1` 执行静态检查、单元测试、24项显式过滤结构回归、30项确定性计划HTTP检查、3项连接拒绝检查、OpenAPI对齐和离线迁移 SQL 生成；新增真实 PostgreSQL 集成测试及运行条件见 docs/db-live-validation.md。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
 
 原型比较：分别在两个 `prototypes/*` 目录执行 `npm ci` 和 `npm run dev -- --host 127.0.0.1 --port <4174或4173>`，再执行 `./scripts/check-prototypes.ps1`。运行前需本机已安装 `agent-browser` 及浏览器；结果写入 `docs/prototype-browser-results.json`。
 
 ## 当前边界
 
-5个真实RSS入口均解析成功，完整正文/提取/Evidence链路尚未验收。没有历史原站ID与gold材料，没有模型凭据和付费预算，没有真实PG实例。100条真实标准事件、真实模型质量、原站旧API/SSE兼容、生产部署与恢复演练均不能标为完成。
+5 个真实 RSS 与正文样本已通过生产抓取，原文持续保存到 Ubuntu 的真实 PG。备份/隔离恢复已通过。没有历史原站 ID 与 gold 材料，也没有模型凭据和付费预算。100 条真实标准事件、模型质量、旧 API/SSE 兼容和生产部署仍未完成。
 
 详细证据：[原型比较](docs/prototype-comparison.md)、[来源探测](docs/source-validation.json)、[实施记录](docs/execution-log.md)、[验收矩阵](docs/acceptance-matrix.md)。
 
-开发停止规则：仅看用户Pro周额度，起始剩余95%，**剩余到80%即停止所有模型工作**。检查脚本只读本地会话用量记录，未知/过旧记录需要复核；周额度变化不能换算实际现金费用。
+用户已取消周额度 80% 停止规则；历史额度脚本不再作为继续开发的门槛。
 
-## 生产抓取路径的本机网络限制
+## 生产抓取路径与网络配置
 
-2026-09-12 的生产 transport 探测中，5 个来源均因 DNS 返回非公网地址而拒绝抓取，正文解析0/5。只读核对示例：huggingface.co 返回198.18.0.113、fdfe:dcba:9876::71；rss.arxiv.org 返回198.18.0.115、fdfe:dcba:9876::70。未改变本机网络配置或降低公网检查。
+早期系统 DNS 返回 Fake-IP，生产抓取器按预期拒绝。Ubuntu 已使用显式配置的 Cloudflare DoH，
+保持公网地址验证和 IP 固定；五源正文样本已通过。默认 FETCH_DNS_MODE=system，仅需时选择 cloudflare。
 
-网络解析恢复真实公网地址后，可运行：
-
-```powershell
-uv run --project backend --frozen python scripts/validate-source-bodies.py
+```bash
+backend/.venv/bin/python scripts/validate-source-bodies.py
 ```
 
 报告为 docs/source-body-validation.json，只取每源1篇正文，不写数据库、不调用模型、不发布事件。此前 urllib RSS入口5/5与本次生产transport结果分开记录。即使正文解析成功，仍需后续完整提取、证据与入库验收。

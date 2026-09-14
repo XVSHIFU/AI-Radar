@@ -67,7 +67,7 @@ async def run() -> None:
                         owner,
                         job.lease_generation,
                         False,
-                        str(exc),
+                        f"{type(exc).__name__}: {str(exc) or 'operation failed'}"[:1000],
                         parser_failure=isinstance(exc, DocumentParseError),
                     )
                 finally:
