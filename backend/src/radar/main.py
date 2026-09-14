@@ -20,9 +20,11 @@ from .repository import EventRepository, EvidenceInvalid, InvalidCursor, Reposit
 from .schemas import (
     AskRequest,
     Category,
+    ClarificationCandidate,
     ErrorBody,
     EventDetail,
     EventPage,
+    EventTarget,
     EvidencePage,
     Filters,
     IngestRun,
@@ -416,12 +418,71 @@ async def create_query_plan(
 ) -> QueryPlan:
     try:
         plan = await QueryPlanner().parse(
-            payload.question, payload.filters, payload.timezone, clock, repository
+            payload.question,
+            payload.filters,
+            payload.timezone,
+            clock,
+            repository,
+            payload.history,
         )
     except InvalidTimezone as exc:
         raise api_error("VALIDATION_ERROR", "Unknown IANA timezone", 422) from exc
     except ValueError as exc:
         raise api_error("QUERY_INVALID", str(exc), 422) from exc
+    if plan.filters.event_ids:
+        base_filters = plan.filters.model_copy(update={"event_ids": []})
+        targets: list[EventTarget] = []
+        warnings = list(plan.warnings)
+        candidates = list(plan.clarification_candidates)
+        has_conflict = False
+        try:
+            for event_id in plan.filters.event_ids:
+                item = await repository.event(event_id)
+                if item is None:
+                    status = "not_found"
+                    title = None
+                    warnings.append(f"附件事件 {event_id} 不存在或未发布")
+                    candidates.append(
+                        ClarificationCandidate(
+                            label=f"移除不存在的附件事件 {event_id}",
+                            entity_id=None,
+                        )
+                    )
+                    has_conflict = True
+                else:
+                    matched = await repository.list_events(
+                        base_filters.model_copy(update={"event_ids": [event_id]}),
+                        1,
+                        None,
+                    )
+                    status = "matched" if matched.total == 1 else "filtered_out"
+                    title = item.title_zh
+                    if status == "filtered_out":
+                        warnings.append(f"附件事件“{title}”与当前筛选冲突")
+                        candidates.append(
+                            ClarificationCandidate(
+                                label=f"调整筛选以包含附件事件“{title}”",
+                                entity_id=None,
+                            )
+                        )
+                        has_conflict = True
+                targets.append(EventTarget(event_id=event_id, title_zh=title, status=status))
+        except RepositoryUnavailable as exc:
+            raise api_error(
+                "RETRIEVAL_FAILED",
+                "Database retrieval failed while validating event attachments",
+                503,
+                True,
+                {"query_plan_public": plan.model_dump(mode="json")},
+            ) from exc
+        plan = plan.model_copy(
+            update={
+                "event_targets": targets,
+                "warnings": warnings,
+                "clarification_candidates": candidates,
+                "requires_clarification": plan.requires_clarification or has_conflict,
+            }
+        )
     return plan.model_copy(update={"data_mode": data_mode(request), "request_id": str(uuid4())})
 
 

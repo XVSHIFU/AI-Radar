@@ -36,6 +36,8 @@ class PostgresRepository:
 
     def _filters(self, filters: Filters) -> list[Any]:
         clauses: list[Any] = [EventRow.status == "published"]
+        if filters.event_ids:
+            clauses.append(EventRow.id.in_(filters.event_ids))
         if filters.category:
             clauses.append(EventRow.category == filters.category.value)
         if filters.date_from:

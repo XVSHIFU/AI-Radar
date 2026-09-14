@@ -19,6 +19,20 @@ def test_event_query_compiles_for_postgresql_with_required_order() -> None:
     assert "events.id DESC" in sql
 
 
+def test_event_id_filter_compiles_as_a_bound_exact_constraint() -> None:
+    event_id = "50000000-0000-4000-8000-000000000001"
+    repository = PostgresRepository(lambda: None, "secret-secret-secret")  # type: ignore[arg-type]
+    statement = select(EventRow).where(*repository._filters(Filters(event_ids=[event_id])))
+    sql = str(
+        statement.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+    assert "events.status = 'published'" in sql
+    assert "events.id IN ('50000000-0000-4000-8000-000000000001')" in sql
+
+
 @pytest.mark.asyncio
 async def test_insights_uses_filtered_database_aggregates_in_one_snapshot() -> None:
     class Result:

@@ -1,9 +1,9 @@
 {
-  "observed_at": "2026-09-11T19:03:23.635003+00:00",
+  "observed_at": "2026-09-14T09:12:25.625313+00:00",
   "dataset": "synthetic-structure-v1",
   "layer": "synthetic_explicit_filter_asgi",
   "corpus_sha256": "3ba1f4d6a13429b7be036fceb7736992dbbf337d5f4deca5a2b6ce20dd4a6def",
-  "cases_sha256": "7e0c3b438ad68163d874be5fdfdf4fc1cb4c76ce3e1f3c415e1f04a90a72ebd4",
+  "cases_sha256": "84b94954389803a063b974ece84e8b4b43445d61ffdb06db8ff291a41df2a77b",
   "fixed_clock": "2026-09-11T04:00:00Z",
   "timezone": "Asia/Shanghai",
   "enabled": 36,

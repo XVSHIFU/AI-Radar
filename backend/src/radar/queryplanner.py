@@ -7,7 +7,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .normalize import normalize_text
-from .schemas import Category, ClarificationCandidate, Filters, QueryPlan
+from .schemas import Category, ClarificationCandidate, ConversationMessage, Filters, QueryPlan
 
 
 class InvalidTimezone(ValueError):
@@ -51,6 +51,19 @@ CATEGORY_ALIASES = {
 }
 GENERIC_WORDS = (
     "这些日期",
+    "这些事件",
+    "这些",
+    "这几个",
+    "它们",
+    "上述",
+    "前述",
+    "前面",
+    "之前",
+    "刚才",
+    "上面的",
+    "该事件",
+    "还有",
+    "继续",
     "有哪些",
     "有什么",
     "请问",
@@ -58,6 +71,9 @@ GENERIC_WORDS = (
     "进展",
     "事件",
     "新闻",
+    "总结",
+    "概括",
+    "类",
     "的",
     "或",
     "和",
@@ -68,6 +84,21 @@ ABSOLUTE_RANGE = re.compile(
     r"(\d{4})-(\d{2})-(\d{2})\s*(?:至|到|~|—|-)\s*(?:(\d{4})-)?(\d{2})-(\d{2})"
 )
 SINGLE_DATE = re.compile(r"(?<!\d)(\d{4})-(\d{2})-(\d{2})(?![\d-])")
+RELATIVE_DATE_TERMS = ("最近7天", "最近一周", "今天", "昨天", "本周", "上周", "过去24小时")
+FOLLOW_UP_REFERENCES = (
+    "这些",
+    "这几个",
+    "它们",
+    "上述",
+    "前述",
+    "前面",
+    "之前",
+    "刚才",
+    "上面的",
+    "该事件",
+    "还有",
+    "继续",
+)
 
 
 def normalize_query(value: str) -> str:
@@ -112,7 +143,7 @@ def _date_range(text: str, business_date: date) -> tuple[date, date, str | None]
 
 def _date_terms(text: str) -> list[str]:
     terms = [
-        term for term in ("最近7天", "最近一周", "今天", "昨天", "本周", "上周") if term in text
+        term for term in RELATIVE_DATE_TERMS if term in text
     ]
     absolute = ABSOLUTE_RANGE.search(text)
     dates = (
@@ -131,6 +162,7 @@ class QueryPlanner:
         timezone: str,
         clock: datetime,
         entity_resolver: EntityResolver,
+        history: list[ConversationMessage] | None = None,
     ) -> QueryPlan:
         if clock.tzinfo is None or clock.utcoffset() is None:
             raise ValueError("clock must be timezone-aware")
@@ -191,6 +223,16 @@ class QueryPlanner:
                 for item in resolution.ambiguous
             )
 
+        follow_up_requested = any(term in normalized for term in FOLLOW_UP_REFERENCES) or (
+            normalized.endswith("呢")
+            and bool(
+                inferred.date_from
+                or inferred.category
+                or inferred.entity_ids
+                or inferred.event_ids
+            )
+        )
+
         combined = filters.model_copy(deep=True)
         for field in ("date_from", "date_to", "category"):
             explicit = getattr(filters, field)
@@ -224,18 +266,23 @@ class QueryPlanner:
                 consumed.append(normalized_q)
         if filters.min_importance is not None:
             origins["min_importance"] = "request"
+        if filters.event_ids:
+            origins["event_ids"] = "request"
 
         residual = normalized
         for term in sorted(set(consumed), key=len, reverse=True):
             residual = residual.replace(term, " ")
         for word in GENERIC_WORDS:
             residual = residual.replace(word, " ")
+        if follow_up_requested:
+            residual = re.sub(r"(^|\s)(?:那|再|呢)(?=\s|$)", " ", residual)
+            residual = residual.strip("那再呢 ")
         residual = re.sub(r"[\s,，。:：]+", " ", residual).strip()
         combined = Filters.model_validate(combined.model_dump())
         if combined.date_to == date.max:
             raise ValueError("date_to is too large for an exclusive upper bound")
         date_until = combined.date_to + timedelta(days=1) if combined.date_to else None
-        return QueryPlan(
+        plan = QueryPlan(
             intent="structured_list",
             filters=combined,
             timezone=timezone,
@@ -247,6 +294,149 @@ class QueryPlanner:
             clarification_candidates=candidates,
             warnings=warnings,
             entity_roles=["subject", "product"],
+        )
+        return await self._apply_history(
+            plan,
+            history or [],
+            follow_up_requested,
+            timezone,
+            clock,
+            entity_resolver,
+        )
+
+    async def _apply_history(
+        self,
+        plan: QueryPlan,
+        history: list[ConversationMessage],
+        follow_up_requested: bool,
+        timezone: str,
+        clock: datetime,
+        entity_resolver: EntityResolver,
+    ) -> QueryPlan:
+        warnings = list(plan.warnings)
+        assistant_turns = sum(item.role == "assistant" for item in history)
+        if assistant_turns:
+            warnings.append(
+                f"已忽略 {assistant_turns} 条 assistant 历史中的筛选、事实与证据"
+            )
+        if not follow_up_requested:
+            if history:
+                warnings.append("当前问题按独立问题处理，未继承历史筛选")
+            return plan.model_copy(
+                update={
+                    "warnings": warnings,
+                    "history_turns_considered": len(history),
+                }
+            )
+
+        inherited: dict[str, object] | None = None
+        unsafe_relative_date = False
+        uncertain_history = False
+        for message in reversed(history):
+            if message.role != "user":
+                continue
+            historical = await self.parse(
+                message.content,
+                message.filters or Filters(),
+                timezone,
+                clock,
+                entity_resolver,
+                history=[],
+            )
+            values: dict[str, object] = {}
+            for field in (
+                "q",
+                "category",
+                "date_from",
+                "date_to",
+                "min_importance",
+                "entity_ids",
+                "event_ids",
+            ):
+                if field in historical.constraints_origin:
+                    value = getattr(historical.filters, field)
+                    if value is not None and value != []:
+                        values[field] = value
+            if "entity_ids" in values:
+                values["entity_match"] = historical.filters.entity_match
+
+            has_relative_date = any(
+                term in normalize_query(message.content) for term in RELATIVE_DATE_TERMS
+            )
+            frozen_date = bool(
+                message.filters
+                and message.filters.date_from is not None
+                and message.filters.date_to is not None
+            )
+            if has_relative_date and not frozen_date:
+                values.pop("date_from", None)
+                values.pop("date_to", None)
+                unsafe_relative_date = True
+            uncertain_history = bool(
+                historical.requires_clarification or historical.free_text
+            )
+            if values or unsafe_relative_date or uncertain_history:
+                inherited = values
+                break
+
+        combined = plan.filters.model_copy(deep=True)
+        origins = dict(plan.constraints_origin)
+        used = False
+        if inherited is not None:
+            for field, value in inherited.items():
+                if field in origins:
+                    continue
+                setattr(combined, field, value)
+                origins[field] = "history"
+                used = True
+        combined = Filters.model_validate(combined.model_dump())
+
+        requires_clarification = plan.requires_clarification
+        candidates = list(plan.clarification_candidates)
+        current_has_date = "date_from" in origins or "date_to" in origins
+        if unsafe_relative_date and not current_has_date:
+            requires_clarification = True
+            warnings.append("历史相对日期没有冻结绝对范围，未按当前时间重新解释")
+            candidates.append(
+                ClarificationCandidate(label="请重新选择绝对日期范围", entity_id=None)
+            )
+        if uncertain_history:
+            requires_clarification = True
+            warnings.append("最近有关用户轮仍有未解析或待澄清约束，未将其视为确定范围")
+            candidates.append(
+                ClarificationCandidate(label="请重新说明上一轮的完整约束", entity_id=None)
+            )
+        has_scope = bool(
+            combined.q
+            or combined.category
+            or combined.date_from
+            or combined.date_to
+            or combined.min_importance
+            or combined.entity_ids
+            or combined.event_ids
+        )
+        if inherited is None and not has_scope:
+            requires_clarification = True
+            warnings.append("追问没有可继承的用户轮筛选")
+            candidates.append(
+                ClarificationCandidate(label="请说明要追问的事件或筛选范围", entity_id=None)
+            )
+        if combined.date_to == date.max:
+            raise ValueError("date_to is too large for an exclusive upper bound")
+        date_until = combined.date_to + timedelta(days=1) if combined.date_to else None
+
+        return plan.model_copy(
+            update={
+                "intent": "follow_up" if used else plan.intent,
+                "filters": combined,
+                "date_until_exclusive": date_until,
+                "constraints_origin": origins,
+                "requires_clarification": requires_clarification,
+                "clarification_candidates": candidates,
+                "warnings": warnings,
+                "history_turns_considered": len(history),
+                "history_user_turns_used": 1 if used else 0,
+            }
         )
 
 

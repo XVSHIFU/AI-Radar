@@ -52,8 +52,25 @@
             "title": "Client Request Id",
             "type": "string"
           },
+          "event_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Event Ids",
+            "type": "array"
+          },
           "filters": {
             "$ref": "#/components/schemas/Filters"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessage"
+            },
+            "maxItems": 6,
+            "title": "History",
+            "type": "array"
           },
           "question": {
             "maxLength": 2000,
@@ -128,6 +145,40 @@
           "entity_id"
         ],
         "title": "ClarificationCandidate",
+        "type": "object"
+      },
+      "ConversationMessage": {
+        "properties": {
+          "content": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "filters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Filters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ConversationMessage",
         "type": "object"
       },
       "DailyCategoryInsight": {
@@ -475,6 +526,42 @@
         "title": "EventPage",
         "type": "object"
       },
+      "EventTarget": {
+        "properties": {
+          "event_id": {
+            "format": "uuid",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "matched",
+              "filtered_out",
+              "not_found"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title_zh": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title Zh"
+          }
+        },
+        "required": [
+          "event_id",
+          "title_zh",
+          "status"
+        ],
+        "title": "EventTarget",
+        "type": "object"
+      },
       "Evidence": {
         "properties": {
           "article_version_id": {
@@ -636,6 +723,15 @@
             ],
             "title": "Entity Match",
             "type": "string"
+          },
+          "event_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Event Ids",
+            "type": "array"
           },
           "min_importance": {
             "anyOf": [
@@ -997,12 +1093,33 @@
             "title": "Entity Roles",
             "type": "array"
           },
+          "event_targets": {
+            "items": {
+              "$ref": "#/components/schemas/EventTarget"
+            },
+            "title": "Event Targets",
+            "type": "array"
+          },
           "filters": {
             "$ref": "#/components/schemas/Filters"
           },
           "free_text": {
             "title": "Free Text",
             "type": "string"
+          },
+          "history_turns_considered": {
+            "default": 0,
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "History Turns Considered",
+            "type": "integer"
+          },
+          "history_user_turns_used": {
+            "default": 0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "History User Turns Used",
+            "type": "integer"
           },
           "intent": {
             "enum": [

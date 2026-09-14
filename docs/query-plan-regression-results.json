@@ -1,7 +1,7 @@
 {
-  "observed_at": "2026-09-11T19:03:24.549129+00:00",
+  "observed_at": "2026-09-14T09:12:28.435093+00:00",
   "layer": "synthetic_deterministic_plan_http",
-  "manifest_sha256": "36fd383d0ce19616b8d5a017d2fa5af7800fb6e79fadfe78c47f856db83277ad",
+  "manifest_sha256": "ec70a60da4807fb0f380a4c8d8bbb3e8116b5f4c5fc300617653e8de5fb8f782",
   "postgres_executed": false,
   "live_model_executed": false,
   "historical_gold": false,
@@ -20,7 +20,8 @@
           "date_to": "2026-09-11",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -33,12 +34,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "5fd03587-78d1-45b0-99f8-8f88bfd4699f"
+        "request_id": "c05aa38a-fd5e-4346-a4e0-7c33c3c7823a"
       }
     },
     {
@@ -53,7 +57,8 @@
           "date_to": "2026-09-10",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -66,12 +71,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "84467b6c-750a-4cf1-9cbd-e83552a6670c"
+        "request_id": "6525da59-8688-45a7-b8da-695309d81c4a"
       }
     },
     {
@@ -86,7 +94,8 @@
           "date_to": "2026-09-11",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -99,12 +108,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "5159946f-91f6-4108-9b27-8f6f877bf4ed"
+        "request_id": "ab43072a-3b08-4c45-909b-497f0613ee0d"
       }
     },
     {
@@ -119,7 +131,8 @@
           "date_to": "2026-09-11",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -132,12 +145,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "0007df5b-e70e-41c6-85d3-e53065e90eef"
+        "request_id": "658e20ca-499a-4cde-b862-7e5682d630a6"
       }
     },
     {
@@ -152,7 +168,8 @@
           "date_to": "2026-09-11",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -165,12 +182,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "c49896d9-f4b4-46ad-9aeb-3a7be32ba294"
+        "request_id": "6b344cf5-6c9b-46ad-86cd-e90b13a795b1"
       }
     },
     {
@@ -185,7 +205,8 @@
           "date_to": "2026-09-06",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -198,12 +219,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "7973005d-4e7e-4bf7-97e1-00b72e145558"
+        "request_id": "0a9c695c-aa2c-41cf-abde-27ff56f2393e"
       }
     },
     {
@@ -218,7 +242,8 @@
           "date_to": "2026-09-10",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -232,12 +257,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "f1af9bb3-e9f1-4aeb-9a95-fa39b7763d9f"
+        "request_id": "54064acd-58c7-4e57-b9a4-c1d20fb2a351"
       }
     },
     {
@@ -254,7 +282,8 @@
           "entity_ids": [
             "10000000-0000-4000-8000-000000000001"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -267,12 +296,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "a88d6ef6-2ead-4bf2-99f2-229be36b902a"
+        "request_id": "af728db2-44f1-4e25-b0cb-0012ba2aa4a6"
       }
     },
     {
@@ -289,7 +321,8 @@
           "entity_ids": [
             "10000000-0000-4000-8000-000000000001"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -302,12 +335,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "f08942d0-95f7-4429-ba54-b2858381fca1"
+        "request_id": "39300200-3690-49e4-b9c2-b69b4956cdcc"
       }
     },
     {
@@ -324,7 +360,8 @@
           "entity_ids": [
             "10000000-0000-4000-8000-000000000001"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -337,12 +374,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "b940624f-497b-43ff-aa3c-774dc4d34e0a"
+        "request_id": "6ad7c70f-c3c3-4bd6-abb0-f842ebb9fc53"
       }
     },
     {
@@ -360,7 +400,8 @@
             "10000000-0000-4000-8000-000000000001",
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "any"
+          "entity_match": "any",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -373,12 +414,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "9ce6951c-0066-4fea-b14e-80aba334d3d7"
+        "request_id": "ed04fe3e-045d-4e18-a800-220545a6cbd4"
       }
     },
     {
@@ -396,7 +440,8 @@
             "10000000-0000-4000-8000-000000000001",
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -409,12 +454,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "8af751d2-b704-40e6-bf67-0c74fcdc8cac"
+        "request_id": "c3736746-06a9-43aa-a640-019fd0a6a9d1"
       }
     },
     {
@@ -429,7 +477,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -441,12 +490,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "c4fc62f5-c7d4-4190-87a6-83c9255f157f"
+        "request_id": "3b78f86e-c5a1-4b40-8bfa-c91fc03dad85"
       }
     },
     {
@@ -461,7 +513,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -473,12 +526,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "ab08224c-acb5-4184-9ba0-c105bfb1922d"
+        "request_id": "2b46ba68-c99b-47b2-9de0-23410f11b2ef"
       }
     },
     {
@@ -493,7 +549,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -505,12 +562,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "414777c7-4226-47d1-8fc7-56edf4b77236"
+        "request_id": "eb139d25-a202-45e8-8ca7-64bf70ee0a85"
       }
     },
     {
@@ -525,7 +585,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -537,12 +598,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "c7657fa8-5beb-4e6f-8868-ab90aab06177"
+        "request_id": "21515370-e6e1-4a36-b306-8303d535e538"
       }
     },
     {
@@ -557,7 +621,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -569,12 +634,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "8e24f23e-e0ce-437b-b4fe-1cc7ec395278"
+        "request_id": "23e2d9bd-363f-4ce9-921b-b81a39c93fe9"
       }
     },
     {
@@ -589,7 +657,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -601,12 +670,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "5323bcda-7c6c-4d23-8f1d-0e10086fc6f9"
+        "request_id": "a295f2b5-a2f4-41da-b27b-33b99f49740b"
       }
     },
     {
@@ -621,7 +693,8 @@
           "date_to": null,
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -636,12 +709,15 @@
           }
         ],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "ab29239b-b1e2-4957-a7ab-2a03ee38a269"
+        "request_id": "67bdf542-18bf-46a6-b913-7b907aea6573"
       }
     },
     {
@@ -656,7 +732,8 @@
           "date_to": "2026-09-02",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -672,12 +749,15 @@
           "请求参数 date_from 已覆盖问题中识别出的值",
           "请求参数 date_to 已覆盖问题中识别出的值"
         ],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "26c2c3e2-6a3a-41af-b5f5-52eab84bc65a"
+        "request_id": "1ac930e1-006b-4b41-b54b-0b54752ffbe0"
       }
     },
     {
@@ -692,7 +772,8 @@
           "date_to": "2026-12-31",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2027-01-01",
@@ -705,12 +786,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "22afcd76-8fd1-4c81-b873-81c9a10f4612"
+        "request_id": "723bdcba-b6cb-4cc9-9272-909ec3dabcbb"
       }
     },
     {
@@ -725,7 +809,8 @@
           "date_to": "2026-09-11",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -738,12 +823,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "6746b0b7-0891-47f8-84c6-c264f8ba1e25"
+        "request_id": "bd3a64fa-0176-46ee-9a0f-a52e0c16d925"
       }
     },
     {
@@ -758,7 +846,8 @@
           "date_to": "2026-09-10",
           "min_importance": null,
           "entity_ids": [],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "UTC",
         "business_date": "2026-09-10",
@@ -771,12 +860,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "216cd63a-1216-43c0-8d9e-036e0d920e8e"
+        "request_id": "51ff7672-db3d-4971-80be-7c088fdfb5c4"
       }
     },
     {
@@ -786,7 +878,7 @@
         "code": "VALIDATION_ERROR",
         "message": "Unknown IANA timezone",
         "retryable": false,
-        "request_id": "9e6a56b0-cf05-491e-812f-e1f2289d9a32"
+        "request_id": "4362c8d6-903a-47f7-acb0-4df1e219494c"
       }
     },
     {
@@ -803,7 +895,8 @@
           "entity_ids": [
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -816,12 +909,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "f68d1fb0-9559-401a-9aa9-441349c1b419"
+        "request_id": "1df81c67-308d-4093-8599-dc116fe9fab7"
       }
     },
     {
@@ -838,7 +934,8 @@
           "entity_ids": [
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -852,12 +949,15 @@
         "requires_clarification": false,
         "clarification_candidates": [],
         "warnings": [],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "a119e763-ecfa-4875-88a8-3da3c4314b18"
+        "request_id": "c90ce1bc-e4f6-4911-95a5-c6fd004e02bf"
       }
     },
     {
@@ -875,7 +975,8 @@
             "10000000-0000-4000-8000-000000000001",
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "any"
+          "entity_match": "any",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -890,12 +991,15 @@
         "warnings": [
           "请求参数 entity_match 已覆盖问题中识别出的匹配方式"
         ],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "2e008348-10a5-4072-be62-c5c2a7d95111"
+        "request_id": "61be9aef-3167-44eb-ad68-26b24c3d2ca2"
       }
     },
     {
@@ -913,7 +1017,8 @@
             "10000000-0000-4000-8000-000000000001",
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -928,12 +1033,15 @@
         "warnings": [
           "请求参数 entity_match 已覆盖问题中识别出的匹配方式"
         ],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "7710e98b-b6f3-4ae3-9ddf-4ad874a95414"
+        "request_id": "ce3ff262-948b-439e-bb37-b9daba7ff333"
       }
     },
     {
@@ -951,7 +1059,8 @@
             "10000000-0000-4000-8000-000000000001",
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "any"
+          "entity_match": "any",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -966,12 +1075,15 @@
         "warnings": [
           "请求参数 entity_match 已覆盖问题中识别出的匹配方式"
         ],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "f0f06d74-64de-4667-8271-f00ae145a882"
+        "request_id": "04f85a57-f5fa-4a00-91bb-1e0696ccc028"
       }
     },
     {
@@ -989,7 +1101,8 @@
             "10000000-0000-4000-8000-000000000001",
             "10000000-0000-4000-8000-000000000002"
           ],
-          "entity_match": "all"
+          "entity_match": "all",
+          "event_ids": []
         },
         "timezone": "Asia/Shanghai",
         "business_date": "2026-09-11",
@@ -1004,12 +1117,15 @@
         "warnings": [
           "请求参数 entity_match 已覆盖问题中识别出的匹配方式"
         ],
+        "history_turns_considered": 0,
+        "history_user_turns_used": 0,
+        "event_targets": [],
         "entity_roles": [
           "subject",
           "product"
         ],
         "data_mode": "fixture",
-        "request_id": "f7aab4f9-457a-47dd-962b-441e96fd2326"
+        "request_id": "71509195-d5f4-4573-a7cc-fa7119a59607"
       }
     }
   ]

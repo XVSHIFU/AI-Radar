@@ -38,6 +38,7 @@ class Filters(BaseModel):
     min_importance: int | None = Field(default=None, ge=1, le=5)
     entity_ids: list[UUID] = Field(default_factory=list)
     entity_match: Literal["all", "any"] = "all"
+    event_ids: list[UUID] = Field(default_factory=list, max_length=3)
 
     @model_validator(mode="after")
     def validate_date_range(self) -> Self:
@@ -46,9 +47,9 @@ class Filters(BaseModel):
         self.entity_ids = list(dict.fromkeys(self.entity_ids))
         return self
 
-    @field_validator("entity_ids")
+    @field_validator("entity_ids", "event_ids")
     @classmethod
-    def deduplicate_entity_ids(cls, value: list[UUID]) -> list[UUID]:
+    def deduplicate_ids(cls, value: list[UUID]) -> list[UUID]:
         return list(dict.fromkeys(value))
 
 
@@ -127,17 +128,45 @@ class EventDetail(Event):
     data_mode: Literal["fixture", "postgres"]
 
 
+class ConversationMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=4000)
+    filters: Filters | None = None
+
+
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     filters: Filters = Field(default_factory=Filters)
+    history: list[ConversationMessage] = Field(default_factory=list, max_length=6)
+    event_ids: list[UUID] = Field(default_factory=list, max_length=3)
     timezone: str = "Asia/Shanghai"
     answer_mode: str = "concise"
     client_request_id: str
+
+    @model_validator(mode="after")
+    def validate_context(self) -> Self:
+        if sum(len(item.content) for item in self.history) > 12000:
+            raise ValueError("history content must not exceed 12000 characters")
+        self.event_ids = list(dict.fromkeys(self.event_ids))
+        nested_event_ids = self.filters.event_ids
+        if nested_event_ids and self.event_ids and nested_event_ids != self.event_ids:
+            raise ValueError("event_ids must match filters.event_ids when both are provided")
+        if nested_event_ids:
+            self.event_ids = nested_event_ids
+        elif self.event_ids:
+            self.filters.event_ids = list(self.event_ids)
+        return self
 
 
 class ClarificationCandidate(BaseModel):
     label: str
     entity_id: UUID | None
+
+
+class EventTarget(BaseModel):
+    event_id: UUID
+    title_zh: str | None
+    status: Literal["matched", "filtered_out", "not_found"]
 
 
 class QueryPlan(BaseModel):
@@ -153,6 +182,9 @@ class QueryPlan(BaseModel):
     requires_clarification: bool
     clarification_candidates: list[ClarificationCandidate]
     warnings: list[str]
+    history_turns_considered: int = Field(default=0, ge=0, le=6)
+    history_user_turns_used: int = Field(default=0, ge=0, le=1)
+    event_targets: list[EventTarget] = Field(default_factory=list)
     entity_roles: list[Literal["subject", "product"]] = ["subject", "product"]
     data_mode: Literal["fixture", "postgres"] | None = None
     request_id: str | None = None

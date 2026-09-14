@@ -14,7 +14,7 @@
 
 ## 服务边界
 
-QueryPlanner.parse(question, filters, timezone, clock, entity_resolver) -> QueryPlan。QueryPlan 为可序列化结构，含 intent、filters、constraints_origin、free_text、requires_clarification、clarification_candidates、warnings；不含 SQL 或隐藏推理。
+QueryPlanner.parse(question, filters, timezone, clock, entity_resolver, history) -> QueryPlan。QueryPlan 为可序列化结构，含 intent、filters、constraints_origin、free_text、requires_clarification、clarification_candidates、warnings、history_turns_considered、history_user_turns_used、event_targets；不含 SQL 或隐藏推理。
 
 /ask 复用计划与同一个 repository。规则足够时无需模型解释问题；没有模型配置只阻止生成，不阻止计划/完整范围查询。无资料仅来自已成功执行且确认为空的完整范围；数据库失败返回业务故障。
 
@@ -39,3 +39,11 @@ N 类通过注入失败 provider/repository 验证错误分型、无证据与虚
 实体来自仓储统一的已确认规范名/别名目录，不把生产DeepSeek UUID硬编码为fixture ID。不自动纠正模糊拼写。第一切片允许明确标记未支持的表达，但已识别日期/实体不能被静默丢弃；UI显式字段优先，冲突有warnings。公开独立计划端点不触发模型调用。
 
 此切片不实现模型生成、向量、全文排名或完整集合快照；对应验收仍未完成。结构化查空时必须基于计划过滤；有残余限制未理解时不能输出no_answer。
+
+## 有界追问与事件附件
+
+AskRequest 可选 history 最多 6 条、合计最多 12000 字符；单条 content 为 1..4000 字符，role 只接受 user/assistant，并可携带该 user 轮当时的 Filters 冻结快照。当前轮只在窄明确指代下查找最近一个有关 user 轮。字段优先级固定为显式 filters > 当前问题 > 历史。assistant 轮不参与筛选、事实或证据推断；公开 metadata 与 warning 说明是否使用了历史，不能静默接收后忽略。
+
+历史 user 轮中的“今天/昨天/最近7天/最近一周/本周/上周/过去24小时”仅在同一轮 filters 已冻结完整绝对 date_from/date_to 时可继承。没有冻结日期时可继承同轮其他确定性约束，但日期本身不按当前 clock/timezone 重解释，计划 requires_clarification=true 并给出公开 warning。最近有关 user 轮若仍有 free_text、歧义或其他待澄清内容，可以公开其确定部分，但必须继续 requires_clarification，不能把剩余约束静默丢弃。历史与当前单侧日期合并后仍执行完整日期范围校验，并重新计算 date_until_exclusive。
+
+AskRequest 可选 event_ids 最多 3 个 UUID。服务端将它规范到 Filters.event_ids，与其他硬过滤取交集，并从权威 repository 读取事件标题和发布可见性。QueryPlan.event_targets 对每个附件公开 matched、filtered_out 或 not_found。任一附件非 matched 时计划要求澄清；/ask 返回422 CLARIFICATION_REQUIRED。有效非空附件仍遵守现有生成边界：无模型配置返回503 MODEL_UNAVAILABLE，即使配置模型也因本切片未实现生成而返回503 ASK_NOT_IMPLEMENTED。

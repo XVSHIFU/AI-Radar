@@ -52,6 +52,28 @@ async def test_entity_alias_does_not_match_title_only_mention(tmp_path: Path) ->
 
 
 @pytest.mark.asyncio
+async def test_event_ids_are_exact_and_intersect_other_filters(tmp_path: Path) -> None:
+    fixture = tmp_path / "fixture.json"
+    fixture.write_text('{"dataset":"test","items":[]}', encoding="utf-8")
+    repository = FixtureRepository(
+        fixture,
+        "secret-secret-secret",
+        items=[
+            item(1, "目标事件", 5, ["DeepSeek"]),
+            item(2, "其他事件", 5, ["DeepSeek"]),
+        ],
+    )
+    target_id = UUID("50000000-0000-4000-8000-000000000001")
+    exact = await repository.list_events(Filters(event_ids=[target_id]), 20, None)
+    conflict = await repository.list_events(
+        Filters(event_ids=[target_id], q="其他事件"), 20, None
+    )
+    assert exact.total == 1
+    assert [event.id for event in exact.items] == [target_id]
+    assert conflict.total == 0
+
+
+@pytest.mark.asyncio
 async def test_insights_excludes_unknown_dates_and_counts_event_identity_once(
     tmp_path: Path,
 ) -> None:

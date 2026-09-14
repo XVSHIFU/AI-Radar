@@ -58,6 +58,9 @@ class FixtureRepository:
 
     def _matching_events(self, filters: Filters) -> list[Event]:
         events = list({event.id: event for event in self.events}.values())
+        if filters.event_ids:
+            event_ids = set(filters.event_ids)
+            events = [event for event in events if event.id in event_ids]
         if filters.category:
             events = [event for event in events if event.category == filters.category]
         if filters.date_from:

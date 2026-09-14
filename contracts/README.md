@@ -12,7 +12,7 @@ GET `/api/v1/stats`: total_events,total_sources,categories(代码到数量),scop
 
 GET `/api/v1/sources`: items（id,name,feed_url,enabled,health,last_success_at,consecutive_failures）。GET `/api/v1/ingest/runs`: items（id,status,started_at,finished_at,found,kept,cost,cost_status,error_summary），需要 Bearer 管理凭据。POST 同路径需要鉴权和 Idempotency-Key，接受 source_ids，返回202 {run_id,status}。
 
-POST `/api/v1/ask`: {question,filters,timezone,answer_mode,client_request_id}。返回 answer,citations,execution_status,answer_status,query_plan_public,scope_total,retrieved_count,summarized_count,citation_count,coverage,as_of,filters_applied,request_id。未配置模型应明确503 MODEL_UNAVAILABLE；数据库失败503 RETRIEVAL_FAILED；真正空集 completed+no_answer。不得用模板答案冒充真实问答。
+POST `/api/v1/ask`: {question,filters,history,event_ids,timezone,answer_mode,client_request_id}。history 可省略，最多 6 条、合计最多 12000 字符；每条为 {role:user|assistant,content,filters?}，content 最多 4000 字符。event_ids 可省略，最多 3 个 UUID。返回 answer,citations,execution_status,answer_status,query_plan_public,scope_total,retrieved_count,summarized_count,citation_count,coverage,as_of,filters_applied,request_id。未配置模型应明确503 MODEL_UNAVAILABLE；数据库失败503 RETRIEVAL_FAILED；真正空集 completed+no_answer。配置模型但生成仍未实现时返回503 ASK_NOT_IMPLEMENTED。不得用模板答案冒充真实问答。
 
 错误统一 {code,message,retryable,request_id,details?}。校验失败422。管理未配置503，缺失或错误凭据401。前端支持错误并保留条件。
 
@@ -25,5 +25,9 @@ SSE 新协议参考实施规格；模拟客户端与真实服务分别验收。m
 POST /api/v1/query-plan 已实现确定性计划，复用AskRequest，详见queryplan-v1.md；不调用模型。支持已确认实体、受控分类、相对自然日和ISO日期/区间。实体匹配按最长非重叠跨度，名称内部分类词不会追加硬过滤；UI显式entity_match优先且冲突有warning。
 
 /ask复用同一计划：422 CLARIFICATION_REQUIRED、503 QUERY_UNSUPPORTED/MODEL_UNAVAILABLE/ASK_NOT_IMPLEMENTED均保留details.query_plan_public；真正结构化空集返回completed+no_answer。未知残余限制不会被清空后执行扩大范围。问答生成和真实SSE尚未实现；30项确定性计划通过不代表完整自然语言理解。
+
+确定性追问只在当前问题含“这些/上述/之前/继续”等明确指代，或“昨天呢/某实体呢”这类带已识别约束的窄语法时启用。只取最近一个有关 user 轮；显式 filters > 当前问题 > 历史。历史轮 filters 是当时冻结的真实筛选快照；历史相对日期没有冻结成绝对 date_from/date_to 时不按当前时钟重算，而是公开 warning 并要求澄清。assistant 历史仅计入公开 history_turns_considered，绝不生成筛选、事实或证据。query plan 公开 history_user_turns_used 和约束来源。
+
+事件附件由服务端按 event_ids 从 repository 读取，客户端不提供或决定标题。Filters.event_ids 是与 q/category/date/entity 等条件相交的精确 ID 硬过滤；fixture 与 PostgreSQL 的 total 都在完整交集上计算。query plan 公开 event_targets（权威 title_zh 与 matched|filtered_out|not_found）；任何附件不存在或与当前筛选冲突时，/ask 返回422 CLARIFICATION_REQUIRED，不能静默丢弃附件。
 
 唯一OpenAPI快照为openapi/v1.json，由scripts/freeze-openapi.py检查或在主审批准结构变更后--write更新；删除了重复backend派生快照。
