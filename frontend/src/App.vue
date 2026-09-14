@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { dataMode } from "./api";
+import AssistantPanel from "./AssistantPanel.vue";
 import "./preview/preview.css";
 const route = useRoute();
 const demoEnabled = computed(() => route.query.demo === "1");
@@ -65,7 +66,7 @@ const viewKey = computed(
       <p v-else-if="dataMode === 'fixture'" class="demo" role="note">
         后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
       </p>
-      <main><RouterView :key="viewKey" /></main>
+      <main><RouterView :key="viewKey" /></main><AssistantPanel />
     </div>
   </div>
 </template>

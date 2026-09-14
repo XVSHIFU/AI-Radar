@@ -971,3 +971,5 @@ select:focus {
 @media (max-width: 900px) {
   .daily-bars { gap: 0; }
 }
+.assistant-trigger{position:fixed;right:24px;bottom:24px;z-index:5;min-height:44px;border:1px solid var(--blue);border-radius:8px;background:var(--blue);color:#fff;padding:0 14px}.assistant-panel{position:fixed;z-index:6;top:0;right:0;width:340px;height:100dvh;padding:20px;background:var(--paper);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .2s ease;overflow:auto}.assistant-panel.open{transform:translateX(0)}.assistant-panel header{display:flex;justify-content:space-between;align-items:center}.assistant-panel header button{min-height:44px;border:0;background:transparent;color:var(--blue)}.assistant-panel label{display:grid;gap:4px}.assistant-panel textarea{width:100%}.assistant-answer{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}@media(min-width:901px){.app-content{padding-right:364px}.assistant-panel.open~*{display:none}}@media(max-width:900px){.assistant-panel{width:100%;transform:translateX(100%)}.assistant-trigger{right:16px;bottom:16px}}
+.home-stream{box-shadow:none}
