@@ -10,7 +10,7 @@ export type ConversationMessage = {
   filters?: Record<string, unknown>; mode: "demo" | "live"; citations?: { index: number; title: string; quote_text?: string; source_url: string; paragraph_id?: string }[];
   status?: "running" | "completed" | "cancelled" | "interrupted" | "error"; attachment?: Attachment; plan?: StoredPlan; metrics?: { scope_total?: number; retrieved_count?: number; summarized_count?: number; citation_count?: number; coverage?: string }; error?: { code: string; message: string };
 };
-export type Conversation = { id: string; title: string; draft: string; attachment?: Attachment; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
+export type Conversation = { id: string; title: string; draft: string; attachment?: Attachment; scopeState?: { label:string; snapshot:string; filters:Record<string,unknown> }; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
 const storeName = "conversations"; const rowsKey = "all"; const activeKey = "active";
 let memory: Conversation[] = []; let writes = Promise.resolve();
 export const storageState = reactive({ failed: false });

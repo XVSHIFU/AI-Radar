@@ -1032,3 +1032,13 @@ select:focus {
 .heat-compact button { color:var(--heat-text, var(--ink)); box-shadow:none; }
 .heat-compact button:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
 @media (prefers-reduced-motion:reduce) { .ask-chart { animation:none; } }
+/* Empty research starts in a welcome block; a real thread anchors composition at the bottom. */
+.assistant-main { box-sizing:border-box; min-height:0; height:100dvh; }
+.assistant-main:has(.assistant-empty) .assistant-empty { margin:10vh 0 0; }
+.assistant-main:has(.assistant-empty) .assistant-composer { margin:20px 0 auto; }
+.history-back { display:none; }
+.daily-count { position:relative; grid-template-rows:1fr 18px; min-height:240px; }
+.daily-count i { position:absolute; bottom:18px; left:0; right:0; }
+.daily-count b { position:absolute; bottom:calc(18px + var(--height)); left:0; right:0; }
+.daily-count small { position:absolute; bottom:0; left:0; right:0; }
+@media (max-width:900px) { .history-back { display:block; } .assistant-messages { max-height:calc(100dvh - 250px); } }

@@ -59,7 +59,7 @@ const dailyMax = computed(() => Math.max(1, ...dailyBins.value.map((row) => row.
 const peakDays = computed(() => dailyBins.value.filter((row) => row.count === dailyMax.value));
 const heatMax = computed(() => jointMax.value);
 const heatColor = (count: number) => { if (!count) return "#edf0f2"; const level=count/heatMax.value; return `rgb(${166-Math.round(level*74)} ${58-Math.round(level*35)} ${52-Math.round(level*33)})`; };
-const heatText = (count: number) => count / heatMax.value > .34 ? "#fff" : "#172b3f";
+const heatText = (count: number) => count ? "#fff" : "#172b3f";
 const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return "尚无完整匹配事件。"; const ties = rankedCategories.value.filter((row) => row.count === top.count); return ties.length > 1 ? `${overview.value.total_events} 条完整匹配事件；${ties.map((row) => categoryName[row.category]).join("、")}并列最多，各 ${top.count} 条。` : `${overview.value.total_events} 条完整匹配事件；${categoryName[top.category]}最多，共 ${top.count} 条。`; });
 const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
 const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
