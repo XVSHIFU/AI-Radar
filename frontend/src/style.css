@@ -211,7 +211,9 @@ main {
   color: var(--ink);
   text-decoration: none;
 }
-.event h2 a:hover {`r`n  color: var(--blue);`r`n}
+.event h2 a:hover {
+  color: var(--blue);
+}
 .pill {
   display: inline-block;
   padding: 3px 8px;
@@ -822,7 +824,15 @@ blockquote[tabindex]:focus-visible {
   background: var(--blue-soft);
   color: var(--blue);
 }
-.filter-actions .filter-clear {`r`n  min-height: 44px;`r`n  margin-top: 0;`r`n  padding: 0 4px;`r`n  border: 0;`r`n  border-radius: 6px;`r`n  background: transparent;`r`n  color: var(--muted);`r`n}
+.filter-actions .filter-clear {
+  min-height: 44px;
+  margin-top: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+}
 .filter-actions .filter-clear:hover {
   border: 0;
   background: transparent;
