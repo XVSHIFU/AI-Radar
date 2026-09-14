@@ -15,6 +15,7 @@ export type InsightResult = {
   total_events: number;
   total_relation: "eq";
   daily: { date: string; count: number }[];
+  daily_categories: { date: string; category: Category; count: number }[];
   categories: { category: Category; count: number }[];
   as_of: string;
   data_revision: string;
@@ -38,9 +39,11 @@ function fixtureInsights(query: InsightQuery): InsightResult {
   });
   const daily = new Map<string, number>();
   const categories = new Map<Category, number>();
+  const dailyCategories = new Map<string, number>();
   for (const row of rows) {
     if (row.event_date) daily.set(row.event_date, (daily.get(row.event_date) || 0) + 1);
     categories.set(row.category as Category, (categories.get(row.category as Category) || 0) + 1);
+    if (row.event_date) { const key = `${row.event_date}|${row.category}`; dailyCategories.set(key, (dailyCategories.get(key) || 0) + 1); }
   }
   const dailyRows: { date: string; count: number }[] = [];
   for (let current = query.date_from; current <= query.date_to; current = addOneDay(current)) dailyRows.push({ date: current, count: daily.get(current) || 0 });
@@ -52,6 +55,7 @@ function fixtureInsights(query: InsightQuery): InsightResult {
     total_events: rows.length,
     total_relation: "eq",
     daily: dailyRows,
+    daily_categories: dailyRows.flatMap(({ date }) => allCategories.map((category) => ({ date, category, count: dailyCategories.get(`${date}|${category}`) || 0 }))),
     categories: allCategories.map((category) => ({ category, count: categories.get(category) || 0 })),
     as_of: "2026-09-12T00:00:00Z",
     data_revision: "synthetic-ui-v1",
@@ -71,6 +75,7 @@ export async function insights(
   const response = await fetch(`/api/v1/insights/summary?${params}`, { signal });
   if (!response.ok) throw new Error("统计请求失败");
   const value = (await response.json()) as InsightResult;
+  if (!Array.isArray(value.daily_categories)) throw new Error("统计服务需更新后才能显示分类趋势。");
   updateDataMode(value);
   return value;
 }
