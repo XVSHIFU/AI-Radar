@@ -1018,3 +1018,17 @@ select:focus {
 /* Keep the history from consuming the readable conversation column. */
 .assistant-workspace { min-width: 340px; }
 .history-panel { max-width: calc(100% - 340px); }
+/* Conversation workspace remains readable while history becomes its own panel. */
+.assistant-workspace { display:flex; min-width:0; max-width:50vw; }
+.assistant-main { min-width:0; width:100%; }
+.history-panel { min-width:180px; max-width:360px; width:clamp(180px, 38%, 360px); overflow:auto; }
+@media (min-width:901px) and (max-width:1120px) { .history-panel { position:absolute; inset:0 0 0 auto; z-index:8; width:min(360px, 85%)!important; max-width:none; box-shadow:-12px 0 28px rgba(34,61,93,.14); } }
+@media (max-width:900px) { .history-panel { inset:0!important; width:100%!important; max-width:none; min-width:0; padding:20px 16px; } .history-panel::before { content:"会话历史"; display:block; font-weight:700; margin-bottom:12px; } .history-panel > button { min-height:44px; white-space:normal; } .assistant-trigger { bottom:72px; } .daily-chart { padding-bottom:76px; } }
+.drawer-surface { z-index:45; }
+.heat-legend { display:inline-flex; align-items:center; gap:8px; }
+.heat-legend::before { content:""; width:88px; height:12px; background:linear-gradient(90deg,#edf0f2,#a63a34,#5c1713); }
+.daily-count b { align-self:end; transform:translateY(-2px); font-variant-numeric:tabular-nums; }
+.daily-count small { white-space:nowrap; }
+.heat-compact button { color:var(--heat-text, var(--ink)); box-shadow:none; }
+.heat-compact button:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
+@media (prefers-reduced-motion:reduce) { .ask-chart { animation:none; } }

@@ -58,9 +58,9 @@ const dailyBins = computed(() => chartBuckets.value);
 const dailyMax = computed(() => Math.max(1, ...dailyBins.value.map((row) => row.count)));
 const peakDays = computed(() => dailyBins.value.filter((row) => row.count === dailyMax.value));
 const heatMax = computed(() => jointMax.value);
-const heatColor = (count: number) => count ? `rgb(${190 + Math.min(55, count / heatMax.value * 65)} ${40 + Math.max(0, 45 - count / heatMax.value * 45)} ${40 + Math.max(0, 45 - count / heatMax.value * 45)})` : "#eef1f4";
-const heatText = (count: number) => count / heatMax.value > .5 ? "#fff" : "#172b3f";
-const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return "尚无完整匹配事件。"; const ties = rankedCategories.value.filter((row) => row.count === top.count); return `${overview.value.total_events} 条完整匹配事件；${ties.map((row) => categoryName[row.category]).join("、")}并列最多，各 ${top.count} 条。`; });
+const heatColor = (count: number) => { if (!count) return "#edf0f2"; const level=count/heatMax.value; return `rgb(${166-Math.round(level*74)} ${58-Math.round(level*35)} ${52-Math.round(level*33)})`; };
+const heatText = (count: number) => count / heatMax.value > .34 ? "#fff" : "#172b3f";
+const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return "尚无完整匹配事件。"; const ties = rankedCategories.value.filter((row) => row.count === top.count); return ties.length > 1 ? `${overview.value.total_events} 条完整匹配事件；${ties.map((row) => categoryName[row.category]).join("、")}并列最多，各 ${top.count} 条。` : `${overview.value.total_events} 条完整匹配事件；${categoryName[top.category]}最多，共 ${top.count} 条。`; });
 const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
 const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
 const jointTotal = computed(() => Math.max(1, ...jointBuckets.value.map((bucket) => bucket.total)));
@@ -222,7 +222,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
             <span></span><span v-for="bucket in jointBuckets" :key="bucket.date">{{ bucket.label }}</span>
             <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
           </div>
-          <p class="meta">色标：0 浅灰 · {{ heatMax }} 深红</p>
+          <p v-if="chartView === 'C'" class="meta heat-legend">色标：0 浅灰 · {{ heatMax }} 深红</p>
           <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
         </section>
       </div>
