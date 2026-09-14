@@ -342,9 +342,9 @@ onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.val
           <h2>事件数量</h2>
           <p class="meta">{{ spanDays > 31 ? "按月汇总；边界月仅计选定区间" : "按日统计" }} · 轴刻度：0 / {{ maxDaily }} 条</p>
           <div class="daily-bars" role="list" aria-label="每日事件数">
-            <button v-for="row in chartBuckets" :key="row.date" class="daily-bar" :data-date-from="row.from" :data-date-to="row.to" :aria-label="`${row.label}，${row.count} 条`" @click="selectDay(row.from, row.to)">
+            <button v-for="row in chartBuckets" :key="row.date" class="daily-bar" :data-date-from="row.from" :data-date-to="row.to" :aria-label="`${row.label}，${row.count} 条`" :style="{ '--bar-height': `${maxDaily ? row.count / maxDaily * 150 : 0}px` }" @click="selectDay(row.from, row.to)">
               <span class="daily-bar__value">{{ row.count }}</span>
-              <i class="daily-bar__fill"  :style="{ '--bar-height': `${maxDaily ? row.count / maxDaily * 150 : 0}px` }"></i>
+              <i class="daily-bar__fill"></i>
               <small>{{ row.label }}</small>
             </button>
           </div>

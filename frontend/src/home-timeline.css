@@ -512,7 +512,7 @@
     width: 100vw;
     height: 100dvh;
   }
-}C:\Users\Xvsf
+}
 /* Reader return actions stay compact while retaining the shared focus-visible affordance. */
 .drawer-header button[data-testid="drawer-back"] {
   display: inline-flex;
