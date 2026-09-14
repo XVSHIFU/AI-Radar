@@ -97,18 +97,39 @@ async def handle_http_error(_request: Request, exc: HTTPException) -> JSONRespon
 
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
-    missing_insight_dates = request.url.path == "/api/v1/insights/summary" and any(
-        item["type"] == "missing" and item["loc"] in {("query", "date_from"), ("query", "date_to")}
-        for item in exc.errors()
-    )
-    if missing_insight_dates:
+    if request.url.path == "/api/v1/insights/summary":
+        missing_dates = any(
+            item["type"] == "missing"
+            and item["loc"] in {("query", "date_from"), ("query", "date_to")}
+            for item in exc.errors()
+        )
+        if missing_dates:
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "code": "INVALID_DATE_RANGE",
+                    "message": "date_from 和 date_to 为必填参数",
+                    "retryable": False,
+                    "request_id": str(uuid4()),
+                },
+            )
         return JSONResponse(
             status_code=422,
             content={
-                "code": "INVALID_DATE_RANGE",
-                "message": "date_from 和 date_to 为必填参数",
+                "code": "VALIDATION_ERROR",
+                "message": "查询参数校验失败",
                 "retryable": False,
                 "request_id": str(uuid4()),
+                "details": {
+                    "errors": [
+                        {
+                            "location": list(item["loc"]),
+                            "message": "参数格式或取值无效",
+                            "type": item["type"],
+                        }
+                        for item in exc.errors()
+                    ]
+                },
             },
         )
     details = [

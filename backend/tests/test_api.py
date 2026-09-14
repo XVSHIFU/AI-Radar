@@ -120,6 +120,24 @@ def test_insights_rejects_missing_inverted_and_overlong_ranges(client: TestClien
         assert response.json()["message"] == message
 
 
+def test_insights_parameter_validation_is_reported_in_chinese(client: TestClient) -> None:
+    cases = [
+        {"date_from": "not-a-date", "date_to": "2026-09-12"},
+        {"date_from": "2026-09-01", "date_to": "2026-09-12", "category": "fiction"},
+        {"date_from": "2026-09-01", "date_to": "2026-09-12", "min_importance": 6},
+    ]
+
+    for params in cases:
+        response = client.get("/api/v1/insights/summary", params=params)
+        body = response.json()
+        assert response.status_code == 422
+        assert body["code"] == "VALIDATION_ERROR"
+        assert body["message"] == "查询参数校验失败"
+        assert {item["message"] for item in body["details"]["errors"]} == {
+            "参数格式或取值无效"
+        }
+
+
 def test_insights_allows_366_inclusive_days_across_leap_day(client: TestClient) -> None:
     response = client.get(
         "/api/v1/insights/summary",

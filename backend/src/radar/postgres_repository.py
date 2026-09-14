@@ -345,15 +345,15 @@ class PostgresRepository:
                         .group_by(EventRow.category)
                     )
                 ).all()
+            return InsightsSnapshot(
+                total_events=total,
+                daily={row[0]: int(row[1]) for row in daily_rows},
+                categories={Category(str(row[0])): int(row[1]) for row in category_rows},
+                as_of=datetime.now(UTC),
+                data_revision="postgres-live",
+            )
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
-        return InsightsSnapshot(
-            total_events=total,
-            daily={row[0]: int(row[1]) for row in daily_rows},
-            categories={Category(str(row[0])): int(row[1]) for row in category_rows},
-            as_of=datetime.now(UTC),
-            data_revision="postgres-live",
-        )
 
     async def sources(self) -> list[dict[str, object]]:
         try:
