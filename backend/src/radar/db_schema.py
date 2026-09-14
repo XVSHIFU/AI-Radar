@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0003_persistent_article_jobs"
+SCHEMA_REVISION = "0004_candidate_versions"
