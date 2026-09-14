@@ -36,8 +36,6 @@ const rangeMode = ref<"today" | "week" | "month" | "custom">("today");
 const overview = ref<InsightResult>();
 const overviewLoading = ref(false);
 const overviewError = ref("");
-const overviewRevision = ref("");
-const listRevision = ref("");
 const listItems = ref<Event[]>([]);
 const listNext = ref<string | null>(null);
 const listLoading = ref(false);
@@ -123,6 +121,7 @@ function setRange(mode: "today" | "week" | "month" | "custom") {
   if (mode === "month") { from.value = `${today.slice(0, 8)}01`; to.value = today; }
 }
 function resetAnswer() {
+  const hadAnswer = running.value || Boolean(result.value || tokens.value || sources.value.length || metrics.value);
   answerGeneration++;
   controller.value?.abort();
   timers.forEach(clearTimeout);
@@ -134,13 +133,11 @@ function resetAnswer() {
   metrics.value = undefined;
   plan.value = undefined;
   error.value = undefined;
-  status.value = "范围已更新，之前的回答已清除。";
+  status.value = hadAnswer ? "范围已更新，之前的回答已清除。" : "";
 }
 function clearOverviewState() {
   overview.value = undefined;
   overviewError.value = "";
-  overviewRevision.value = "";
-  listRevision.value = "";
   listItems.value = [];
   listNext.value = null;
   listError.value = "";
@@ -164,8 +161,6 @@ async function loadOverview(cursor?: string, append = false) {
       if (current !== overviewGeneration) return;
       listItems.value = [...listItems.value, ...(rows.items as Event[])];
       listNext.value = rows.next_cursor;
-      listRevision.value = rows.data_revision;
-      if (overviewRevision.value && rows.data_revision !== overviewRevision.value) listError.value = "数据版本已更新，请刷新总览。";
     } catch (cause) {
       if (current === overviewGeneration && (cause as Error).name !== "AbortError") listError.value = cause instanceof Error ? cause.message : "事件列表请求失败";
     } finally { if (current === overviewGeneration) listLoading.value = false; }
@@ -181,8 +176,6 @@ async function loadOverview(cursor?: string, append = false) {
   const summaryTask = insights(request, overviewController.signal).then((summary) => {
     if (current !== overviewGeneration) return;
     overview.value = summary;
-    overviewRevision.value = summary.data_revision;
-    if (listRevision.value && listRevision.value !== summary.data_revision) listError.value = "数据版本已更新，请刷新总览。";
   }).catch((cause: unknown) => {
     if (current === overviewGeneration && (cause as Error).name !== "AbortError") overviewError.value = cause instanceof Error ? cause.message : "统计请求失败";
   }).finally(() => { if (current === overviewGeneration) overviewLoading.value = false; });
@@ -190,7 +183,6 @@ async function loadOverview(cursor?: string, append = false) {
     if (current !== overviewGeneration) return;
     listItems.value = rows.items as Event[];
     listNext.value = rows.next_cursor;
-    if (overviewRevision.value && rows.data_revision !== overviewRevision.value) listError.value = "数据版本已更新，请刷新总览。";
   }).catch((cause: unknown) => {
     if (current === overviewGeneration && (cause as Error).name !== "AbortError") listError.value = cause instanceof Error ? cause.message : "事件列表请求失败";
   }).finally(() => { if (current === overviewGeneration) listLoading.value = false; });
@@ -301,6 +293,12 @@ async function submit() {
 function cancel() { answerGeneration++; controller.value?.abort(); timers.forEach(clearTimeout); timers = []; running.value = false; status.value = "已取消，未自动重试。"; }
 async function toggle(index: number) { expanded.value = expanded.value === index ? undefined : index; await nextTick(); document.getElementById(`citation-${index}`)?.focus(); }
 watch([keyword, category, from, to, minImportance], scheduleOverview);
+watch(question, () => {
+  ruleGeneration++;
+  ruleController?.abort();
+  rulePlan.value = undefined;
+  ruleError.value = "";
+});
 onMounted(() => void loadOverview());
 onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.value?.abort(); overviewController?.abort(); ruleController?.abort(); timers.forEach(clearTimeout); clearTimeout(timer); });
 </script>
@@ -339,22 +337,22 @@ onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.val
     <div v-if="overviewError" class="card error" data-testid="insights-error" role="alert">{{ overviewError }} <button @click="loadOverview()">重试</button></div>
     <template v-else-if="overview">
       <p v-if="!overview.total_events" class="ask-empty">当前范围暂无已收录事件。<button v-if="rangeMode === 'today'" @click="setRange('week')">查看近7天</button></p>
-      <div class="ask-charts">
+      <div v-else class="ask-charts">
         <section class="ask-chart" data-testid="insights-daily">
-          <h2>每日事件</h2>
-          <p class="meta">{{ spanDays > 31 ? "按自然月合并；边界月仅计选定区间" : "按日统计" }} · 轴刻度：0 / {{ maxDaily }} 条</p>
+          <h2>事件数量</h2>
+          <p class="meta">{{ spanDays > 31 ? "按月汇总；边界月仅计选定区间" : "按日统计" }} · 轴刻度：0 / {{ maxDaily }} 条</p>
           <div class="daily-bars" role="list" aria-label="每日事件数">
             <button v-for="row in chartBuckets" :key="row.date" class="daily-bar" :data-date-from="row.from" :data-date-to="row.to" :aria-label="`${row.label}，${row.count} 条`" @click="selectDay(row.from, row.to)">
               <span class="daily-bar__value">{{ row.count }}</span>
-              <i class="daily-bar__fill" :style="{ height: `${maxDaily ? row.count / maxDaily * 150 : 0}px` }"></i>
+              <i class="daily-bar__fill"  :style="{ '--bar-height': `${maxDaily ? row.count / maxDaily * 150 : 0}px` }"></i>
               <small>{{ row.label }}</small>
             </button>
           </div>
           <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th>事件数</th></tr></thead><tbody><tr v-for="row in chartBuckets" :key="row.date"><td>{{ row.from === row.to ? row.date : `${row.from} 至 ${row.to}` }}</td><td>{{ row.count }}</td></tr></tbody></table></details>
         </section>
         <section class="ask-chart" data-testid="insights-categories">
-          <h2>分类分布</h2>
-          <p class="meta">点击条形筛选</p>
+          <h2>事件数量</h2>
+          <p class="meta">按分类 · 点击条形筛选</p>
           <div class="category-bars" role="list">
             <button v-for="row in categories" :key="row.category" :data-category="row.category" @click="selectCategory(row.category)">
               <span>{{ categoryName[row.category] || row.category }}</span>
@@ -369,7 +367,7 @@ onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.val
     <section class="ask-question">
       <h2>对这个范围提问</h2>
       <label>问题<textarea v-model="question" class="control" rows="4" placeholder="输入需要核查的 AI 进展问题" /></label>
-      <div class="row"><button class="primary" :disabled="running || !question || missingDates || invalid || tooWide" @click="submit">开始分析</button><button :disabled="planning || !question" @click="planFromQuestion">按问题筛选（规则解析）</button><button v-if="running" @click="cancel">取消</button></div>
+      <div class="row"><button class="primary" :disabled="running || !question || missingDates || invalid || tooWide" @click="submit">开始分析</button><button :disabled="planning || !question" @click="planFromQuestion">按问题筛选</button><button v-if="running" @click="cancel">取消</button></div>
       <p v-if="ruleError" class="error" role="alert">{{ ruleError }}</p>
       <section v-if="rulePlan" class="query-plan">
         <h3>规则解析预览</h3>

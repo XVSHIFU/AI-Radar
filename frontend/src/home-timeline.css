@@ -512,4 +512,23 @@
     width: 100vw;
     height: 100dvh;
   }
+}C:\Users\Xvsf
+/* Reader return actions stay compact while retaining the shared focus-visible affordance. */
+.drawer-header button[data-testid="drawer-back"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--blue);
 }
+.drawer-header button[data-testid="drawer-back"]:hover {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.drawer-header button[data-testid="drawer-back"] .drawer-back-icon { margin-right: 0; flex: 0 0 auto; }

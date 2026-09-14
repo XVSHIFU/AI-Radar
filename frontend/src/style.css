@@ -919,3 +919,107 @@ select:focus {
   .daily-bars { margin-inline: -4px; padding-inline: 4px; }
   .daily-bar { flex-basis: 44px; }
 }
+/* Keep the numeric axis separate from its 44px hit target. */
+.daily-bars {
+  position: relative;
+  align-items: stretch;
+  gap: 0;
+  min-height: 202px;
+  padding: 0 0 22px;
+  border-bottom: 0;
+}
+.daily-bar {
+  position: relative;
+  display: block !important;
+  flex: 1 0 44px;
+  min-width: 44px !important;
+  min-height: 202px !important;
+  height: 202px;
+  padding: 0 !important;
+}
+.daily-bar::after {
+  position: absolute;
+  right: 0;
+  bottom: 22px;
+  left: 0;
+  height: 1px;
+  background: var(--line);
+  content: "";
+}
+.daily-bar__fill {
+  position: absolute;
+  right: 5px;
+  bottom: 22px;
+  left: 5px;
+  height: var(--bar-height) !important;
+  z-index: 1;
+}
+.daily-bar__value {
+  position: absolute;
+  bottom: calc(25px + var(--bar-height));
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  transform: translateY(50%);
+}
+.daily-bar small {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .daily-bars { gap: 0; }
+}
+/* Keep the numeric axis separate from its 44px hit target. */
+.daily-bars {
+  position: relative;
+  align-items: stretch;
+  gap: 0;
+  min-height: 202px;
+  padding: 0 0 22px;
+  border-bottom: 0;
+}
+.daily-bar {
+  position: relative;
+  display: block !important;
+  flex: 1 0 44px;
+  min-width: 44px !important;
+  min-height: 202px !important;
+  height: 202px;
+  padding: 0 !important;
+}
+.daily-bar::after {
+  position: absolute;
+  right: 0;
+  bottom: 22px;
+  left: 0;
+  height: 1px;
+  background: var(--line);
+  content: "";
+}
+.daily-bar__fill {
+  position: absolute;
+  right: 5px;
+  bottom: 22px;
+  left: 5px;
+  height: var(--bar-height) !important;
+  z-index: 1;
+}
+.daily-bar__value {
+  position: absolute;
+  bottom: calc(25px + var(--bar-height));
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  transform: translateY(50%);
+}
+.daily-bar small {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .daily-bars { gap: 0; }
+}
