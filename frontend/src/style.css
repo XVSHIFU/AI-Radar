@@ -978,7 +978,7 @@ select:focus {
 .assistant-scope, .assistant-plan, .assistant-answer { margin: 16px 0; padding-top: 14px; border-top: 1px solid var(--line); }
 .assistant-panel textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 .assistant-actions { flex-wrap: wrap; margin-top: 10px; }
-.global-assistant-open .app-content { padding-right: 364px; }
+.global-assistant-open .app-content { padding-right: var(--assistant-width, 364px); }
 .global-assistant-open .app-content main { max-width: 1180px; }
 @media (max-width: 900px) { .assistant-panel { width: 100%; padding: 18px 16px; } .assistant-trigger { right: 16px; bottom: 16px; } .global-assistant-open .app-content { padding-right: 0; } }
 .home-stream{box-shadow:none}
