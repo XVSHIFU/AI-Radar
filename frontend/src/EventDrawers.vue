@@ -146,6 +146,7 @@ function moveToParent() {
     router.back();
   else void router.replace({ path: pagePath.value, query });
 }
+function attachToConversation(item: Event) { window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: item.id, title: item.title_zh } })); }
 function closeAll() {
   void router.replace({ path: pagePath.value, query: baseQuery() });
 }
@@ -322,7 +323,7 @@ onBeforeUnmount(() => {
             <button @click="loadEvent">重试</button>
           </div>
           <template v-else-if="item">
-            <h3 class="drawer-event-title">{{ item.title_zh }}</h3>
+            <h3 class="drawer-event-title">{{ item.title_zh }}</h3><button data-testid="attach-event" @click="attachToConversation(item)">加入当前对话</button>
             <p class="muted">{{ item.summary_zh }}</p>
             <p class="drawer-event-facts">
               <span class="pill">{{ categoryLabels[item.category] }}</span>

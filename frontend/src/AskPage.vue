@@ -49,7 +49,18 @@ const invalid = computed(() => Boolean(from.value && to.value && from.value > to
 const spanDays = computed(() => missingDates.value ? 0 : Math.floor((Date.parse(`${to.value}T00:00:00Z`) - Date.parse(`${from.value}T00:00:00Z`)) / 86400000) + 1);
 const tooWide = computed(() => !invalid.value && spanDays.value > 366);
 const filters = computed(() => ({ q: keyword.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined, min_importance: minImportance.value ? 4 : undefined }));
-const chartView = ref<"flow" | "area" | "heat">("flow");
+const categories = computed(() => { const counts = new Map(overview.value?.categories.map((row) => [row.category, row.count]) || []); return allCategories.map((category) => ({ category, count: counts.get(category) || 0 })); });
+const chartBuckets = computed(() => { const rows = overview.value?.daily || []; if (spanDays.value <= 31) return rows.map((row) => ({ ...row, from: row.date, to: row.date, label: row.date.slice(5) })); const buckets = new Map<string, { date:string; count:number; from:string; to:string; label:string }>(); for (const row of rows) { const key=row.date.slice(0,7); const old=buckets.get(key); if(old){old.count+=row.count;old.to=row.date}else buckets.set(key,{date:key,count:row.count,from:row.date,to:row.date,label:key}); } return [...buckets.values()]; });
+const chartView = ref<"A" | "B" | "C">("C");
+const rankedCategories = computed(() => categories.value.map((row) => ({ ...row, share: overview.value?.total_events ? Math.round(row.count / overview.value.total_events * 100) : 0 })).sort((a,b) => b.count - a.count || a.category.localeCompare(b.category)));
+const rankMax = computed(() => Math.max(1, ...rankedCategories.value.map((row) => row.count)));
+const dailyBins = computed(() => chartBuckets.value);
+const dailyMax = computed(() => Math.max(1, ...dailyBins.value.map((row) => row.count)));
+const peakDays = computed(() => dailyBins.value.filter((row) => row.count === dailyMax.value));
+const heatMax = computed(() => jointMax.value);
+const heatColor = (count: number) => count ? `rgb(${190 + Math.min(55, count / heatMax.value * 65)} ${40 + Math.max(0, 45 - count / heatMax.value * 45)} ${40 + Math.max(0, 45 - count / heatMax.value * 45)})` : "#eef1f4";
+const heatText = (count: number) => count / heatMax.value > .5 ? "#fff" : "#172b3f";
+const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return "尚无完整匹配事件。"; const ties = rankedCategories.value.filter((row) => row.count === top.count); return `${overview.value.total_events} 条完整匹配事件；${ties.map((row) => categoryName[row.category]).join("、")}并列最多，各 ${top.count} 条。`; });
 const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
 const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
 const jointTotal = computed(() => Math.max(1, ...jointBuckets.value.map((bucket) => bucket.total)));
@@ -197,33 +208,25 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
       <p v-if="!overview.total_events" class="ask-empty">当前范围暂无已收录事件。<button v-if="rangeMode === 'today'" @click="setRange('week')">查看近7天</button></p>
       <div v-else class="ask-charts">
         <section class="ask-chart" data-testid="insights-visual" :data-view="chartView">
-          <h2>分类趋势</h2>
-          <p class="meta">{{ spanDays > 31 ? "按自然月汇总，边界月仅计选定日期" : "按日统计" }} · 联合分类计数总和 {{ overview.total_events }} 条</p>
-          <div class="chart-tabs" role="tablist" aria-label="统计视图">
-            <button data-view="A" :aria-pressed="chartView === 'flow'" @click="chartView = 'flow'">A 分类流向</button>
-            <button data-view="B" :aria-pressed="chartView === 'area'" @click="chartView = 'area'">B 堆叠面积</button>
-            <button data-view="C" :aria-pressed="chartView === 'heat'" @click="chartView = 'heat'">C 热力矩阵</button>
+          <h2>统计视图</h2>
+          <p class="meta">{{ factSummary }}</p>
+          <div class="chart-tabs" role="tablist">
+            <button data-view="A" :aria-pressed="chartView === 'A'" @click="chartView = 'A'">A 分类排行</button>
+            <button data-view="B" :aria-pressed="chartView === 'B'" @click="chartView = 'B'">B 每日数量</button>
+            <button data-view="C" :aria-pressed="chartView === 'C'" @click="chartView = 'C'">C 日期×分类</button>
           </div>
-          <template v-if="chartView === 'flow'"><p><button :disabled="motionReduced" :aria-pressed="flowPlaying" @click="toggleFlow">{{ flowPlaying ? "暂停流动" : "播放流动" }}</button><span v-if="motionReduced" class="meta">已遵循减少动态效果偏好。</span></p>
-            <p class="chart-mobile-range">日期 {{ jointBuckets[0]?.label }} 至 {{ jointBuckets[jointBuckets.length - 1]?.label }}<span> · 左右滑动查看全部日期</span></p><div class="chart-scroll" tabindex="0" aria-label="可横向滚动的分类流向图，焦点进入后可用左右方向键查看日期"><svg class="native-chart"  :viewBox="`0 0 720 ${flowHeight}`" :style="{ height: flowHeight + `px` }" role="img" aria-label="分类到日期的事件流向图">
-              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey"><text x="4" :y="36 + categoryIndex * 25">{{ categoryName[categoryKey] }}</text><rect x="150" :y="25 + categoryIndex * 25" width="28" height="14" :class="'chart-area--' + categoryIndex" /></g>
-              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="'flows-' + categoryKey"><template v-for="(bucket, bucketIndex) in jointBuckets" :key="bucket.date"><path v-if="bucket.counts[categoryKey]" :d="flowBand(categoryKey, categoryIndex, bucketIndex)" :class="flowPlaying ? 'chart-flow chart-flow--' + categoryIndex + ' chart-flow--active' : 'chart-flow chart-flow--' + categoryIndex" role="button" tabindex="0" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :aria-label="categoryName[categoryKey] + ' 至 ' + bucket.label + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)" @keydown.enter.prevent="category = categoryKey; chooseBucket(bucket)" /></template></g>
-              <g v-for="(bucket, index) in jointBuckets" :key="bucket.date"><text x="590" :y="flowBucketY(index)">{{ bucket.label }} · {{ bucket.total }}</text></g>
-            </svg></div>
-          </template>          <template v-else-if="chartView === 'area'">
-            <p><button :disabled="motionReduced" :aria-pressed="playing" @click="togglePlayback">{{ playing ? "暂停播放" : "播放日期" }}</button><span class="meta"> {{ jointBuckets[activeBucket]?.label || "无日期" }}</span></p>
-            <p class="chart-mobile-range">日期 {{ jointBuckets[0]?.label }} 至 {{ jointBuckets[jointBuckets.length - 1]?.label }}<span> · 左右滑动查看全部日期</span></p><div class="chart-scroll" tabindex="0" aria-label="可横向滚动的分类堆叠面积图，焦点进入后可用左右方向键查看日期"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="分类堆叠面积图">
-              <g><text x="8" y="20">{{ jointTotal }} 条</text><text x="18" y="150">0</text><text x="40" y="176">{{ jointBuckets[0]?.label }}</text><text x="610" y="176">{{ jointBuckets[jointBuckets.length - 1]?.label }}</text></g><path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey, playing ? activeBucket + 1 : jointBuckets.length)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
-              <line x1="40" y1="146" x2="680" y2="146" /><line v-if="playing" :x1="chartX(activeBucket)" y1="20" :x2="chartX(activeBucket)" y2="146" class="chart-cursor" />
-              <circle v-if="jointBuckets.length === 1" cx="360" :cy="146 - jointBuckets[0].total / jointTotal * 122" r="5" />
-            </svg></div><div class="chart-legend"><button v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :style="{ '--legend-color': chartColor(categoryIndex) }" @click="selectCategory(categoryKey)">{{ categoryName[categoryKey] }}</button></div>
-          </template>
-          <template v-else>
-            <p class="chart-mobile-range">左右滑动查看全部日期</p><div class="heatmap" tabindex="0" role="grid" aria-label="可横向滚动的日期和分类热力矩阵，焦点进入后可用左右方向键查看日期" :style="{ gridTemplateColumns: `minmax(90px, auto) repeat(${jointBuckets.length}, minmax(56px, 1fr))` }">
-              <span></span><button v-for="bucket in jointBuckets" :key="'head-' + bucket.date" @click="chooseBucket(bucket)">{{ bucket.label }}</button>
-              <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" class="heatmap-cell" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :style="{ '--heat': heatOpacity(bucket.counts[categoryKey]), color: heatTextColor(bucket.counts[categoryKey]) }" :aria-label="bucket.label + '，' + categoryName[categoryKey] + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)">{{ bucket.counts[categoryKey] }}</button></template>
-            </div>
-          </template>
+          <div v-if="chartView === 'A'" class="rank-chart">
+            <button v-for="row in rankedCategories" :key="row.category" class="rank-row" :data-category="row.category" @click="selectCategory(row.category)"><span>{{ categoryName[row.category] }}</span><i :style="{ width: (row.count / rankMax * 100) + '%' }"></i><b>{{ row.count }} · {{ row.share }}%</b></button>
+          </div>
+          <div v-else-if="chartView === 'B'" class="daily-chart">
+            <p v-if="dailyBins.length === 1" class="meta">只有一天数据，不显示趋势。</p><p v-else class="meta">峰值：{{ peakDays.map((row) => row.label + ' ' + row.count + '条').join('、') }}</p>
+            <button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button>
+          </div>
+          <div v-else class="heat-compact" role="grid" aria-label="日期和分类热力图">
+            <span></span><span v-for="bucket in jointBuckets" :key="bucket.date">{{ bucket.label }}</span>
+            <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
+          </div>
+          <p class="meta">色标：0 浅灰 · {{ heatMax }} 深红</p>
           <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
         </section>
       </div>
