@@ -51,7 +51,7 @@ bash scripts/db-restore-check.sh "$archive"
 - 主库真实 readiness：ready / postgres / synthetic=false。
 - 首次 0004 备份恢复演练在隔离库成功，样本备份含 5 个来源、135 篇原文、135 个版本、135 个候选、0 个事件；之后主库持续采集，数量会变化；0005 限流迁移后也再次通过隔离恢复。
 - 前端：29 项单元测试通过，TypeScript 与生产构建通过。
-- 后端静态、单元和真实 PG 验证以 `db-live-validation.md` 及本轮执行结果为准。
+- 2026-09-15 最终复验：后端默认 153 项通过、9 项真实 PG 测试按默认配置跳过；显式数据库集成套件 10 项通过（包含 1 项配置回归），Ruff/mypy 通过。结果见 ubuntu-runtime-validation.json 与 db-live-validation.md；各层不相加。
 - 已采集原文不是已发布标准事件；事件、证据语义质量、模型回答、向量检索尚未验收。
 - 没有付费模型调用。供应商与预算确定后，再完成提取/发布/问答。
 - 历史 gold 和旧站 API/SSE 抓包仍未提供；P0 整体验收未完成。

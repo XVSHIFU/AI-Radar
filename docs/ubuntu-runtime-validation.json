@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-09-14T15:58:41.051813+00:00",
+  "captured_at": "2026-09-14T16:01:32.600899+00:00",
   "layer": "ubuntu_live_postgres_ingestion",
   "readiness": {
     "status": "ready",
@@ -9,18 +9,18 @@
   },
   "table_counts": {
     "sources": 5,
-    "articles": 486,
-    "article_versions": 486,
-    "article_candidates": 486,
+    "articles": 500,
+    "article_versions": 500,
+    "article_candidates": 500,
     "events": 0,
     "evidence": 0,
     "llm_calls": 0
   },
   "jobs": {
-    "queued": 780,
+    "queued": 766,
     "retry_wait": 85,
     "running": 1,
-    "succeeded": 491
+    "succeeded": 505
   },
   "invalid_candidate_version_links": 0,
   "unauthenticated_management_status": 401,
@@ -35,5 +35,24 @@
     "Hugging Face"
   ],
   "active_leases": 0,
-  "worker_interval_seconds": 10.0
+  "worker_interval_seconds": 10.0,
+  "temporary_databases_remaining": 0,
+  "tested_revision": "6681b43fd44d06e849f2e77263e39b8c1210a9dd",
+  "verification": {
+    "backend_default": {
+      "passed": 153,
+      "live_skipped": 9
+    },
+    "database_integration": {
+      "passed": 10,
+      "includes_configuration_test": true
+    },
+    "frontend_unit": {
+      "passed": 29
+    },
+    "backend_ruff": "passed",
+    "backend_mypy": "passed",
+    "frontend_build": "passed",
+    "isolated_restore": "passed"
+  }
 }
