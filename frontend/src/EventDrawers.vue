@@ -268,10 +268,12 @@ watch(
     if (next && !previous) {
       const active = document.activeElement;
       if (active instanceof HTMLElement) eventOpener = active;
-      if (matchMedia("(max-width: 900px)").matches) lockScroll();
+      lockScroll();
+      backgroundInert(true);
     }
     if (!next && previous) {
       unlockScroll();
+      backgroundInert(false);
       await nextTick();
       eventOpener?.focus();
     }
@@ -296,16 +298,11 @@ const onEscape = (event: KeyboardEvent) => {
 
 };
 
-const onPagePointer = (event: PointerEvent) => {
-  if (!eventLayer.value || matchMedia("(max-width: 900px)").matches) return;
-  const target = event.target as Element | null;
-  if (target?.closest(".drawer-surface, #global-assistant")) return;
-  moveToParent();
-};
-
-onMounted(() => { document.addEventListener("keydown", onEscape); document.addEventListener("pointerdown", onPagePointer); });
-
-
+function backgroundInert(drawerOpen: boolean) {
+  const assistantModal = document.documentElement.classList.contains("global-assistant-open") && matchMedia("(max-width: 900px)").matches;
+  for (const node of document.querySelectorAll(".app-content main,.app-rail")) node.toggleAttribute("inert", drawerOpen || assistantModal);
+}
+onMounted(() => { document.addEventListener("keydown", onEscape); if(eventLayer.value) backgroundInert(true); });
 
 onBeforeUnmount(() => {
   generation++;
@@ -314,7 +311,7 @@ onBeforeUnmount(() => {
 
   document.removeEventListener("keydown", onEscape);
 
-  document.removeEventListener("pointerdown", onPagePointer);
+  backgroundInert(false);
 
 });
 
@@ -322,6 +319,7 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
+    <div v-if="eventLayer" class="drawer-shield" data-testid="drawer-shield" aria-hidden="true" @click.stop.prevent="moveToParent" @pointerdown.stop></div>
     <dialog
       ref="eventDialog"
       class="drawer-surface drawer-surface--event"
@@ -329,7 +327,7 @@ onBeforeUnmount(() => {
         'drawer-surface--inactive': eventInactive,
         'drawer-surface--active': !eventInactive,
       }"
-      data-testid="drawer-event"
+      data-testid="drawer-event" :inert="eventInactive"
       aria-labelledby="drawer-event-title"
       @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'event')"
     >
@@ -403,7 +401,7 @@ onBeforeUnmount(() => {
         'drawer-surface--inactive': sourceInactive,
         'drawer-surface--active': !sourceInactive,
       }"
-      data-testid="drawer-source"
+      data-testid="drawer-source" :inert="sourceInactive"
       aria-labelledby="drawer-source-title"
       @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'source')"
     >

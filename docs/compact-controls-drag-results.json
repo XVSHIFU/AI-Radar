@@ -1,0 +1,10 @@
+{
+  "assistant_drag": true,
+  "half_limit": true,
+  "history_drag": true,
+  "before": 510,
+  "after": 610,
+  "history_before": 160,
+  "history_after": 180,
+  "pointer_target": "resize-edge history-edge"
+}

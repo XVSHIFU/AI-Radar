@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>轻量控件预览 · AI 革新雷达</title><link rel="stylesheet" href="/controls-preview.css"></head>
+<body>
+<svg class="svg-defs" aria-hidden="true"><defs>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 5v15"/></symbol>
+</defs></svg>
+<header class="site-header"><a class="brand" href="/?demo=1">AI 革新雷达</a><span class="preview-label">B · 轻量控件预览</span><button id="open-assistant" class="soft">研究助手</button></header>
+<div class="layout">
+<main>
+<div class="intro"><h1>少一点按钮，多一点内容。</h1><p>试试日期筛选、热力图和右侧会话。这里的操作只影响本预览。</p></div>
+<section class="comparison" aria-labelledby="compare-title"><h2 id="compare-title">同样的操作，更轻的层级</h2>
+<div class="compare-row old"><span class="row-label">原有样式</span><div class="controls"><span class="old-control">发送</span><span class="old-control">近7天</span><span class="old-control">清除条件</span><span class="old-control">重命名</span><span class="old-control">导出</span></div></div>
+<div class="compare-row"><span class="row-label">B 方案</span><div class="controls"><button class="primary" id="compare-send">发送 <svg><use href="#i-send"/></svg></button><button class="soft" id="compare-week">近7天</button><button class="quiet" id="clear">清除条件</button><button class="quiet" id="compare-history"><svg><use href="#i-history"/></svg>历史</button><button class="icon quiet" id="compare-more" aria-label="更多会话操作" title="更多会话操作"><svg><use href="#i-more"/></svg></button></div></div>
+<p class="small compare-note">主要操作用实色，筛选用浅底，辅助操作随内容出现。</p></section>
+<section class="statistics" aria-labelledby="stats-title">
+<div class="section-heading"><h2 id="stats-title">AI 动态总览</h2><span class="demo">合成演示数据</span></div>
+<div class="toolbar">
+<div class="range-anchor"><button id="range-trigger" class="outlined" aria-expanded="false" aria-controls="date-popover"><svg><use href="#i-calendar"/></svg><span id="range-label"></span><svg class="down"><use href="#i-chevron"/></svg></button>
+<section id="date-popover" class="date-popover" aria-label="选择日期范围" hidden>
+<div class="range-fields"><label>开始日期<input id="start-date" type="date"></label><span class="range-arrow">至</span><label>结束日期<input id="end-date" type="date"></label></div>
+<div class="picker-body"><div class="presets" aria-label="快捷范围"><button data-preset="today">今天</button><button data-preset="yesterday">昨天</button><button data-preset="week">近7天</button><button data-preset="month30">近30天</button><button data-preset="month">本月</button></div>
+<div class="calendar"><div class="calendar-heading"><button id="prev-month" class="icon quiet" aria-label="上个月"><svg class="left"><use href="#i-chevron"/></svg></button><strong id="calendar-title"></strong><button id="next-month" class="icon quiet" aria-label="下个月"><svg><use href="#i-chevron"/></svg></button></div><div class="weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="calendar-days"></div></div></div>
+<footer class="picker-footer"><span id="date-hint">先选开始日期，再选结束日期</span><button id="cancel-date" class="quiet">取消</button><button id="apply-date" class="primary">应用</button></footer><p id="date-error" class="error" role="alert" hidden></p></section></div>
+<div class="segments" aria-label="常用时间范围"><button data-range="week">近7天</button><button data-range="month30" aria-pressed="true">近30天</button><button data-range="all">全部60天</button></div>
+</div>
+<div class="fact-line"><p id="summary"></p><span class="small">按事件发布日期 · 北京时间</span></div>
+<div class="chart-heading"><h3>哪些日子，哪些方向更活跃</h3><div class="legend"><span>少</span><i></i><span>多</span></div></div>
+<p class="small" id="chart-caption"></p>
+<div class="heat-scroll" tabindex="0" aria-label="日期与分类热力图，可横向滚动"><div id="heatmap" class="heatmap"></div></div>
+<div class="heat-footer"><span class="small">点击色块，查看构成这个数字的事件。</span><button class="quiet small-button" id="reset-cell" hidden>查看全部事件</button></div>
+<div class="event-heading"><h3 id="events-title">所选范围的事件</h3><span class="small" id="list-count"></span></div><div id="events"></div><button id="load-more" class="quiet" hidden>再看12条</button>
+</section>
+<footer class="page-note">固定生成的60天样本，所有计数均来自同一份事件清单；不代表真实新闻或采集结果。</footer>
+</main>
+<aside id="assistant" class="assistant" aria-label="研究助手">
+<div class="resize-edge outer-edge" role="separator" tabindex="0" aria-label="调整助手宽度，左右方向键" aria-orientation="vertical"></div>
+<section class="conversation"><div class="assistant-heading"><h2>研究助手</h2><div class="controls"><button id="new-chat" class="icon quiet" aria-label="新建会话" title="新建会话"><svg><use href="#i-plus"/></svg></button><button id="toggle-history" class="icon quiet" aria-label="展开或收起历史" aria-expanded="true" title="历史会话"><svg><use href="#i-history"/></svg></button><button id="collapse-assistant" class="quiet small-button"><span class="desktop-label">收起</span><span class="mobile-label">返回预览</span></button></div></div>
+<p class="scope small" id="assistant-scope"></p>
+<div id="messages" class="messages" aria-live="polite"></div>
+<form id="composer" class="composer"><label for="question">对这些动态提问</label><textarea id="question" placeholder="例如：这段时间哪个方向最活跃？" rows="3"></textarea><div class="composer-bottom"><span class="small">本地演示 · 不调用模型</span><button class="primary icon" id="send" type="submit" aria-label="发送问题"><svg><use href="#i-send"/></svg></button></div></form>
+<p id="storage-notice" class="small storage-notice" role="status">会话仅保存在此浏览器。</p>
+</section>
+<aside class="history" id="history" aria-label="会话历史"><div class="resize-edge history-edge" role="separator" tabindex="0" aria-label="调整历史宽度，左右方向键" aria-orientation="vertical"></div><div class="history-heading"><h3>历史会话</h3><button id="hide-history" class="quiet icon" aria-label="返回对话"><span class="mobile-label">返回对话</span><svg><use href="#i-chevron"/></svg></button></div><div id="history-list"></div><p class="small history-note">只在本机保存</p></aside>
+</aside></div>
+<div id="chat-menu" class="menu" hidden><button data-action="rename">重命名</button><button data-action="export">导出会话</button><button data-action="delete" class="danger">删除会话</button></div>
+<dialog id="rename-dialog"><form method="dialog" id="rename-form"><h2>重命名会话</h2><label>会话名称<input id="rename-input" maxlength="60" required></label><div class="controls"><button value="cancel" formnovalidate>取消</button><button class="primary" value="save">保存</button></div></form></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script src="/controls-preview.js" defer></script></body></html>

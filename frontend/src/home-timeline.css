@@ -103,7 +103,7 @@
 }
 .timeline-month__toggle:hover {
   background: var(--blue-soft);
-  border-color: #9cb8d4;
+  border-color: var(--hover-line);
 }
 .timeline-month__toggle::after {
   order: -1;
@@ -250,10 +250,10 @@
 .drawer-fixture {
   margin: 0 0 16px;
   padding: 8px 12px;
-  border: 1px solid #f1d396;
+  border: 1px solid var(--demo-line);
   border-radius: 8px;
-  background: #fff8e7;
-  color: #674b00;
+  background: var(--demo-bg);
+  color: var(--demo-ink);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -280,8 +280,8 @@
 .drawer-quote {
   margin: 12px 0;
   padding: 12px 16px;
-  border-left: 1px solid #9db5ca;
-  background: #f3f7fb;
+  border-left: 1px solid var(--quote-line);
+  background: var(--quote-bg);
   overflow-wrap: anywhere;
 }
 .drawer-evidence {

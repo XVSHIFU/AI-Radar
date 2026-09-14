@@ -19,3 +19,6 @@ artifacts/browser/
 .impeccable/questions/
 .impeccable/review/
 .impeccable/planning/**/*.webp
+
+# Third-party UI reference extraction (not project source)
+artifacts/reference-onesoc/

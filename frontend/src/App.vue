@@ -3,6 +3,7 @@ import { computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import { dataMode } from "./api";
 import AssistantPanel from "./AssistantPanel.vue";
+import ThemeWheel from "./ThemeWheel.vue";
 import { setAssistantScope } from "./assistant-scope";
 import "./preview/preview.css";
 const route = useRoute();
@@ -53,6 +54,8 @@ const viewKey = computed(
           >采集管理</RouterLink
         >
       </nav>
+      <div class="rail-footer">
+      <ThemeWheel />
       <RouterLink
         v-if="!demoEnabled"
         :to="route.path + '?demo=1'"
@@ -61,6 +64,7 @@ const viewKey = computed(
       >
       <RouterLink v-else :to="route.path" class="switch">连接服务</RouterLink>
       <div id="assistant-mobile-slot" aria-label="研究助手入口"></div>
+      </div>
 
     </header>
 

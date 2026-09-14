@@ -1,4 +1,4 @@
-import fixture from "../../contracts/prototype-events.json";
+import { demoEvents, demoToday, demoRevision } from "./demo-events";
 import { isDemo, updateDataMode, type Category } from "./api";
 
 export type InsightQuery = {
@@ -26,7 +26,7 @@ export type InsightResult = {
 function addOneDay(date: string) { const value = new Date(`${date}T12:00:00Z`); value.setUTCDate(value.getUTCDate() + 1); return value.toISOString().slice(0, 10); }
 
 function fixtureInsights(query: InsightQuery): InsightResult {
-  const rows = fixture.items.filter((item) => {
+  const rows = demoEvents.filter((item) => {
     const haystack = `${item.title_zh} ${item.summary_zh} ${item.entities.join(" ")}`;
     return (
       (!query.q || haystack.toLowerCase().includes(query.q.toLowerCase())) &&
@@ -57,8 +57,8 @@ function fixtureInsights(query: InsightQuery): InsightResult {
     daily: dailyRows,
     daily_categories: dailyRows.flatMap(({ date }) => allCategories.map((category) => ({ date, category, count: dailyCategories.get(`${date}|${category}`) || 0 }))),
     categories: allCategories.map((category) => ({ category, count: categories.get(category) || 0 })),
-    as_of: "2026-09-12T00:00:00Z",
-    data_revision: "synthetic-ui-v1",
+    as_of: demoToday + "T00:00:00+08:00",
+    data_revision: demoRevision,
     data_mode: "fixture",
     request_id: "demo-insights",
   };

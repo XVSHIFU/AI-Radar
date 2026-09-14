@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 革新雷达 · 整体配色对照</title><link rel="stylesheet" href="./palette-preview.css"><script src="./palette-preview.js" defer></script></head>
+<body>
+<header class="preview-bar">
+ <div class="preview-title"><strong>整体配色对照</strong><span>五套浅色方案 · 同一页面，不同气质</span></div>
+ <nav class="palette-options" aria-label="选择配色方案"></nav>
+ <div class="palette-description" aria-live="polite"><strong id="palette-name"></strong><span id="palette-note"></span><div id="swatches" aria-label="当前配色"></div></div>
+</header>
+<div class="product">
+ <aside class="rail"><a class="brand" href="#home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>AI 革新雷达</a><nav aria-label="页面预览"><button data-page="home" aria-current="page"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/><path d="M8 9h8M8 13h6"/></svg>AI 动态</button><button data-page="stats"><svg viewBox="0 0 24 24"><path d="M5 19V9m7 10V4m7 15v-7"/></svg>统计与问答</button></nav><div class="rail-footer">仅配色预览<br><span>不会更改正式页面或会话历史</span></div></aside>
+ <main><p class="demo-banner">合成演示内容，仅用于比较配色，不代表真实新闻或分析结果。</p>
+  <section id="home-page"><header class="page-heading"><div><h1>AI 动态</h1><p>从事件流开始，再回查来源与证据。</p></div><button class="primary assistant-toggle">研究助手<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></header>
+   <div class="home-layout"><div class="stream"><div class="filters"><label>关键词<input type="search" id="event-search" placeholder="标题、摘要、实体"></label><div class="categories" aria-label="分类筛选"></div><div class="filter-bottom"><span class="range-label"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg>2026-09-08 — 2026-09-14</span><span id="match-count"></span></div></div><div class="timeline"><h2>2026 年 <small>9 月</small></h2><details open class="day"><summary>14 日 <small id="day-count"></small></summary><div id="events"></div></details><p id="event-empty" hidden>没有匹配的演示事件，试试其他分类。</p></div></div><aside class="overview"><h2>本周收录</h2><p><strong>128</strong> 条事件</p><div><span>模型发布</span><b>36</b></div><div><span>智能体工具</span><b>32</b></div><div><span>研究</span><b>24</b></div><div><span>框架与 SDK</span><b>18</b></div><div><span>产品与产业</span><b>18</b></div><p class="small">这里是合成数据的样式预览。</p></aside></div>
+  </section>
+  <section id="stats-page" hidden><header class="page-heading"><div><h1>统计与问答</h1><p>先看整体，再深入核查。</p></div><button class="primary assistant-toggle">研究助手<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></header>
+   <div class="stats-ranges" aria-label="演示时间范围"><button data-days="1">今天</button><button data-days="7" aria-pressed="true">近7天</button><button data-days="14">近14天</button></div>
+   <p class="stats-summary">合成统计预览 · <strong id="stat-total"></strong> 条事件 · 点击热力格查看对应数量</p><div class="stats-heading"><h2>日期 × 分类</h2><span>颜色越深，收录数量越多</span></div><div id="heatmap" class="heatmap"></div><p class="heat-note" aria-live="polite">横向看日期，纵向看分类。各方案保持相同热图数值。</p><div class="heat-legend"><i></i>少 <span>→</span> 多</div>
+   <h2 class="section-heading">分类分布</h2><div id="ranks" class="ranks"></div>
+  </section>
+ </main>
+ <aside class="assistant" aria-label="研究助手"><header><strong>研究助手</strong><details class="scope"><summary>研究范围</summary><p>本周演示事件。此页面仅展示配色，不调用模型。</p></details><button class="assistant-hide quiet">收起</button></header><div class="messages"><article><p class="message-meta"><b class="user-role">你</b><span>· 本周收录</span><span class="mode">· 模拟数据</span></p><p>这周有哪些值得关注的变化？</p></article><article><p class="message-meta"><b class="assistant-role">助手</b><span>· 本周收录</span><span class="mode">· 模拟数据</span></p><p class="demo-banner">模拟回答，仅用于配色展示。</p><h3>从三个方向看本周动态</h3><p>模型发布与智能体工具占据较多篇幅，研究事件提供了进一步理解的线索。</p><ul><li><strong>模型能力：</strong>关注能力边界与使用条件。</li><li><strong>工具落地：</strong>关注开发者工作流的变化。</li><li><strong>研究依据：</strong>结论需要回到原始来源核对。</li></ul><details class="citation"><summary>[2] 合成演示来源</summary><blockquote>这是一段用于展示证据样式的合成摘录。<footer>段落 demo-p-001</footer></blockquote></details><p class="metrics"><span>匹配 <b>128</b></span><span>取回 <b>12</b></span><span>引用 <b>3</b></span><span class="complete">覆盖：complete</span></p></article></div><div class="composer"><label for="question">问题</label><textarea id="question" placeholder="在这里试试输入框的焦点颜色" rows="3"></textarea><p>配色预览，不发送问题</p><div><button class="primary" id="preview-send">预览提示</button><span id="send-status" aria-live="polite"></span></div></div></aside>
+</div>
+<dialog id="event-dialog"><header><strong>事件预览</strong><button id="event-back" class="quiet">返回</button></header><h2 id="detail-title"></h2><p id="detail-summary"></p><p class="demo-banner">合成样本，仅用于比较阅读面板的配色。</p><h3>来源与证据</h3><details open class="citation"><summary>[2] 合成演示来源</summary><blockquote>保留来源、段落和日期，帮助读者核对一条事件的依据。</blockquote></details></dialog>
+</body></html>

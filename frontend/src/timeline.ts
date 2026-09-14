@@ -51,7 +51,7 @@ export function buildTimeline(items: Event[]): TimelineYear[] {
           label: `${Number(month.slice(5))} 月`,
           days: [...days.entries()]
             .sort(([a], [b]) => b.localeCompare(a))
-            .map(([day, events]) => ({ key: day, label: day, events })),
+            .map(([day, events]) => ({ key: day, label: `${Number(day.slice(-2))} 日`, events })),
         })),
     }));
   if (unknown.length) {

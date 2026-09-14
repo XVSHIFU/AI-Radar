@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { events, type Category, type Event } from "./api";
 import EventDrawers from "./EventDrawers.vue";
+import DateRangePicker from "./DateRangePicker.vue";
+import type {DateRange} from "./date-range";
 import { insights, type InsightResult } from "./insights-api";
 import { parseSse } from "./sse";
 import { askView } from "./ask-result";
@@ -33,7 +35,7 @@ const category = ref<Category | "">("");
 const from = ref(today);
 const to = ref(today);
 const minImportance = ref(false);
-const rangeMode = ref<"today" | "week" | "month" | "custom">("today");
+const rangeMode = ref<"today" | "week" | "month30" | "month" | "custom">("today");
 const overview = ref<InsightResult>();
 const overviewLoading = ref(false);
 const overviewError = ref("");
@@ -58,8 +60,10 @@ const dailyBins = computed(() => chartBuckets.value);
 const dailyMax = computed(() => Math.max(1, ...dailyBins.value.map((row) => row.count)));
 const peakDays = computed(() => dailyBins.value.filter((row) => row.count === dailyMax.value));
 const heatMax = computed(() => jointMax.value);
-const heatColor = (count: number) => { if (!count) return "#edf0f2"; const level=count/heatMax.value; return `rgb(${166-Math.round(level*74)} ${58-Math.round(level*35)} ${52-Math.round(level*33)})`; };
-const heatText = (count: number) => count ? "#fff" : "#172b3f";
+const heatPalette=["#e8edf1","#f7eeeb","#f2dcd5","#eac7bd","#e4b4a6","#dba08e","#ce8673","#c2725d","#b65e49","#a94b3b","#9d3c2e","#8f3027","#822a23"];
+const heatLevel=(count:number)=>count?Math.max(1,Math.ceil(count/heatMax.value*12)):0;
+const heatColor=(count:number)=>heatPalette[heatLevel(count)];
+const heatText=(count:number)=>heatLevel(count)>=8?"#fff":"#201511";
 const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return "尚无完整匹配事件。"; const ties = rankedCategories.value.filter((row) => row.count === top.count); return ties.length > 1 ? `${overview.value.total_events} 条完整匹配事件；${ties.map((row) => categoryName[row.category]).join("、")}并列最多，各 ${top.count} 条。` : `${overview.value.total_events} 条完整匹配事件；${categoryName[top.category]}最多，共 ${top.count} 条。`; });
 const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
 const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
@@ -83,12 +87,14 @@ function togglePlayback() { if (motionReduced.value) return; playing.value = !pl
 function toggleFlow() { if (!motionReduced.value) flowPlaying.value = !flowPlaying.value; }
 const rangeLabel = computed(() => `${from.value || "未选择"} 至 ${to.value || "未选择"}（Asia/Shanghai，起止均包含）`);
 const filterLabel = computed(() => [category.value ? `分类：${categoryName[category.value] || category.value}` : "", keyword.value ? `关键词：${keyword.value}` : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean).join(" · "));
-function setRange(mode: "today" | "week" | "month" | "custom") {
+function setRange(mode: "today" | "week" | "month30" | "month" | "custom") {
   rangeMode.value = mode;
   if (mode === "today") from.value = to.value = today;
   if (mode === "week") { from.value = addDays(today, -6); to.value = today; }
+  if (mode === "month30") { from.value = addDays(today, -29); to.value = today; }
   if (mode === "month") { from.value = `${today.slice(0, 8)}01`; to.value = today; }
 }
+function applyDates(range:DateRange) { from.value=range.from; to.value=range.to; rangeMode.value="custom"; }
 function clearOverviewState() {
   overview.value = undefined;
   overviewError.value = "";
@@ -177,16 +183,13 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
     <h1 class="page-title">统计与问答</h1>
     <p class="ask-overview__intro">统计由库内事件计算，无需 AI。</p>
     <section class="ask-controls" aria-label="统计范围">
+      <div class="ask-range-toolbar"><DateRangePicker :from="from" :to="to" @change="applyDates" />
       <div class="ask-range-buttons">
         <button :aria-pressed="rangeMode === 'today'" @click="setRange('today')">今天</button>
         <button :aria-pressed="rangeMode === 'week'" @click="setRange('week')">近7天</button>
+        <button :aria-pressed="rangeMode === 'month30'" @click="setRange('month30')">近30天</button>
         <button :aria-pressed="rangeMode === 'month'" @click="setRange('month')">本月</button>
-        <button :aria-pressed="rangeMode === 'custom'" @click="rangeMode = 'custom'">自定义</button>
-      </div>
-      <div v-if="rangeMode === 'custom'" class="ask-custom-dates">
-        <label>从<input v-model="from" name="date_from" type="date" class="control" /></label>
-        <label>至<input v-model="to" name="date_to" type="date" class="control" /></label>
-      </div>
+      </div></div>
       <details class="ask-more">
         <summary>更多筛选</summary>
         <div>
@@ -210,7 +213,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
         <section class="ask-chart" data-testid="insights-visual" :data-view="chartView">
           <h2>统计视图</h2>
           <p class="meta">{{ factSummary }}</p>
-          <div class="chart-tabs" role="tablist">
+          <div class="chart-tabs" role="group" aria-label="统计图表类型">
             <button data-view="A" :aria-pressed="chartView === 'A'" @click="chartView = 'A'">A 分类排行</button>
             <button data-view="B" :aria-pressed="chartView === 'B'" @click="chartView = 'B'">B 每日数量</button>
             <button data-view="C" :aria-pressed="chartView === 'C'" @click="chartView = 'C'">C 日期×分类</button>
@@ -218,11 +221,11 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
           <div v-if="chartView === 'A'" class="rank-chart">
             <button v-for="row in rankedCategories" :key="row.category" class="rank-row" :data-category="row.category" @click="selectCategory(row.category)"><span>{{ categoryName[row.category] }}</span><i :style="{ width: (row.count / rankMax * 100) + '%' }"></i><b>{{ row.count }} · {{ row.share }}%</b></button>
           </div>
-          <div v-else-if="chartView === 'B'"><p v-if="dailyBins.length === 1" class="meta">只有一天数据，不显示趋势。</p><p v-else class="meta">峰值：{{ peakDays.map((row) => row.label + ' ' + row.count + '条').join('、') }}</p><div class="daily-chart"><button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button></div></div><div v-else class="heat-compact" role="grid" aria-label="日期和分类热力图" :style="{ gridTemplateColumns: 'minmax(88px, auto) repeat(' + jointBuckets.length + ', minmax(34px, 1fr))' }">
+          <div v-else-if="chartView === 'B'"><p v-if="dailyBins.length === 1" class="meta">只有一天数据，不显示趋势。</p><p v-else class="meta">峰值：{{ peakDays.map((row) => row.label + ' ' + row.count + '条').join('、') }}</p><div class="daily-chart"><button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button></div></div><div v-else class="heat-compact" role="group" aria-label="日期和分类热力图，可横向滚动" :style="{ '--heat-columns': jointBuckets.length, gridTemplateColumns: 'minmax(88px, auto) repeat(' + jointBuckets.length + ', minmax(34px, 1fr))' }">
             <span></span><span v-for="bucket in jointBuckets" :key="bucket.date">{{ bucket.label }}</span>
-            <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
+            <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :aria-label="bucket.label + ' · ' + categoryName[categoryKey] + ' · ' + bucket.counts[categoryKey] + ' 条事件'" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
           </div>
-          <p v-if="chartView === 'C'" class="meta heat-legend">色标：0 浅灰 · {{ heatMax }} 深红</p>
+          <p v-if="chartView === 'C'" class="meta">横向看日期，纵向看分类。点击色块查看对应事件。</p><p v-if="chartView === 'C'" class="meta heat-legend">色标：0 浅灰 · {{ heatMax }} 深红</p>
           <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
         </section>
       </div>

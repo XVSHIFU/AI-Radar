@@ -1,7 +1,7 @@
 {
-  "observed_at": "2026-09-14T09:44:28.0696516+00:00",
-  "passed": 13,
-  "total": 13,
+  "observed_at": "2026-09-14T14:31:17.5346963+00:00",
+  "passed": 14,
+  "total": 14,
   "checks": [
     {
       "name": "actual_demo_stream_completed",
@@ -9,7 +9,7 @@
       "passed": true,
       "actual": {
         "passed": true,
-        "text": "助手 · 日期：2026-09-14 至 2026-09-14 · 模拟数据\n\n模拟流，仅用于演示。\n\n这是明确标注的模拟回答。[2]\n\n[2] 合成演示来源打开来源\n\n完整匹配 1 · 取回 1 · 总结 1 · 引用 1 · 覆盖：complete"
+        "text": "助手\n·\n日期：2026-09-14 至 2026-09-14\n·\n模拟数据\n\n模拟流，仅用于演示。\n\n这是明确标注的模拟回答。[2]\n\n[2] 合成演示来源打开来源\n\n完整匹配 1\n取回 1\n总结 1\n引用 1\n覆盖：complete"
       }
     },
     {
@@ -21,12 +21,22 @@
       }
     },
     {
+      "name": "citation_can_collapse_and_reopen",
+      "layer": "synthetic_api_response_browser",
+      "passed": true,
+      "actual": {
+        "closed": true,
+        "opened": true,
+        "passed": true
+      }
+    },
+    {
       "name": "cancel_partial_stream",
       "layer": "synthetic_stream_browser",
       "passed": true,
       "actual": {
         "passed": true,
-        "text": "助手 · 日期：2026-09-14 至 2026-09-14 · 模拟数据\n\n模拟流，仅用于演示。\n\n这是\n\n已取消，未自动重试。"
+        "text": "助手\n·\n日期：2026-09-14 至 2026-09-14\n·\n模拟数据\n\n模拟流，仅用于演示。\n\n这是\n\n已取消，未自动重试。"
       }
     },
     {

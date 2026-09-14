@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import fixture from "../../contracts/prototype-events.json";
+import { demoEvents, demoToday, demoRevision } from "./demo-events";
 export type Category =
   | "model_release"
   | "agent_tool"
@@ -109,7 +109,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return result;
 }
 function filter(q: EventQuery) {
-  const rows = fixture.items.filter(
+  const rows = demoEvents.filter(
     (x) =>
       (!q.q ||
         `${x.title_zh} ${x.summary_zh} ${x.entities.join(" ")}`
@@ -126,8 +126,8 @@ function filter(q: EventQuery) {
     total: rows.length,
     total_relation: "eq" as const,
     next_cursor: start + q.limit < rows.length ? String(start + q.limit) : null,
-    as_of: "2026-09-12T00:00:00Z",
-    data_revision: "synthetic-ui-v1",
+    as_of: demoToday + "T00:00:00+08:00",
+    data_revision: demoRevision,
     request_id: "demo-events",
   };
 }
@@ -142,15 +142,15 @@ export type Stats = {
 export const stats = () =>
   demo()
     ? Promise.resolve({
-        total_events: fixture.items.length,
+        total_events: demoEvents.length,
         total_sources: 12,
-        categories: fixture.items.reduce(
+        categories: demoEvents.reduce(
           (a, x) => ({ ...a, [x.category]: (a[x.category] || 0) + 1 }),
           {} as Record<string, number>,
         ),
         scope: "global",
-        as_of: "2026-09-12T00:00:00Z",
-        data_revision: "synthetic-ui-v1",
+        as_of: demoToday + "T00:00:00+08:00",
+        data_revision: demoRevision,
       })
     : api<Stats>("/api/v1/stats");
 export const events = {
@@ -168,7 +168,7 @@ export const events = {
         ),
   one: (id: string, signal?: AbortSignal) =>
     demo()
-      ? Promise.resolve(fixture.items.find((x) => x.id === id) as Event)
+      ? Promise.resolve(demoEvents.find((x) => x.id === id) as Event)
       : api<Event>(`/api/v1/events/${id}`, { signal }),
   evidence: (id: string, signal?: AbortSignal) =>
     demo()

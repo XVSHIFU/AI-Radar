@@ -1,0 +1,88 @@
+{
+  "applied": [
+    {
+      "applied": true,
+      "id": "mist",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "paper",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "lilac",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "oat",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "glacier",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "slate",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "olive",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "rose",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "apricot",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "plum",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "sea",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "jade",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "coffee",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "iris",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "coral",
+      "stored": true
+    },
+    {
+      "applied": true,
+      "id": "graphite",
+      "stored": true
+    }
+  ],
+  "dismissed": true,
+  "lowContrast": [],
+  "overflow": false,
+  "wheelMoved": true
+}

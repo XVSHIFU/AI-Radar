@@ -11,6 +11,8 @@ import {
   type Stats,
 } from "./api";
 import EventDrawers from "./EventDrawers.vue";
+import DateRangePicker from "./DateRangePicker.vue";
+import type {DateRange} from "./date-range";
 import {
   buildTimeline,
   reconcileTimelineState,
@@ -18,7 +20,6 @@ import {
   type TimelineState,
 } from "./timeline";
 import { latestRequest } from "./latest";
-import "./home-timeline.css";
 import { setAssistantScope } from "./assistant-scope";
 
 const route = useRoute(),
@@ -126,6 +127,7 @@ function schedule() {
     void load();
   }, 300);
 }
+function applyDates(range: DateRange) { from.value=range.from; to.value=range.to; }
 function clear() {
   q.value = "";
   category.value = "";
@@ -228,10 +230,7 @@ onBeforeUnmount(() => {
               }}</label
             >
           </fieldset>
-          <div class="date-controls">
-            <label>从<input v-model="from" type="date" class="control" /></label
-            ><label>至<input v-model="to" type="date" class="control" /></label>
-          </div>
+          <div class="date-controls"><DateRangePicker :from="from" :to="to" :allow-unbounded="true" @change="applyDates" /></div>
         </div>
         <div v-if="hasFilters" class="filter-actions"><button class="filter-clear" @click="clear">清除条件</button></div>
       </div>
@@ -295,10 +294,11 @@ onBeforeUnmount(() => {
           </button>
           <div v-if="timelineState[month.key]">
             <section v-for="day in month.days" :key="day.key" class="timeline-day">
-              <p class="timeline-day__label">
+              <button class="timeline-day__toggle" data-testid="timeline-day-toggle" :aria-label="day.key" :aria-expanded="timelineState[day.key]" :aria-controls="'day-'+day.key" @click="toggle(day.key)">
                 <span>{{ day.label }}</span>
                 <span class="timeline-day__loaded">已加载 {{ day.events.length }} 条</span>
-              </p>
+              </button>
+              <div v-if="timelineState[day.key]" :id="'day-'+day.key">
               <article v-for="item in day.events" :key="item.id" class="timeline-event">
                 <span class="pill">{{ categories.find((entry) => entry.v === item.category)?.l }}</span>
                 <h2 class="timeline-event__title">
@@ -312,6 +312,7 @@ onBeforeUnmount(() => {
                   <span v-for="entity in item.entities" :key="entity" class="pill">{{ entity }}</span>
                 </p>
               </article>
+              </div>
             </section>
           </div>
         </section>

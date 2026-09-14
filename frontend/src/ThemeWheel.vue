@@ -1,0 +1,98 @@
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, ref } from "vue";
+import { activeTheme, changeTheme, themes, themeStorageFailed } from "./themes";
+const open=ref(false),closing=ref(false),trigger=ref<HTMLButtonElement>(),panel=ref<HTMLElement>();
+const step=360/themes.length,rotation=ref(-45),dragging=ref(false);
+let pointer:number|null=null,startX=0,startY=0,lastAngle=0,moved=false,wheelDelta=0,hadInert=false;
+const normalized=(a:number)=>((a+180)%360+360)%360-180;
+const items=computed(()=>themes.map((theme,index)=>{
+const angle=normalized(index*step+rotation.value),r=angle*Math.PI/180;
+return {theme,index,visible:angle>=-86&&angle<=-4,style:{left:Math.cos(r)*81+"%",top:100+Math.sin(r)*81+"%","--swatch":theme.colors.blue,"--swatch-paper":theme.colors.bg}};
+}));
+const centerIndex=computed(()=>((Math.round((-45-rotation.value)/step)%themes.length)+themes.length)%themes.length);
+const browsed=computed(()=>themes[centerIndex.value]!);
+let closeAnimation:Animation|undefined,disposed=false;
+function release(){pointer=null;dragging.value=false}
+async function show(){
+if(closing.value)return;
+rotation.value=-45-themes.findIndex(t=>t.id===activeTheme.value.id)*step;
+open.value=true;hadInert=document.querySelector("#app")?.hasAttribute("inert")||false;
+document.querySelector("#app")?.setAttribute("inert","");window.addEventListener("keydown",key,true);
+await nextTick();panel.value?.focus();
+}
+async function close(){
+if(closing.value||!open.value)return;
+closing.value=true;release();
+const element=panel.value;
+if(element){
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const current=getComputedStyle(element);
+try{
+closeAnimation=element.animate([
+{opacity:current.opacity,transform:current.transform,transformOrigin:"bottom left"},
+{opacity:0,transform:reduced?current.transform:"translate(-10px, 10px) scale(.86)",transformOrigin:"bottom left"}
+],{duration:reduced?80:160,easing:"cubic-bezier(.4,0,1,1)",fill:"forwards"});
+await closeAnimation.finished;
+}catch{/* An interrupted exit still releases the modal state. */}
+}
+if(disposed)return;
+open.value=false;closing.value=false;closeAnimation=undefined;
+if(!hadInert)document.querySelector("#app")?.removeAttribute("inert");
+window.removeEventListener("keydown",key,true);void nextTick(()=>trigger.value?.focus());
+}
+function rotate(direction:number){rotation.value-=direction*step}
+function onWheel(e:WheelEvent){e.preventDefault();wheelDelta+=e.deltaY||e.deltaX;if(Math.abs(wheelDelta)>=35){rotate(Math.sign(wheelDelta));wheelDelta=0}}
+function angleAt(e:PointerEvent){const r=panel.value!.getBoundingClientRect();return Math.atan2(e.clientY-r.bottom,e.clientX-r.left)*180/Math.PI}
+function down(e:PointerEvent){if(e.button!==0||(e.target as HTMLElement).closest(".theme-wheel-controls"))return;pointer=e.pointerId;startX=e.clientX;startY=e.clientY;lastAngle=angleAt(e);moved=false}
+function move(e:PointerEvent){
+if(pointer!==e.pointerId)return;
+if(!moved&&Math.hypot(e.clientX-startX,e.clientY-startY)<6)return;
+if(!moved){moved=true;dragging.value=true;panel.value?.setPointerCapture(e.pointerId)}
+e.preventDefault();const angle=angleAt(e);rotation.value+=normalized(angle-lastAngle);lastAngle=angle;
+}
+function up(e:PointerEvent){if(pointer!==e.pointerId)return;const dragged=moved;release();if(dragged){rotation.value=-45-Math.round((-45-rotation.value)/step)*step;setTimeout(()=>{moved=false},0)}}
+function select(index:number,e?:MouseEvent){
+if(moved)return;
+const b=(e?.currentTarget as HTMLElement|undefined)?.getBoundingClientRect()||panel.value!.getBoundingClientRect();
+void changeTheme(themes[index]!,b.left+b.width/2,b.top+b.height/2);
+}
+function key(e:KeyboardEvent){
+if(!open.value)return;
+if(closing.value){e.preventDefault();e.stopImmediatePropagation();return;}
+if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();close();return}
+if(["ArrowRight","ArrowDown","ArrowLeft","ArrowUp","Home","End"].includes(e.key)){
+e.preventDefault();e.stopImmediatePropagation();
+if(e.key==="Home")rotation.value=-45;
+else if(e.key==="End")rotation.value=-45-(themes.length-1)*step;
+else rotate(["ArrowRight","ArrowDown"].includes(e.key)?1:-1);
+panel.value?.focus();return;
+}
+if(e.key==="Enter"&&e.target===panel.value){e.preventDefault();select(centerIndex.value)}
+if(e.key==="Tab"){
+const list=[...panel.value!.querySelectorAll<HTMLButtonElement>("button")].filter(b=>!b.hidden&&b.getClientRects().length);
+const index=list.indexOf(document.activeElement as HTMLButtonElement);
+e.preventDefault();list[index<0?(e.shiftKey?list.length-1:0):(index+(e.shiftKey?-1:1)+list.length)%list.length]?.focus();
+}
+}
+onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!hadInert)document.querySelector("#app")?.removeAttribute("inert");window.removeEventListener("keydown",key,true)}release()});
+</script>
+<template>
+<button ref="trigger" class="theme-trigger" data-testid="theme-toggle" :aria-expanded="open" aria-haspopup="dialog" aria-controls="theme-wheel" @click="show">
+<span class="theme-trigger-dot" aria-hidden="true"></span><span>主题<span class="theme-trigger-name">{{activeTheme.name}}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+</button>
+<Teleport to="body">
+<div v-if="open" class="theme-wheel-dismiss" aria-hidden="true" @pointerdown.prevent="close" @wheel.prevent></div>
+<section v-if="open" id="theme-wheel" ref="panel" :inert="closing" class="theme-wheel" :class="{'is-dragging':dragging}" role="dialog" aria-modal="true" aria-label="主题轮盘" aria-describedby="theme-wheel-help" tabindex="-1" @wheel="onWheel" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="release" @click.capture="e=>{if(moved){e.preventDefault();e.stopPropagation()}}">
+<svg class="theme-wheel-track" viewBox="0 0 380 380" aria-hidden="true"><path d="M0 72 A308 308 0 0 1 308 380"/><path d="M0 130 A250 250 0 0 1 250 380"/></svg>
+<button v-for="item in items" :key="item.theme.id" :hidden="!item.visible" class="theme-swatch" :style="item.style" :data-theme-id="item.theme.id" :aria-label="item.theme.name+'，'+item.theme.note" :aria-pressed="item.theme.id===activeTheme.id" @click="select(item.index,$event)">
+<span class="theme-swatch-chip"><svg v-if="item.theme.id===activeTheme.id" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-8"/></svg></span><span class="theme-swatch-name">{{item.theme.name}}</span>
+</button>
+<div class="theme-wheel-controls">
+<p class="theme-wheel-count">{{centerIndex+1}} / {{themes.length}} 套配色</p><strong aria-live="polite">{{browsed.name}}</strong><p class="theme-wheel-note">{{browsed.note}}</p>
+<p id="theme-wheel-help">拖动或滚轮转动 · 点击色块应用</p>
+<div class="theme-wheel-actions"><button aria-label="上一套主题" @click="rotate(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button aria-label="下一套主题" @click="rotate(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button><button @click="close">收起</button></div>
+<p class="theme-wheel-status" role="status">{{themeStorageFailed?'已应用，本次未能保存偏好':'已应用 · '+activeTheme.name}}</p>
+</div>
+</section>
+</Teleport>
+</template>

@@ -2,6 +2,11 @@ import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 import App from "./App.vue";
 import "./style.css";
+import "./home-timeline.css";
+import "./compact-controls.css";
+import "./themes.css";
+import { initTheme } from "./themes";
+initTheme();
 const router = createRouter({
   history: createWebHistory(),
   routes: [

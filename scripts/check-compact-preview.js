@@ -1,0 +1,25 @@
+(async()=>{const results=[];
+const check=(name,pass,detail)=>results.push({name,passed:!!pass,detail});
+const click=s=>document.querySelector(s).click(),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+setRange(preset('month30'));
+check('shared_counts', [...document.querySelectorAll('.heat-cell')].reduce((n,b)=>n+Number(b.dataset.count),0)===current().length,current().length);
+setRange(preset('all'));check('sixty_days_rich_sample',document.querySelectorAll('.heat-cell').length===360&&current().length>800,current().length);
+const rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number),lum=a=>a.map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4}).reduce((s,x,i)=>s+x*[.2126,.7152,.0722][i],0);
+const ratios=[...document.querySelectorAll('.heat-cell')].map(b=>{const c=getComputedStyle(b),a=lum(rgb(c.color)),d=lum(rgb(c.backgroundColor));return(Math.max(a,d)+.05)/(Math.min(a,d)+.05)});
+check('cell_contrast_4_5',Math.min(...ratios)>=4.5,Math.min(...ratios));check('cell_micro_radius',getComputedStyle(document.querySelector('.heat-cell')).borderRadius==='3px');
+const cell=[...document.querySelectorAll('.heat-cell')].find(b=>+b.dataset.count===5);cell.click();check('cell_drilldown',document.querySelectorAll('.event-row').length===5&&$('#list-count').textContent.includes('5'));
+click('#reset-cell');openDate();const before=$('#summary').textContent;click('[data-preset="week"]');check('date_draft_not_applied',before===$('#summary').textContent);click('#apply-date');check('date_apply',range.start===offset(today,-6)&&$('#date-popover').hidden);
+openDate();click('[data-preset="today"]');click('#cancel-date');check('date_cancel',range.start===offset(today,-6));
+openDate();draft={start:today,end:first};syncDate();click('#apply-date');check('date_invalid_error',!$('#date-error').hidden&&!$('#date-popover').hidden);closeDate();
+openDate();document.querySelector('[data-day="'+today+'"]').click();document.querySelector('[data-day="'+offset(today,-3)+'"]').click();click('#apply-date');check('calendar_reverse_range',range.start===offset(today,-3)&&range.end===today);
+openDate();const pr=$('#date-popover').getBoundingClientRect();check('popover_in_viewport',pr.left>=0&&pr.right<=innerWidth&&pr.bottom<=innerHeight,{top:pr.top,bottom:pr.bottom});closeDate();
+showAssistant();historyOpen=true;syncHistory();check('resize_edges_narrow',[...document.querySelectorAll('.resize-edge')].every(e=>e.getBoundingClientRect().width===6));
+const input=$('#question'),r=input.getBoundingClientRect();check('composer_not_covered',document.elementFromPoint(r.left+r.width/2,r.top+20)===input);
+$('.outer-edge').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));check('width_half_limit',$('#assistant').getBoundingClientRect().width<=innerWidth/2);
+click('#new-chat');input.value='验证预览会话';input.dispatchEvent(new Event('input'));$('#composer').requestSubmit();input.value='继续查看这个范围';input.dispatchEvent(new Event('input'));$('#composer').requestSubmit();check('multi_turn',active().messages.length===4);check('reply_is_in_message_flow',[...document.querySelectorAll('.message')].every(e=>getComputedStyle(e).position==='static'));const mrect=$('#messages').getBoundingClientRect(),crect=$('#composer').getBoundingClientRect();check('composer_below_messages',crect.top>=mrect.bottom-1&&crect.bottom<=innerHeight);
+input.value='保留这份草稿';input.dispatchEvent(new Event('input'));check('local_persistence',JSON.parse(localStorage.getItem(storageKey)).chats[0].draft==='保留这份草稿');
+const testId=activeId;menuId=testId;$('#rename-input').value='预览回归会话';$('#rename-form').dispatchEvent(new SubmitEvent('submit',{submitter:$('#rename-form button[value="save"]'),cancelable:true}));check('rename',active().title==='预览回归会话');
+const other=chats.find(c=>c.id!==testId);document.querySelector('[data-chat="'+other.id+'"]').click();document.querySelector('[data-chat="'+testId+'"]').click();check('switch_restores_draft',input.value==='保留这份草稿'&&document.querySelectorAll('.message').length===4);
+window.__previewTestId=testId;
+setRange(preset('month30'));
+return {passed:results.filter(x=>x.passed).length,total:results.length,checks:results};})()
