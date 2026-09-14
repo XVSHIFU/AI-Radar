@@ -41,6 +41,13 @@ class Settings(BaseSettings):
             database=self.db_name,
         )
 
+    def alembic_url(self) -> str | None:
+        """Render the configured database URL without masking its password."""
+        url = self.sqlalchemy_url()
+        if isinstance(url, URL):
+            return url.render_as_string(hide_password=False)
+        return url
+
 
 @lru_cache
 def get_settings() -> Settings:
