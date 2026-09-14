@@ -1,0 +1,116 @@
+{
+  "checks": [
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "stats_independent_page_and_no_main_question",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "week_full_aggregate_without_ai",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "view_A_preserves_joint_counts",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "view_B_preserves_joint_counts",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "view_C_preserves_joint_counts",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "heatmap_date_category_drilldown",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "matched_event_stays_in_drawer",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "month_exact_total_independent_of_pagination",
+      "passed": true
+    },
+    {
+      "actual": {
+        "dates": [
+          "2026-08-15 至 2026-08-31",
+          "2026-09-01 至 2026-09-30",
+          "2026-10-01 至 2026-10-15"
+        ],
+        "passed": true
+      },
+      "name": "natural_month_boundaries",
+      "passed": true
+    },
+    {
+      "actual": {
+        "filters": {
+          "date_from": "2026-09-08",
+          "date_to": "2026-09-12",
+          "q": "DeepSeek"
+        },
+        "passed": true
+      },
+      "name": "assistant_submits_actual_current_filters",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "cross_route_answer_and_original_scope_persist",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "adopt_new_scope_changes_request_not_old_answer",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "assistant_closed_releases_layout_and_focus",
+      "passed": true
+    },
+    {
+      "actual": {
+        "passed": true
+      },
+      "name": "maintenance_token_excluded_from_assistant",
+      "passed": true
+    }
+  ],
+  "layer": "fixture_browser_with_synthetic_ask_response",
+  "observed_at": "2026-09-14T06:39:27.74Z",
+  "passed": 14,
+  "total": 14
+}

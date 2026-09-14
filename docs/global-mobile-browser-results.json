@@ -1,0 +1,52 @@
+{
+  "observed_at": "2026-09-14T06:39:30.3093412+00:00",
+  "layer": "browser_with_synthetic_long_answer",
+  "passed": 6,
+  "total": 6,
+  "checks": [
+    {
+      "name": "mobile_open_focus_and_background_lock",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "mobile_focus_cycles_inside",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "long_answer_return_stays_visible",
+      "passed": true,
+      "actual": {
+        "passed": true,
+        "returnBottom": 62,
+        "returnTop": 18
+      }
+    },
+    {
+      "name": "mobile_close_restores_background_and_focus",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "desktop_assistant_and_reader_both_open",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    },
+    {
+      "name": "escape_only_closes_top_reader",
+      "passed": true,
+      "actual": {
+        "passed": true
+      }
+    }
+  ]
+}

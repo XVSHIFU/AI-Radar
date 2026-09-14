@@ -1,0 +1,46 @@
+[
+  {
+    "name": "desktop-b",
+    "passed": true,
+    "geometry": {
+      "assistant": "false",
+      "scroll": 1440,
+      "title": "统计与问答",
+      "view": "area",
+      "width": 1440
+    }
+  },
+  {
+    "name": "mobile-a",
+    "passed": true,
+    "geometry": {
+      "assistant": "false",
+      "scroll": 390,
+      "title": "统计与问答",
+      "view": "flow",
+      "width": 390
+    }
+  },
+  {
+    "name": "mobile-b",
+    "passed": true,
+    "geometry": {
+      "assistant": "false",
+      "scroll": 390,
+      "title": "统计与问答",
+      "view": "area",
+      "width": 390
+    }
+  },
+  {
+    "name": "mobile-c",
+    "passed": true,
+    "geometry": {
+      "assistant": "false",
+      "scroll": 390,
+      "title": "统计与问答",
+      "view": "heat",
+      "width": 390
+    }
+  }
+]

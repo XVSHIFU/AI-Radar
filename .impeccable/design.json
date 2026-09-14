@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-13T03:20:56.566Z",
+  "generatedAt": "2026-09-14T07:00:15.0596075Z",
   "title": "Design System: AI 革新雷达",
   "extensions": {
     "colorMeta": {
@@ -353,6 +353,104 @@
           "oklch(83.57% 0.02891 238.28)",
           "oklch(95.00% 0.02891 238.28)"
         ]
+      },
+      "chart-model": {
+        "role": "secondary",
+        "displayName": "chart-model",
+        "tonalRamp": [
+          "oklch(15.00% 0.10882 247.72)",
+          "oklch(26.43% 0.10882 247.72)",
+          "oklch(37.86% 0.10882 247.72)",
+          "oklch(49.29% 0.10882 247.72)",
+          "oklch(60.71% 0.10882 247.72)",
+          "oklch(72.14% 0.10882 247.72)",
+          "oklch(83.57% 0.10882 247.72)",
+          "oklch(95.00% 0.10882 247.72)"
+        ]
+      },
+      "chart-agent": {
+        "role": "secondary",
+        "displayName": "chart-agent",
+        "tonalRamp": [
+          "oklch(15.00% 0.08884 143.31)",
+          "oklch(26.43% 0.08884 143.31)",
+          "oklch(37.86% 0.08884 143.31)",
+          "oklch(49.29% 0.08884 143.31)",
+          "oklch(60.71% 0.08884 143.31)",
+          "oklch(72.14% 0.08884 143.31)",
+          "oklch(83.57% 0.08884 143.31)",
+          "oklch(95.00% 0.08884 143.31)"
+        ]
+      },
+      "chart-framework": {
+        "role": "secondary",
+        "displayName": "chart-framework",
+        "tonalRamp": [
+          "oklch(15.00% 0.09502 65.10)",
+          "oklch(26.43% 0.09502 65.10)",
+          "oklch(37.86% 0.09502 65.10)",
+          "oklch(49.29% 0.09502 65.10)",
+          "oklch(60.71% 0.09502 65.10)",
+          "oklch(72.14% 0.09502 65.10)",
+          "oklch(83.57% 0.09502 65.10)",
+          "oklch(95.00% 0.09502 65.10)"
+        ]
+      },
+      "chart-research": {
+        "role": "secondary",
+        "displayName": "chart-research",
+        "tonalRamp": [
+          "oklch(15.00% 0.10917 305.35)",
+          "oklch(26.43% 0.10917 305.35)",
+          "oklch(37.86% 0.10917 305.35)",
+          "oklch(49.29% 0.10917 305.35)",
+          "oklch(60.71% 0.10917 305.35)",
+          "oklch(72.14% 0.10917 305.35)",
+          "oklch(83.57% 0.10917 305.35)",
+          "oklch(95.00% 0.10917 305.35)"
+        ]
+      },
+      "chart-product": {
+        "role": "secondary",
+        "displayName": "chart-product",
+        "tonalRamp": [
+          "oklch(15.00% 0.11090 9.51)",
+          "oklch(26.43% 0.11090 9.51)",
+          "oklch(37.86% 0.11090 9.51)",
+          "oklch(49.29% 0.11090 9.51)",
+          "oklch(60.71% 0.11090 9.51)",
+          "oklch(72.14% 0.11090 9.51)",
+          "oklch(83.57% 0.11090 9.51)",
+          "oklch(95.00% 0.11090 9.51)"
+        ]
+      },
+      "chart-industry": {
+        "role": "secondary",
+        "displayName": "chart-industry",
+        "tonalRamp": [
+          "oklch(15.00% 0.06716 196.71)",
+          "oklch(26.43% 0.06716 196.71)",
+          "oklch(37.86% 0.06716 196.71)",
+          "oklch(49.29% 0.06716 196.71)",
+          "oklch(60.71% 0.06716 196.71)",
+          "oklch(72.14% 0.06716 196.71)",
+          "oklch(83.57% 0.06716 196.71)",
+          "oklch(95.00% 0.06716 196.71)"
+        ]
+      },
+      "heat-ink": {
+        "role": "neutral",
+        "displayName": "heat-ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.05638 249.75)",
+          "oklch(26.43% 0.05638 249.75)",
+          "oklch(37.86% 0.05638 249.75)",
+          "oklch(49.29% 0.05638 249.75)",
+          "oklch(60.71% 0.05638 249.75)",
+          "oklch(72.14% 0.05638 249.75)",
+          "oklch(83.57% 0.05638 249.75)",
+          "oklch(95.00% 0.05638 249.75)"
+        ]
       }
     },
     "typographyMeta": {
@@ -362,7 +460,7 @@
       },
       "headline": {
         "displayName": "headline",
-        "purpose": "详情与问答阅读面章节标题。"
+        "purpose": "详情、助手与统计的章节标题。"
       },
       "event-title": {
         "displayName": "event-title",
@@ -398,7 +496,7 @@
       },
       "timeline-year": {
         "displayName": "年份标记",
-        "purpose": "首页年/月/日层级中的年份，已加载计数另行显示。"
+        "purpose": "首页静态年份标题；20px/650字重/1.3行高，已加载计数同行，不提供折叠。"
       },
       "drawer-title": {
         "displayName": "抽屉事件标题",
@@ -406,19 +504,24 @@
       },
       "drawer-label": {
         "displayName": "抽屉路径",
-        "purpose": "事件、来源、证据前景层顶部路径。"
+        "purpose": "事件、来源及兼容证据层的顶部当前层标题。"
       }
     },
     "shadows": [
       {
         "name": "reading-plane",
         "value": "0 12px 30px rgba(34, 61, 93, 0.08)",
-        "purpose": "首页、详情和问答连续阅读面。"
+        "purpose": "保留的详情阅读面；首页、统计和助手内提问区无阴影。"
       },
       {
         "name": "drawer-plane",
         "value": "-18px 10px 34px rgba(34, 61, 93, 0.16)",
-        "purpose": "首页事件、来源与证据的真实叠层；非活动层只保留白色边缘。"
+        "purpose": "事件、来源及兼容证据层；活动层右24px，后层右56px，只保留白色边缘。"
+      },
+      {
+        "name": "assistant-panel",
+        "value": "-12px 0 30px rgba(34, 61, 93, 0.10)",
+        "purpose": "桌面右侧并排助手；移动端全宽覆盖。"
       }
     ],
     "motion": [
@@ -440,7 +543,22 @@
       {
         "name": "timeline-disclosure",
         "value": "transform 0.18s ease-out",
-        "purpose": "日期边线指示符随aria-expanded旋转；减少动态效果下transition:none。"
+        "purpose": "仅月份按钮的边线指示符随aria-expanded旋转；年、日为静态标签；减少动态效果下transition:none。"
+      },
+      {
+        "name": "statistics-disclosure",
+        "value": "transform 160ms ease",
+        "purpose": "统计原生details的指示符。"
+      },
+      {
+        "name": "chart-flow-pulse",
+        "value": "chart-flow-pulse 1.2s ease-in-out infinite",
+        "purpose": "主动播放A流向，stroke-dasharray:12 8，dash offset到-20；可暂停，后台与卸载停止；减少动态效果下关闭。"
+      },
+      {
+        "name": "chart-date-playback",
+        "value": "900ms interval",
+        "purpose": "主动播放B，逐桶更新面积与游标；暂停、后台和卸载停止；初始减少动态效果偏好下禁用播放。"
       }
     ],
     "breakpoints": [
@@ -462,8 +580,8 @@
     {
       "name": "普通按钮",
       "kind": "button",
-      "description": "清除、取消、重试与管理动作。",
-      "html": "<button class=\"ds-secondary\">清除</button>",
+      "description": "取消、重试与管理动作；首页清除有独立透明变体。",
+      "html": "<button class=\"ds-secondary\">重试</button>",
       "css": ".ds-secondary{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-secondary:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-secondary:disabled{opacity:.52;cursor:not-allowed}.ds-secondary:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}",
       "refersTo": "button-secondary"
     },
@@ -487,7 +605,7 @@
       "name": "应用导航",
       "kind": "nav",
       "description": "活动项通过颜色与字重区分；紧凑布局横排。",
-      "html": "<nav class=\"ds-nav\"><a class=\"ds-current\" href=\"#events\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5h14v14H5zM8 9h8M8 13h5\"/></svg>事件</a><a href=\"#ask\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5h14v10H9l-4 4z\"/></svg>问答</a><a href=\"#ingest\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 5h12v14H6zM9 9h6M9 13h6\"/></svg>采集管理</a></nav>",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-current\" href=\"#events\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5h14v14H5zM8 9h8M8 13h5\"/></svg>事件</a><a href=\"#ask\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 5h14v10H9l-4 4z\"/></svg>统计与问答</a><a href=\"#ingest\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 5h12v14H6zM9 9h6M9 13h6\"/></svg>采集管理</a></nav>",
       "css": ".ds-nav{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;display:grid;gap:4px}.ds-nav a{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;color:var(--muted, #5b6d82);text-decoration:none;white-space:nowrap}.ds-nav .ds-current{color:var(--blue, #123d73);font-weight:700}.ds-nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}.ds-nav a:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}@media(max-width:900px){.ds-nav{display:flex;overflow:auto}}",
       "refersTo": "nav-item"
     },
@@ -508,11 +626,11 @@
       "refersTo": "card"
     },
     {
-      "name": "连续阅读面",
-      "kind": "card",
-      "description": "连续正文承载层，阴影不复制到每条事件。",
-      "html": "<section class=\"ds-plane\"><h1>AI 动态</h1><p>从事件流开始，再回查来源与证据。</p></section>",
-      "css": ".ds-plane{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-width:0;padding:28px;border-radius:16px;background:var(--paper, #fff);color:var(--ink, #10223b);box-shadow:0 12px 30px rgba(34,61,93,.08)}.ds-plane h1{font-size:clamp(28px,3vw,38px);font-weight:600;line-height:1.12;letter-spacing:-.03em;max-width:30ch;margin:0 0 12px}.ds-plane p{margin:0 0 12px;color:var(--muted, #5b6d82)}@media(max-width:900px){.ds-plane{padding:16px}.ds-plane h1{margin-bottom:6px}.ds-plane p{margin-bottom:8px}}",
+      "name": "首页直接阅读面",
+      "kind": "custom",
+      "description": "首页透明、0内边距、0圆角、无阴影；通过宿主银蓝底面阅读。标题链接悬停只变深蓝，焦点保留。",
+      "html": "<section class=\"ds-plane\"><h1>AI 动态</h1><p>从事件流开始，再回查来源与证据。</p><h2><a href=\"#demo-event\">合成演示事件</a></h2></section>",
+      "css": ".ds-plane{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;min-width:0;padding:0;border-radius:0;background:transparent;color:var(--ink,#10223b);box-shadow:none}.ds-plane h1{font-size:clamp(28px,3vw,38px);font-weight:600;line-height:1.12;letter-spacing:-.03em;max-width:30ch;margin:0 0 12px}.ds-plane p{margin:0 0 12px;color:var(--muted,#5b6d82)}.ds-plane h2{margin:5px 0;font-size:20px;font-weight:400;line-height:1.4}.ds-plane a{color:var(--ink,#10223b);text-decoration:none}.ds-plane a:hover{color:var(--blue,#123d73)}.ds-plane a:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}@media(max-width:900px){.ds-plane h1{margin-bottom:6px}.ds-plane p{margin-bottom:8px}}",
       "refersTo": "home-reading-plane"
     },
     {
@@ -540,60 +658,86 @@
       "refersTo": "error-card"
     },
     {
-      "name": "年 / 月 / 日日期层级",
+      "name": "静态年 / 月份折叠 / 静态日",
       "kind": "custom",
       "refersTo": "timeline-month",
-      "description": "已加载日期分组的展开样本；计数仅为合成示意。实际折叠与分页状态由Vue管理，预览保留hover与焦点样式。",
-      "html": "<section class=\"ds-date\"><div class=\"ds-year-heading\"><button class=\"ds-year-toggle\" aria-expanded=\"true\"><span class=\"ds-year-label\">2026 年</span><span class=\"ds-year-count\">已加载 1 条</span></button></div><section class=\"ds-month\"><button class=\"ds-month-toggle\" aria-expanded=\"true\"><span>9 月</span><span class=\"ds-count\">已加载 1 条</span></button><section class=\"ds-day\"><button class=\"ds-day-toggle\" aria-expanded=\"true\"><span>2026-09-13</span><span class=\"ds-loaded\">已加载 1 条</span></button></section></section></section>",
-      "css": ".ds-date{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;position:relative;margin-top:12px;padding-left:148px;line-height:1.6;color:var(--ink,#10223b)}.ds-date::before{content:\"\";position:absolute;inset:70px auto 0 132px;width:1px;background:var(--line,#d4dee9)}.ds-year-heading{position:relative;min-height:66px}.ds-date button{font:inherit;cursor:pointer;min-height:44px;color:var(--blue,#123d73);font-variant-numeric:tabular-nums}.ds-year-toggle{position:absolute;top:0;left:-8px;display:flex;align-content:flex-start;align-items:center;justify-content:flex-end;flex-wrap:wrap;column-gap:6px;width:132px;padding:4px 0;border:0;border-radius:0;background:transparent;text-align:right}.ds-year-label{order:0;font-size:26px;font-weight:650;line-height:1.15;letter-spacing:-.025em;white-space:nowrap}.ds-year-count{order:2;flex-basis:100%}.ds-year-count,.ds-count,.ds-loaded{color:var(--muted,#5b6d82);font-size:12px;font-weight:400}.ds-month{position:relative;padding:8px 0 0}.ds-date .ds-month-toggle{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--blue-soft,#e8f0fa);font-size:15px;font-weight:650}.ds-day{position:relative;margin-top:2px}.ds-date .ds-day-toggle{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0;border:0;border-radius:0;background:transparent;color:var(--muted,#5b6d82);font-size:13px;text-align:left}.ds-loaded{margin-left:auto}.ds-date button::after{content:\"\";display:inline-block;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s ease-out}.ds-year-toggle::after{order:1;flex:none}.ds-month-toggle::after{order:-1;margin:0 2px 0 0}.ds-day-toggle::after{order:-1;margin-left:0}.ds-date button[aria-expanded=\"false\"]::after{transform:rotate(-45deg) translate(1px,-1px)}.ds-date button:hover{text-decoration:underline}.ds-date .ds-month-toggle:hover{border-color:#9cb8d4}.ds-date button:focus{outline:3px solid #78b7d1;outline-offset:2px}.ds-date button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}@media(max-width:900px){.ds-date{padding-left:0}.ds-date::before{display:none}.ds-year-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.ds-year-toggle{position:relative;left:auto;width:auto;text-align:left;justify-content:flex-start}}@media(prefers-reduced-motion:reduce){.ds-date button::after{transition:none}}"
+      "description": "年份与完整日期是静态文字，只有月份按钮折叠；合成计数只示意已加载数量。真实折叠由Vue管理，预览仅展示状态、hover与焦点。",
+      "html": "<section class=\"ds-date\"><div class=\"ds-year-heading\"><h2 class=\"ds-year-label\">2026 年</h2><span class=\"ds-count\">已加载 1 条</span></div><section class=\"ds-month\"><button class=\"ds-month-toggle\" aria-expanded=\"true\"><span>9 月</span><span class=\"ds-count\">已加载 1 条</span></button><p class=\"ds-day-label\"><span>2026-09-13</span><span class=\"ds-count\">已加载 1 条</span></p></section></section>",
+      "css": ".ds-date{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;margin-top:20px;padding-left:0;line-height:1.6;color:var(--ink,#10223b);font-variant-numeric:tabular-nums}.ds-year-heading{display:flex;align-items:baseline;gap:8px;min-height:0}.ds-year-label{margin:0;color:var(--blue,#123d73);font-size:20px;font-weight:650;line-height:1.3;letter-spacing:-.02em}.ds-count{color:var(--muted,#5b6d82);font-size:12px;font-weight:400}.ds-month{padding-top:8px}.ds-month-toggle{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:7px 10px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--blue-soft,#e8f0fa);color:var(--blue,#123d73);font:inherit;font-size:15px;font-weight:650;cursor:pointer;text-decoration:none}.ds-month-toggle:hover{background:var(--blue-soft,#e8f0fa);border-color:#9cb8d4;color:var(--blue,#123d73)}.ds-month-toggle::after{order:-1;content:\"\";display:inline-block;width:7px;height:7px;margin:0 2px 0 0;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .18s ease-out}.ds-month-toggle[aria-expanded=\"false\"]::after{transform:rotate(-45deg) translate(1px,-1px)}.ds-month-toggle:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-day-label{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin:2px 0 0;padding:7px 0;color:var(--muted,#5b6d82);font-size:13px}@media(prefers-reduced-motion:reduce){.ds-month-toggle::after{transition:none}}"
     },
     {
-      "name": "事件 / 来源 / 证据抽屉",
+      "name": "事件 / 来源抽屉",
       "kind": "custom",
       "refersTo": "drawer-panel",
-      "description": "前景层内容与表面样本；固定视口几何、真实dialog堆叠及history/Esc/焦点行为由Vue提供。此预览不模拟层级操作；900px及以下真实抽屉为全屏。",
-      "html": "<section class=\"ds-drawer\"><div class=\"ds-drawer-header\"><button class=\"ds-drawer-button\" aria-label=\"返回来源\">返回</button><h2>事件 › 来源 › 证据 · 当前层</h2><button class=\"ds-drawer-button\" aria-label=\"关闭证据抽屉\">关闭</button></div><div class=\"ds-drawer-body\"><p class=\"ds-drawer-fixture\">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p><h3>合成演示证据</h3><blockquote class=\"ds-drawer-quote\">合成段落摘录</blockquote><p>段落：demo-p-001</p></div></section>",
-      "css": ".ds-drawer{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;padding:0;border:1px solid var(--line,#d4dee9);border-radius:16px;color:var(--ink,#10223b);background:var(--paper,#fff);box-shadow:-18px 10px 34px rgba(34,61,93,.16)}.ds-drawer-header{display:flex;align-items:center;gap:8px;padding:16px 20px;border-bottom:1px solid var(--line,#d4dee9);background:var(--paper,#fff)}.ds-drawer-header h2{flex:1;margin:0;font-size:15px;font-weight:650;line-height:1.35}.ds-drawer-header button{min-width:44px}.ds-drawer-body{min-width:0;overflow:auto;padding:24px;font-size:16px;line-height:1.7}.ds-drawer-body h3{margin:24px 0 10px;font-size:18px;font-weight:600;line-height:1.35}.ds-drawer-fixture{margin:0 0 16px;padding:8px 12px;border:1px solid #f1d396;border-radius:8px;background:#fff8e7;color:#674b00;font-size:13px;line-height:1.6}.ds-drawer-quote{margin:12px 0;padding:12px 16px;border-left:1px solid #9db5ca;background:#f3f7fb;overflow-wrap:anywhere}.ds-drawer-button{font-family:Inter, \"PingFang SC\", \"Microsoft YaHei\", sans-serif;font-size:16px;line-height:1.6;min-height:44px;padding:8px 12px;border:1px solid var(--line, #d4dee9);border-radius:8px;background:var(--paper, #fff);color:var(--ink, #10223b);cursor:pointer}.ds-drawer-button:hover{background:var(--blue-soft, #e8f0fa);border-color:#9cb8d4}.ds-drawer-button:disabled{opacity:.52;cursor:not-allowed}.ds-drawer-button:focus-visible{outline:3px solid var(--focus, #175b95);outline-offset:2px}@media(max-width:900px){.ds-drawer{border:0;border-radius:0}.ds-drawer-body{padding:20px}}"
+      "description": "当前层直接显示保存摘录，来源信息用原生details；普通流程为事件到来源，兼容证据查询层仍保留。预览不模拟固定定位、dialog历史、遮罩或焦点恢复。",
+      "html": "<section class=\"ds-drawer\"><div class=\"ds-drawer-header\"><button class=\"ds-drawer-button\" aria-label=\"返回事件\"><svg viewBox=\"0 0 18 18\" aria-hidden=\"true\"><path d=\"M11.5 3.5 6 9l5.5 5.5M6.5 9h7\"/></svg>返回</button><h2>来源</h2></div><div class=\"ds-drawer-body\"><p class=\"ds-drawer-fixture\">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p><h3>合成演示来源</h3><blockquote class=\"ds-drawer-quote\">合成段落摘录</blockquote><details class=\"ds-source-details\"><summary>来源信息</summary><p>不可变版本：demo-v-001</p><p>段落：demo-p-001</p><p>核验状态：合成回归示意</p></details></div></section>",
+      "css": ".ds-drawer{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;padding:0;border:1px solid var(--line,#d4dee9);border-radius:16px;color:var(--ink,#10223b);background:var(--paper,#fff);box-shadow:-18px 10px 34px rgba(34,61,93,.16)}.ds-drawer-header{display:flex;align-items:center;gap:8px;padding:16px 20px;border-bottom:1px solid var(--line,#d4dee9);background:var(--paper,#fff)}.ds-drawer-header h2{flex:1;margin:0;font-size:15px;font-weight:650;line-height:1.35}.ds-drawer-body{min-width:0;overflow:auto;padding:24px;font-size:16px;line-height:1.7}.ds-drawer-body h3{margin:24px 0 10px;font-size:18px;font-weight:600;line-height:1.35}.ds-drawer-fixture{margin:0 0 16px;padding:8px 12px;border:1px solid #f1d396;border-radius:8px;background:#fff8e7;color:#674b00;font-size:13px;line-height:1.6}.ds-drawer-quote{margin:12px 0;padding:12px 16px;border-left:1px solid #9db5ca;background:#f3f7fb;overflow-wrap:anywhere}.ds-drawer-button{display:inline-flex;align-items:center;gap:4px;min-width:0;min-height:44px;padding:0 6px;border:0;border-radius:8px;background:transparent;box-shadow:none;color:var(--blue,#123d73);font:inherit;cursor:pointer}.ds-drawer-button:hover{border:0;background:transparent;color:var(--ink,#10223b)}.ds-drawer-button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ds-drawer-button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-source-details{margin-top:10px}.ds-source-details summary{display:inline-flex;align-items:center;min-height:44px;list-style:none;cursor:pointer;color:var(--blue,#123d73)}.ds-source-details summary::-webkit-details-marker{display:none}.ds-source-details summary::before{display:inline-block;width:7px;height:7px;margin:0 8px 2px 1px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;content:\"\";transform:rotate(-45deg)}.ds-source-details[open] summary::before{transform:rotate(45deg) translateY(-2px)}.ds-source-details p{overflow-wrap:anywhere}@media(max-width:900px){.ds-drawer{border:0;border-radius:0}.ds-drawer-body{padding:20px}}"
+    },
+    {
+      "name": "清除条件",
+      "kind": "button",
+      "refersTo": "filter-clear",
+      "description": "首页清除采用透明底、紧凑横向内边距和44px最小高度，无下划线。",
+      "html": "<button class=\"ds-clear\">清除条件</button>",
+      "css": ".ds-clear{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;min-height:44px;margin-top:0;padding:0 4px;border:0;border-radius:6px;background:transparent;color:var(--muted,#5b6d82);cursor:pointer}.ds-clear:hover{border:0;background:transparent;color:var(--blue,#123d73)}.ds-clear:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}"
+    },
+    {
+      "name": "全站研究助手",
+      "kind": "custom",
+      "refersTo": "assistant-panel",
+      "description": "面板样本：正式应用固定右侧宽364px并给正文留位，手机全宽覆盖。首次提问后显式采用新范围，保留最近回答快照；预览不模拟模型或会话行为。",
+      "html": "<aside class=\"ds-assistant\"><header class=\"ds-assistant-header\"><div><strong>研究助手</strong><p>基于已收录事件回答，不使用维护权限。</p></div><button class=\"ds-assistant-return\">返回</button></header><section class=\"ds-assistant-scope\"><strong>当前动态列表范围</strong><p>当前列表范围：未限定单个事件</p></section><label class=\"ds-assistant-label\">问题<textarea class=\"ds-assistant-input\" rows=\"4\" placeholder=\"输入需要核查的 AI 进展问题\"></textarea></label></aside>",
+      "css": ".ds-assistant{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;width:364px;padding:22px;background:var(--paper,#fff);color:var(--ink,#10223b);border-left:1px solid var(--line,#d4dee9);box-shadow:-12px 0 30px rgba(34,61,93,.10)}.ds-assistant-header{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:18px;padding:22px 0 10px;background:var(--paper,#fff)}.ds-assistant p{margin:4px 0;color:var(--muted,#5b6d82);font-size:13px}.ds-assistant-return{flex:none;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--blue,#123d73);font:inherit;white-space:nowrap;cursor:pointer}.ds-assistant-return:hover{background:var(--blue-soft,#e8f0fa)}.ds-assistant-return:focus-visible,.ds-assistant-input:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-assistant-scope{margin:16px 0;padding-top:14px;border-top:1px solid var(--line,#d4dee9)}.ds-assistant-label{display:grid;gap:4px;font-size:14px}.ds-assistant-input{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--paper,#fff);color:var(--ink,#10223b);font:inherit;font-size:16px;caret-color:var(--blue,#123d73);resize:vertical}.ds-assistant-input:focus{border-color:var(--blue,#123d73)}@media(max-width:900px){.ds-assistant{width:100%;padding:18px 16px}}"
+    },
+    {
+      "name": "统计视图与分类图例",
+      "kind": "custom",
+      "refersTo": "statistics-plane",
+      "description": "A/B/C选项及B图例的静态控件样本；六个色块对应同一分类映射。真实联合计数、播放和筛选由Vue提供；不在预览中编造统计数据。",
+      "html": "<section class=\"ds-statistics\"><h2>分类趋势</h2><div class=\"ds-chart-tabs\"><button>A 分类流向</button><button aria-pressed=\"true\">B 堆叠面积</button><button>C 热力矩阵</button></div><p class=\"ds-chart-mobile\">左右滑动查看全部日期</p><div class=\"ds-chart-legend\"><button style=\"--legend-color:#1d5f95\">模型发布</button><button style=\"--legend-color:#4f7d4d\">智能体工具</button><button style=\"--legend-color:#92602a\">框架与 SDK</button><button style=\"--legend-color:#7b5a9e\">研究</button><button style=\"--legend-color:#a04d5d\">产品</button><button style=\"--legend-color:#3d7f80\">产业</button></div></section>",
+      "css": ".ds-statistics{font-family:Inter,\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:16px;line-height:1.6;padding:18px 0;border-radius:0;background:transparent;box-shadow:none;color:var(--ink,#10223b)}.ds-statistics h2{margin:0 0 6px;font-size:20px}.ds-chart-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ds-statistics button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid var(--line,#d4dee9);border-radius:8px;background:var(--paper,#fff);color:var(--ink,#10223b);cursor:pointer}.ds-statistics button:hover{background:var(--blue-soft,#e8f0fa);border-color:#9cb8d4}.ds-statistics button:focus-visible{outline:3px solid var(--focus,#175b95);outline-offset:2px}.ds-chart-tabs button[aria-pressed=\"true\"]{background:var(--blue,#123d73);color:#fff}.ds-chart-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ds-chart-legend button{display:inline-flex;align-items:center;gap:6px;color:var(--ink,#10223b);background:#f7faff;border-color:var(--line,#d4dee9)}.ds-chart-legend button::before{width:12px;height:12px;flex:none;background:var(--legend-color);content:\"\"}.ds-chart-mobile{display:none}@media(max-width:900px){.ds-chart-mobile{display:block;margin:8px 0;color:var(--muted,#5b6d82);font-size:13px}}"
     }
   ],
   "narrative": {
     "northStar": "桌面阅读空间 · 云层切面 · 动作谱",
-    "overview": "以桌面阅读空间为主体：冷银蓝底面托起白色连续阅读面，深蓝交互与深墨正文建立稳定层级。云层切面只表现为面板、浅色摘录和证据展开的层次；动作谱只表现为日期、节点与正文的对齐节奏。\n\n这是依据已完成 Vue 页面与最终 CSS 层叠提取的实现记录，替代此前青绿色版本。中文工作字体、紧凑 SVG、留白与轻边界支撑日常阅读；没有栅格素材、云景或舞蹈符号。页面组成见方向契约，产品能力边界仍以 PRODUCT.md 为准。",
+    "overview": "以桌面阅读空间为主体：冷银蓝底面直接承载首页事件流和独立统计，深蓝交互与深墨正文建立稳定层级。白色保留给上下文面板、研究助手、详情阅读面和抽屉；云层切面表现为证据核对的层次，动作谱表现为日期与正文的连续节奏。\n\n这是依据正式 Vue 页面与最终 CSS 层叠同步的实现记录，沿用现有中文工作字体、紧凑 SVG、留白与轻边界。固定浅色，不提供主题切换；没有新增字体下载、栅格素材、云景或舞蹈符号。页面策略见 `.impeccable/surfaces/global-assistant.md`，产品能力边界仍以 PRODUCT.md 为准；文档同步不等于视觉裁决或上线批准。",
     "keyCharacteristics": [
-      "冷银蓝地面、白色阅读面与安静的上下文面板。",
-      "连续事件流按可折叠年/月/日组织，完整日期和细线节点维持阅读节奏；移动端回到自然文档顺序。",
-      "首页通过事件、来源、证据三层抽屉核对材料；详情和问答继续在正文中展开证据，保留来源、段落和缺失信息的明确文字。"
+      "冷银蓝直接阅读面、白色辅助面板与按需打开的研究助手。",
+      "年份和完整日日期负责定位，仅月份可折叠；桌面与移动端都按自然文档顺序阅读。",
+      "事件与来源抽屉直接呈现保存段落；统计 A/B/C 共用日期与分类计数，助手回答保留提问时的范围快照。"
     ],
     "rules": [
       {
         "name": "The Reading Plane Rule",
-        "body": "深蓝用于链接、当前导航与主要动作；大面积承载阅读的是白色面与冷银蓝地面。",
+        "body": "深蓝用于链接、当前导航与主要动作；首页和统计直接落在冷银蓝底面，白色用于辅助面板、详情与证据核对。",
         "section": "colors"
       },
       {
         "name": "The Date Rhythm Rule",
-        "body": "日期必须按正常阅读顺序完整显示；首页以年、月和完整日日期组织层级，桌面年份标记与时间线形成对齐关系，移动端移到事件组上方。",
+        "body": "年份和完整日日期保持可见的定位层级，仅月份承担折叠；不把静态年、日标签重新变成按钮或独立侧栏。",
         "section": "typography"
       },
       {
         "name": "The Evidence Layer Rule",
-        "body": "层次服务于阅读与核对：主阅读面使用柔和阴影，摘录使用浅色平面和细边界，不引入字面云景。",
+        "body": "层次服务于核对：主页和统计保持平面，助手与抽屉区分空间，摘录用浅色平面和细边界，不引入字面云景。",
         "section": "elevation"
       }
     ],
     "dos": [
       "Do 保留合成数据、模拟流、检索范围、覆盖不足与错误的明确文字标识。",
-      "Do 为按钮、字段与导航保留至少44px高度及可见焦点；原生分类单选项的当前行高为36px，不能将它当作44px合规证明。",
+      "Do 为按钮、字段与导航保留至少44px高度及可见焦点；热力格当前32px，不把它当作全站触摸目标合规证明。",
       "Do 保留日期、统计数字的等宽数字特性，让链接、计划与摘录长文本换行。",
       "Do 让证据展开可由键盘操作，聚焦已展开摘录，并保留来源与段落可用性说明。",
-      "Do 使用已实现的平面层次、细线、SVG和中文字体回退，优先让内容可读。"
+      "Do 使用已实现的平面层次、细线、SVG和中文字体回退，优先让内容可读。",
+      "Do 在提问后明确采用页面新范围，并保留回答绑定范围；窄屏图表提供横向浏览提示。"
     ],
     "donts": [
       "Don't 把服务失败、模拟回答或合成事件呈现成真实成功或真实新闻。",
       "Don't 只靠颜色传达错误、加载、取消或数据来源。",
       "Don't 将云层切面变成云雾、3D场景或图片，将动作谱变成舞蹈符号。",
-      "Don't 把连续事件阅读区改成等尺寸摘要卡片墙。",
-      "Don't 把尚未完成的真实数据库、模型、历史材料验收或待定审查写成设计合格或产品能力承诺。"
+      "Don't 把连续事件阅读区改成等尺寸摘要卡片墙或恢复首页大白浮卡。",
+      "Don't 把尚未完成的真实数据库、模型、历史材料验收或待定审查写成设计合格或产品能力承诺。",
+      "Don't 恢复年/日折叠、主题开关，或为标题、月份、清除条件添加hover下划线。"
     ]
   }
 }
