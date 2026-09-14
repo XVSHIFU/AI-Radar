@@ -28,6 +28,8 @@ type SourceChoice = {
 
 const route = useRoute();
 const router = useRouter();
+const props = defineProps<{ basePath?: string }>();
+const pagePath = computed(() => props.basePath || route.path);
 const item = ref<Event>();
 const evidence = ref<Evidence[]>([]);
 const loading = ref(false);
@@ -138,13 +140,20 @@ function parentQuery(): LocationQueryRaw {
 }
 function moveToParent() {
   const query = parentQuery();
-  const target = router.resolve({ path: "/", query }).fullPath;
+  const target = router.resolve({ path: pagePath.value, query }).fullPath;
   if ((history.state as { back?: string } | null)?.back === target)
     router.back();
-  else void router.replace({ path: "/", query });
+  else void router.replace({ path: pagePath.value, query });
 }
 function closeAll() {
-  void router.replace({ path: "/", query: baseQuery() });
+  void router.replace({ path: pagePath.value, query: baseQuery() });
+}
+function closeFromBackdrop(event: MouseEvent, layer: "event" | "source" | "evidence") {
+  const surface = event.currentTarget as HTMLDialogElement;
+  const rect = surface.getBoundingClientRect();
+  const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+  const top = layer === "evidence" ? Boolean(evidenceId.value) : layer === "source" ? Boolean(sourceKey.value && !evidenceId.value) : Boolean(eventLayer.value && !sourceKey.value && !evidenceId.value);
+  if (outside && top) moveToParent();
 }
 function rememberFocus(level: "source" | "evidence") {
   const active = document.activeElement;
@@ -156,14 +165,14 @@ function rememberFocus(level: "source" | "evidence") {
 function openSource(source: SourceChoice) {
   rememberFocus("source");
   void router.push({
-    path: "/",
+    path: pagePath.value,
     query: { ...baseQuery(), event: eventId.value, source: source.key },
   });
 }
 function openEvidence(row: Evidence) {
   rememberFocus("evidence");
   void router.push({
-    path: "/",
+    path: pagePath.value,
     query: {
       ...baseQuery(),
       event: eventId.value,
@@ -294,11 +303,11 @@ onBeforeUnmount(() => {
       }"
       data-testid="drawer-event"
       aria-labelledby="drawer-event-title"
-      @cancel.prevent="moveToParent"
+      @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'event')"
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回时间线" @click="closeAll">← 返回</button>
+          <button data-testid="drawer-back" aria-label="返回时间线" @click="closeAll"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
           <h2 id="drawer-event-title">事件</h2>
         </div>        <div class="drawer-body">
           <p v-if="dataMode === 'fixture'" class="drawer-fixture">
@@ -369,11 +378,11 @@ onBeforeUnmount(() => {
       }"
       data-testid="drawer-source"
       aria-labelledby="drawer-source-title"
-      @cancel.prevent="moveToParent"
+      @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'source')"
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent">← 返回</button>
+          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
           <h2 id="drawer-source-title">来源</h2>
         </div>        <div class="drawer-body">
           <p v-if="dataMode === 'fixture'" class="drawer-fixture">
@@ -425,11 +434,11 @@ onBeforeUnmount(() => {
       :class="{ 'drawer-surface--active': Boolean(evidenceId) }"
       data-testid="drawer-evidence"
       aria-labelledby="drawer-evidence-title"
-      @cancel.prevent="moveToParent"
+      @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'evidence')"
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent">← 返回</button>
+          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
           <h2 id="drawer-evidence-title">证据</h2>
         </div>        <div class="drawer-body">
           <p v-if="dataMode === 'fixture'" class="drawer-fixture">

@@ -43,11 +43,17 @@ const unsavedSources = computed(() =>
 function close() {
   const query = { ...route.query };
   delete query.event;
-  void router.replace({ path: "/preview", query });
+  void router.replace({ path: route.path, query });
 }
 function handleCancel(event: globalThis.Event) {
   event.preventDefault();
   close();
+}
+function handleBackdrop(event: MouseEvent) {
+  const surface = event.currentTarget as HTMLDialogElement;
+  const rect = surface.getBoundingClientRect();
+  const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+  if (outside) close();
 }
 async function syncDialog(open: boolean) {
   await nextTick();
@@ -128,11 +134,11 @@ onBeforeUnmount(() => {
       class="preview-reader"
       data-testid="preview-reader"
       aria-label="事件阅读"
-      @cancel="handleCancel"
+      @cancel="handleCancel" @click="handleBackdrop"
     >
       <header>
         <p>事件阅读</p>
-        <button data-testid="preview-close" aria-label="关闭事件阅读" @click="close">关闭</button>
+        <button data-testid="preview-close" aria-label="返回事件列表" @click="close"><svg class="preview-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
       </header>
       <div class="preview-reader-body">
         <p v-if="isDemo()" class="preview-fixture">前端模拟：仅用于交互演示，不代表真实服务结果。</p>
@@ -161,7 +167,6 @@ onBeforeUnmount(() => {
               <p class="preview-meta">该来源未保存段落证据。</p>
             </article>
           </section>
-          <p class="preview-full"><RouterLink :to="{ path: `/events/${item.id}`, query: route.query.demo === '1' ? { demo: '1' } : {} }">打开完整事件页</RouterLink></p>
         </template>
       </div>
     </dialog>

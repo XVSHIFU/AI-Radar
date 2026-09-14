@@ -70,14 +70,6 @@ button:disabled {
   opacity: 0.52;
   cursor: not-allowed;
 }
-button:focus,
-a:focus,
-input:focus,
-textarea:focus,
-select:focus {
-  outline: 3px solid #78b7d1;
-  outline-offset: 2px;
-}
 header {
   max-width: 1340px;
   margin: auto;
