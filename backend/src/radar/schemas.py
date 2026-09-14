@@ -156,7 +156,6 @@ class ErrorBody(BaseModel):
     message: str
     retryable: bool
     request_id: str
-    data_mode: Literal["fixture", "postgres"]
     details: dict[str, Any] | None = None
 
 

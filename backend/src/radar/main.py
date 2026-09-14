@@ -20,6 +20,7 @@ from .repository import EventRepository, EvidenceInvalid, InvalidCursor, Reposit
 from .schemas import (
     AskRequest,
     Category,
+    ErrorBody,
     EventDetail,
     EventPage,
     EvidencePage,
@@ -315,7 +316,11 @@ async def insights(
     }
 
 
-@app.get("/api/v1/insights/summary", response_model=InsightsResponse)
+@app.get(
+    "/api/v1/insights/summary",
+    response_model=InsightsResponse,
+    responses={422: {"model": ErrorBody, "description": "查询参数或日期范围无效"}},
+)
 async def insight_summary(
     request: Request,
     repository: Annotated[EventRepository, Depends(get_repository)],
