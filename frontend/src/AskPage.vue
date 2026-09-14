@@ -55,13 +55,20 @@ const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucke
 const jointTotal = computed(() => Math.max(1, ...jointBuckets.value.map((bucket) => bucket.total)));
 const activeBucket = ref(0);
 const playing = ref(false);
+const flowPlaying = ref(false);
+const motionReduced = ref(matchMedia("(prefers-reduced-motion: reduce)").matches);
 let playback: number | undefined;
 function chartX(index: number) { return jointBuckets.value.length < 2 ? 360 : 40 + index * 640 / (jointBuckets.value.length - 1); }
-function flowBand(category: Category, categoryIndex: number, bucketIndex: number) { const count = jointBuckets.value[bucketIndex]?.counts[category] || 0; if (!count) return ""; const thickness = 3 + count / jointMax.value * 15; const sourceY = 32 + categoryIndex * 25; const targetY = jointBuckets.value.length < 2 ? 96 : 30 + bucketIndex * 130 / (jointBuckets.value.length - 1); return `M 180 ${sourceY - thickness / 2} C 310 ${sourceY - thickness / 2}, 450 ${targetY - thickness / 2}, 560 ${targetY - thickness / 2} L 560 ${targetY + thickness / 2} C 450 ${targetY + thickness / 2}, 310 ${sourceY + thickness / 2}, 180 ${sourceY + thickness / 2} Z`; }
+const flowHeight = computed(() => Math.max(220, 58 + jointBuckets.value.length * 24));
+function flowBucketY(index: number) { return jointBuckets.value.length < 2 ? 108 : 42 + index * 24; }
+function flowBand(category: Category, categoryIndex: number, bucketIndex: number) { const count = jointBuckets.value[bucketIndex]?.counts[category] || 0; if (!count) return ""; const thickness = 3 + count / jointMax.value * 15; const sourceY = 32 + categoryIndex * 25; const targetY = flowBucketY(bucketIndex); return `M 180 ${sourceY - thickness / 2} C 310 ${sourceY - thickness / 2}, 450 ${targetY - thickness / 2}, 560 ${targetY - thickness / 2} L 560 ${targetY + thickness / 2} C 450 ${targetY + thickness / 2}, 310 ${sourceY + thickness / 2}, 180 ${sourceY + thickness / 2} Z`; }
 function areaPath(category: Category, reveal = jointBuckets.value.length) { const visible = jointBuckets.value.slice(0, reveal); const upper = visible.map((bucket, index) => { const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `${index ? "L" : "M"}${chartX(index)} ${146 - (previous + bucket.counts[category]) / jointTotal.value * 122}`; }); const lower = [...visible].reverse().map((bucket, offset) => { const index = visible.length - 1 - offset; const previous = chartCategories.slice(0, chartCategories.indexOf(category)).reduce((sum, item) => sum + bucket.counts[item], 0); return `L${chartX(index)} ${146 - previous / jointTotal.value * 122}`; }); return `${upper.join(" ")} ${lower.join(" ")} Z`; }
 function heatOpacity(count: number) { return 0.14 + count / jointMax.value * 0.78; }
+function heatTextColor(count: number) { return count / jointMax.value > 0.52 ? "#fff" : "#102a43"; }
 function chooseBucket(bucket: { from: string; to: string }) { selectDay(bucket.from, bucket.to); }
-function togglePlayback() { playing.value = !playing.value; if (playing.value) { clearInterval(playback); playback = window.setInterval(() => { activeBucket.value = jointBuckets.value.length ? (activeBucket.value + 1) % jointBuckets.value.length : 0; }, 900); } else clearInterval(playback); }
+function stopMotion() { flowPlaying.value = false; playing.value = false; clearInterval(playback); }
+function togglePlayback() { if (motionReduced.value) return; playing.value = !playing.value; if (playing.value) { clearInterval(playback); playback = window.setInterval(() => { activeBucket.value = jointBuckets.value.length ? (activeBucket.value + 1) % jointBuckets.value.length : 0; }, 900); } else clearInterval(playback); }
+function toggleFlow() { if (!motionReduced.value) flowPlaying.value = !flowPlaying.value; }
 const rangeLabel = computed(() => `${from.value || "未选择"} 至 ${to.value || "未选择"}（Asia/Shanghai，起止均包含）`);
 const filterLabel = computed(() => [category.value ? `分类：${categoryName[category.value] || category.value}` : "", keyword.value ? `关键词：${keyword.value}` : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean).join(" · "));
 function setRange(mode: "today" | "week" | "month" | "custom") {
@@ -147,9 +154,10 @@ watch([keyword, category, from, to, minImportance], () => {
   const parts = ["日期：" + (from.value || "未选择") + " 至 " + (to.value || "未选择"), category.value ? "分类：" + (categoryName[category.value] || category.value) : "", keyword.value ? "关键词「" + keyword.value + "」" : "", minImportance.value ? "重要度：4及以上" : ""].filter(Boolean);
   setAssistantScope({ label: "当前统计范围", filters, snapshot: parts.join(" · ") });
 }, { immediate: true });
+const onVisibilityChange = () => { if (document.hidden) stopMotion(); };
 const onAssistantPlan = (event: globalThis.Event) => { const plan = (event as unknown as globalThis.CustomEvent<{ category?: string; date_from?: string; date_to?: string }>).detail; if (plan.category && plan.category in categoryName) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; rangeMode.value = "custom"; };
-onMounted(() => { window.addEventListener("assistant-apply-plan", onAssistantPlan as EventListener); void loadOverview(); document.addEventListener("visibilitychange", () => { if (document.hidden && playing.value) togglePlayback(); }); });
-onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clearTimeout(timer); clearInterval(playback); window.removeEventListener("assistant-apply-plan", onAssistantPlan as EventListener); });
+onMounted(() => { window.addEventListener("assistant-apply-plan", onAssistantPlan as EventListener); void loadOverview(); document.addEventListener("visibilitychange", onVisibilityChange); });
+onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clearTimeout(timer); stopMotion(); document.removeEventListener("visibilitychange", onVisibilityChange); window.removeEventListener("assistant-apply-plan", onAssistantPlan as EventListener); });
 </script>
 
 <template>
@@ -195,16 +203,16 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
             <button data-view="B" :aria-pressed="chartView === 'area'" @click="chartView = 'area'">B 堆叠面积</button>
             <button data-view="C" :aria-pressed="chartView === 'heat'" @click="chartView = 'heat'">C 热力矩阵</button>
           </div>
-          <template v-if="chartView === 'flow'">
-            <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="分类到日期的事件流向图">
+          <template v-if="chartView === 'flow'"><p><button :disabled="motionReduced" :aria-pressed="flowPlaying" @click="toggleFlow">{{ flowPlaying ? "暂停流动" : "播放流动" }}</button><span v-if="motionReduced" class="meta">已遵循减少动态效果偏好。</span></p>
+            <div class="chart-scroll"><svg class="native-chart"  :viewBox="`0 0 720 ${flowHeight}`" :style="{ height: flowHeight + `px` }" role="img" aria-label="分类到日期的事件流向图">
               <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey"><text x="4" :y="36 + categoryIndex * 25">{{ categoryName[categoryKey] }}</text><rect x="150" :y="25 + categoryIndex * 25" width="28" height="14" :class="'chart-area--' + categoryIndex" /></g>
-              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="'flows-' + categoryKey"><template v-for="(bucket, bucketIndex) in jointBuckets" :key="bucket.date"><path v-if="bucket.counts[categoryKey]" :d="flowBand(categoryKey, categoryIndex, bucketIndex)" :class="'chart-flow chart-flow--' + categoryIndex" role="button" tabindex="0" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :aria-label="categoryName[categoryKey] + ' 至 ' + bucket.label + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)" @keydown.enter.prevent="category = categoryKey; chooseBucket(bucket)" /><text v-if="bucket.counts[categoryKey]" x="566" :y="34 + bucketIndex * (jointBuckets.length < 2 ? 0 : 130 / (jointBuckets.length - 1))">{{ bucket.counts[categoryKey] }}</text></template></g>
-              <g v-for="(bucket, index) in jointBuckets" :key="bucket.date"><text x="590" :y="34 + index * (jointBuckets.length < 2 ? 0 : 130 / (jointBuckets.length - 1))">{{ bucket.label }} · {{ bucket.total }}</text></g>
+              <g v-for="(categoryKey, categoryIndex) in chartCategories" :key="'flows-' + categoryKey"><template v-for="(bucket, bucketIndex) in jointBuckets" :key="bucket.date"><path v-if="bucket.counts[categoryKey]" :d="flowBand(categoryKey, categoryIndex, bucketIndex)" :class="flowPlaying ? 'chart-flow chart-flow--' + categoryIndex + ' chart-flow--active' : 'chart-flow chart-flow--' + categoryIndex" role="button" tabindex="0" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :aria-label="categoryName[categoryKey] + ' 至 ' + bucket.label + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)" @keydown.enter.prevent="category = categoryKey; chooseBucket(bucket)" /></template></g>
+              <g v-for="(bucket, index) in jointBuckets" :key="bucket.date"><text x="590" :y="flowBucketY(index)">{{ bucket.label }} · {{ bucket.total }}</text></g>
             </svg></div>
           </template>          <template v-else-if="chartView === 'area'">
-            <p><button :aria-pressed="playing" @click="togglePlayback">{{ playing ? "暂停播放" : "播放日期" }}</button><span class="meta"> {{ jointBuckets[activeBucket]?.label || "无日期" }}</span></p>
+            <p><button :disabled="motionReduced" :aria-pressed="playing" @click="togglePlayback">{{ playing ? "暂停播放" : "播放日期" }}</button><span class="meta"> {{ jointBuckets[activeBucket]?.label || "无日期" }}</span></p>
             <div class="chart-scroll"><svg class="native-chart" viewBox="0 0 720 190" role="img" aria-label="分类堆叠面积图">
-              <path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey, playing ? activeBucket + 1 : jointBuckets.length)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
+              <g><text x="8" y="20">{{ jointTotal }} 条</text><text x="18" y="150">0</text><text x="40" y="176">{{ jointBuckets[0]?.label }}</text><text x="610" y="176">{{ jointBuckets[jointBuckets.length - 1]?.label }}</text></g><path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey, playing ? activeBucket + 1 : jointBuckets.length)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
               <line x1="40" y1="146" x2="680" y2="146" /><line v-if="playing" :x1="chartX(activeBucket)" y1="20" :x2="chartX(activeBucket)" y2="146" class="chart-cursor" />
               <circle v-if="jointBuckets.length === 1" cx="360" :cy="146 - jointBuckets[0].total / jointTotal * 122" r="5" />
             </svg></div>
@@ -212,7 +220,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
           <template v-else>
             <div class="heatmap" role="grid" aria-label="日期和分类热力矩阵" :style="{ gridTemplateColumns: `minmax(90px, auto) repeat(${jointBuckets.length}, minmax(56px, 1fr))` }">
               <span></span><button v-for="bucket in jointBuckets" :key="'head-' + bucket.date" @click="chooseBucket(bucket)">{{ bucket.label }}</button>
-              <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" class="heatmap-cell" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :style="{ '--heat': heatOpacity(bucket.counts[categoryKey]) }" :aria-label="bucket.label + '，' + categoryName[categoryKey] + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)">{{ bucket.counts[categoryKey] }}</button></template>
+              <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" class="heatmap-cell" :data-date-from="bucket.from" :data-date-to="bucket.to" :data-category="categoryKey" :style="{ '--heat': heatOpacity(bucket.counts[categoryKey]), color: heatTextColor(bucket.counts[categoryKey]) }" :aria-label="bucket.label + '，' + categoryName[categoryKey] + '，' + bucket.counts[categoryKey] + '条'" @click="category = categoryKey; chooseBucket(bucket)">{{ bucket.counts[categoryKey] }}</button></template>
             </div>
           </template>
           <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
