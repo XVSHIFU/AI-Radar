@@ -1042,3 +1042,6 @@ select:focus {
 .daily-count b { position:absolute; bottom:calc(18px + var(--height)); left:0; right:0; }
 .daily-count small { position:absolute; bottom:0; left:0; right:0; }
 @media (max-width:900px) { .history-back { display:block; } .assistant-messages { max-height:calc(100dvh - 250px); } }
+@media (max-width:900px) { .assistant-workspace { max-width:none!important; min-width:0!important; } }
+.assistant-empty,.assistant-composer { transition: margin .18s ease-out, opacity .18s ease-out; }
+@media (prefers-reduced-motion:reduce) { .assistant-empty,.assistant-composer { transition:none; } }
