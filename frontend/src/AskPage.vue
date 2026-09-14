@@ -215,7 +215,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
               <g><text x="8" y="20">{{ jointTotal }} 条</text><text x="18" y="150">0</text><text x="40" y="176">{{ jointBuckets[0]?.label }}</text><text x="610" y="176">{{ jointBuckets[jointBuckets.length - 1]?.label }}</text></g><path v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :d="areaPath(categoryKey, playing ? activeBucket + 1 : jointBuckets.length)" :class="'chart-area chart-area--' + categoryIndex" @click="selectCategory(categoryKey)" />
               <line x1="40" y1="146" x2="680" y2="146" /><line v-if="playing" :x1="chartX(activeBucket)" y1="20" :x2="chartX(activeBucket)" y2="146" class="chart-cursor" />
               <circle v-if="jointBuckets.length === 1" cx="360" :cy="146 - jointBuckets[0].total / jointTotal * 122" r="5" />
-            </svg></div>
+            </svg></div><div class="chart-legend"><button v-for="(categoryKey, categoryIndex) in chartCategories" :key="categoryKey" :class="'chart-area--' + categoryIndex" @click="selectCategory(categoryKey)">{{ categoryName[categoryKey] }}</button></div>
           </template>
           <template v-else>
             <div class="heatmap" role="grid" aria-label="日期和分类热力矩阵" :style="{ gridTemplateColumns: `minmax(90px, auto) repeat(${jointBuckets.length}, minmax(56px, 1fr))` }">
