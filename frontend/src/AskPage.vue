@@ -226,10 +226,14 @@ async function planFromQuestion() {
     if (current === ruleGeneration && (cause as Error).name !== "AbortError") ruleError.value = cause instanceof Error ? cause.message : "规则解析失败";
   } finally { if (current === ruleGeneration) planning.value = false; }
 }
+function hasNarrowEntityRole(value: QueryPlan) {
+  const roles = value.entity_roles || [];
+  return roles.length > 0 && !(roles.includes("subject") && roles.includes("product"));
+}
 function applyRulePlan() {
   const value = rulePlan.value;
   if (!value) return;
-  if (value.requires_clarification || value.free_text || value.filters.entity_ids?.length || value.entity_roles?.length) {
+  if (value.requires_clarification || value.free_text || value.filters.entity_ids?.length || hasNarrowEntityRole(value)) {
     ruleError.value = "该解析包含当前筛选无法完整表达的条件，请改用分类、关键词和日期筛选。";
     return;
   }
@@ -371,7 +375,7 @@ onBeforeUnmount(() => { answerGeneration++; overviewGeneration++; controller.val
         <h3>规则解析预览</h3>
         <p>拟应用：分类 {{ rulePlan.filters.category ? (categoryName[rulePlan.filters.category] || rulePlan.filters.category) : "沿用当前" }} · 日期 {{ rulePlan.filters.date_from || from }} 至 {{ rulePlan.filters.date_to || to }}。</p>
         <p class="meta">将沿用当前条件：{{ keyword ? `关键词「${keyword}」` : "无关键词" }} · {{ minImportance ? "重要度 4 及以上" : "不限重要度" }}。规则解析不会替代这些条件。</p>
-        <p v-if="rulePlan.requires_clarification || rulePlan.free_text || rulePlan.filters.entity_ids?.length || rulePlan.entity_roles?.length" class="meta">部分条件无法完整映射到当前筛选，请改用筛选控件。</p>
+        <p v-if="rulePlan.requires_clarification || rulePlan.free_text || rulePlan.filters.entity_ids?.length || hasNarrowEntityRole(rulePlan)" class="meta">部分条件无法完整映射到当前筛选，请改用筛选控件。</p>
         <button @click="applyRulePlan">应用到总览</button>
       </section>
       <p class="meta" aria-live="polite">{{ status }}</p>
