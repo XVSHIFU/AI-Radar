@@ -2,8 +2,8 @@ import { reactive } from "vue";
 
 export type Attachment = { id: string; title: string };
 export type StoredPlan = {
-  business_date: string; timezone: string; filters: { category?: string; date_from?: string; date_to?: string; entity_ids?: string[]; entity_match?: "all" | "any" };
-  requires_clarification: boolean; clarification_candidates: { label: string; entity_id: string | null }[]; warnings: string[]; free_text?: string; entity_roles?: ("subject" | "product")[];
+  business_date: string; timezone: string; filters: { category?: string; date_from?: string; date_to?: string; entity_ids?: string[]; entity_match?: "all" | "any"; event_ids?: string[] };
+  requires_clarification: boolean; clarification_candidates: { label: string; entity_id: string | null }[]; warnings: string[]; free_text?: string; entity_roles?: ("subject" | "product")[]; history_turns_considered?: number; history_user_turns_used?: number; event_targets?: { event_id:string; title_zh:string|null; status:"matched"|"filtered_out"|"not_found" }[];
 };
 export type ConversationMessage = {
   id: string; role: "user" | "assistant"; text: string; createdAt: number; scope: string;
