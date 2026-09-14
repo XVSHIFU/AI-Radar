@@ -18,7 +18,7 @@ does not print the configured database URL.
 
 The opt-in suite verifies these behaviors against PostgreSQL rather than a fake session:
 
-- Alembic upgrade through `0003_persistent_article_jobs`, pgvector extension presence, downgrade
+- Alembic upgrade through `0004_candidate_versions`, pgvector extension presence, downgrade
   to `0002_ingest_pipeline`, preservation of source/run/job rows, and re-upgrade to head.
 - `/health/ready` reports PostgreSQL ready only with the expected Alembic revision and vector
   extension.
@@ -31,6 +31,9 @@ The opt-in suite verifies these behaviors against PostgreSQL rather than a fake 
   and finish, and terminal run failure after the final expired attempt.
 - Idempotent budget reservation and serialization of concurrent reservations at the configured
   limit.
+- A real-database worker cycle that creates two immutable versions and version-bound candidates for
+  changed content, retains the RSS publication date, and creates neither a third version nor a third
+  candidate when the body is unchanged.
 
 ## Commands and result
 
@@ -42,7 +45,7 @@ PYTHONPATH="$PWD/backend/src" \
 backend/.venv/bin/python -m pytest -q backend/tests/integration
 ```
 
-Result on 2026-09-14: **7 passed**. The suite created two disposable test databases and removed both
+Result on 2026-09-14: **8 passed**. The suite created two disposable test databases and removed both
 after completion. Existing application databases and unrelated containers were not modified.
 
 Normal backend checks remain opt-out safe: without `RADAR_RUN_POSTGRES_TESTS=1`, live database tests
@@ -50,9 +53,9 @@ skip while the special-character URL regression still runs.
 
 ## Deliberate limits
 
-This report validates revisions 0001–0003 at the reviewed checkpoint. Later schema revisions must
+This report validates revisions 0001–0004 at the reviewed checkpoint. Later schema revisions must
 extend the migration round-trip expectation before they can be described as live-validated.
 Cross-page writes remain outside the current list contract; responses identify that limitation in
 their data revision. The suite proves Evidence location and whitelist-compatible response data, not
 model support for a claim. Model extraction, event publication, embedding, generated answers,
-backup restore, and paid-call accounting remain separate acceptance work.
+backup restore, and paid-call accounting remain separate from this test suite.

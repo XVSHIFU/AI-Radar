@@ -75,6 +75,9 @@ async def test_concurrent_idempotency_and_claims_do_not_duplicate_work(
         claimed = [job for job in claims if job is not None]
         assert len(claimed) == 2
         assert len({job.id for job in claimed}) == 2
+        async with sessions() as session:
+            stored_run = await session.get(IngestRunRow, run_id)
+            assert stored_run is not None and stored_run.status == "running"
         for job in claimed:
             assert await repository.finish(job.id, str(job.lease_owner), job.lease_generation, True)
     finally:

@@ -24,7 +24,7 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
 ) -> None:
     migration_database.upgrade()
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0003_persistent_article_jobs",
+        "0004_candidate_versions",
         True,
     )
 
@@ -80,6 +80,6 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
 
     assert asyncio.run(verify_preserved_rows()) == (1, 1, 1)
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0003_persistent_article_jobs",
+        "0004_candidate_versions",
         True,
     )
