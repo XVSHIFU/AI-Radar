@@ -22,6 +22,8 @@ export type InsightResult = {
   request_id: string;
 };
 
+function addOneDay(date: string) { const value = new Date(`${date}T12:00:00Z`); value.setUTCDate(value.getUTCDate() + 1); return value.toISOString().slice(0, 10); }
+
 function fixtureInsights(query: InsightQuery): InsightResult {
   const rows = fixture.items.filter((item) => {
     const haystack = `${item.title_zh} ${item.summary_zh} ${item.entities.join(" ")}`;
@@ -40,14 +42,17 @@ function fixtureInsights(query: InsightQuery): InsightResult {
     if (row.event_date) daily.set(row.event_date, (daily.get(row.event_date) || 0) + 1);
     categories.set(row.category as Category, (categories.get(row.category as Category) || 0) + 1);
   }
+  const dailyRows: { date: string; count: number }[] = [];
+  for (let current = query.date_from; current <= query.date_to; current = addOneDay(current)) dailyRows.push({ date: current, count: daily.get(current) || 0 });
+  const allCategories: Category[] = ["model_release", "agent_tool", "framework_sdk", "research", "product", "industry"];
   return {
     date_from: query.date_from,
     date_to: query.date_to,
     timezone: "Asia/Shanghai",
     total_events: rows.length,
     total_relation: "eq",
-    daily: [...daily].map(([date, count]) => ({ date, count })),
-    categories: [...categories].map(([category, count]) => ({ category, count })),
+    daily: dailyRows,
+    categories: allCategories.map((category) => ({ category, count: categories.get(category) || 0 })),
     as_of: "2026-09-12T00:00:00Z",
     data_revision: "synthetic-ui-v1",
     data_mode: "fixture",
