@@ -145,7 +145,10 @@
 .ask-layout--streamlined .ask-conditions[open] summary::before {
   transform: rotate(45deg) translateY(-2px);
 }
-.timeline-day-toggle small {
+.preview-day .timeline-day-toggle {
+  justify-content: flex-start;
+}
+.preview-day .timeline-day-toggle small {
   margin-left: auto;
 }
 .preview-filter-meta {
@@ -358,38 +361,7 @@
   .preview-title { margin-bottom: 8px; }
   .preview-filter-main { grid-template-columns: 1fr; gap: 0; }
   .preview-categories { justify-content: flex-start; gap: 0 9px; }
-  .preview-dates summary,
-.preview-evidence-row summary,
-.ask-layout--streamlined .ask-conditions summary {
-  list-style: none;
-}
-.preview-dates summary::-webkit-details-marker,
-.preview-evidence-row summary::-webkit-details-marker,
-.ask-layout--streamlined .ask-conditions summary::-webkit-details-marker {
-  display: none;
-}
-.preview-dates summary::before,
-.preview-evidence-row summary::before,
-.ask-layout--streamlined .ask-conditions summary::before {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin: 0 9px 2px 1px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  content: "";
-  transform: rotate(-45deg);
-  transition: transform 0.18s ease-out;
-}
-.preview-dates[open] summary::before,
-.preview-evidence-row details[open] summary::before,
-.ask-layout--streamlined .ask-conditions[open] summary::before {
-  transform: rotate(45deg) translateY(-2px);
-}
-.timeline-day-toggle small {
-  margin-left: auto;
-}
-.preview-filter-meta { gap: 8px; }
+  .preview-filter-meta { gap: 8px; }
   .preview-count { text-align: right; }
   .preview-reading { padding: 10px 16px 18px; }
   .preview-period { gap: 8px; align-items: baseline; }
@@ -404,5 +376,8 @@
 @media (prefers-reduced-motion: reduce) {
   .preview-period button[aria-expanded]::before,
   .preview-day button[aria-expanded]::before,
+  .preview-dates summary::before,
+  .preview-evidence-row summary::before,
+  .ask-layout--streamlined .ask-conditions summary::before,
   .preview-reader[open] { animation: none; transition: none; }
 }
