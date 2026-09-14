@@ -63,11 +63,7 @@
 }
 .timeline-year__toggle:hover,
 .timeline-month__toggle:hover,
-.timeline-day__toggle:hover {
-  background: transparent;
-  border-color: transparent;
-  text-decoration: underline;
-}
+.timeline-day__toggle:hover {`r`n  background: var(--blue-soft);`r`n  border-color: transparent;`r`n  color: var(--blue);`r`n}
 .timeline-year__toggle::after,
 .timeline-month__toggle::after,
 .timeline-day__toggle::after {
@@ -159,9 +155,7 @@
   color: var(--ink);
   text-decoration: none;
 }
-.timeline-event__title a:hover {
-  text-decoration: underline;
-}
+.timeline-event__title a:hover {`r`n  color: var(--blue);`r`n}
 .timeline-event__meta {
   margin: 8px 0 0;
 }
