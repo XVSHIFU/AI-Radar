@@ -311,7 +311,13 @@ onBeforeUnmount(() => {
   generation++;
   controller?.abort();
   unlockScroll();
+
+  document.removeEventListener("keydown", onEscape);
+
+  document.removeEventListener("pointerdown", onPagePointer);
+
 });
+
 </script>
 
 <template>
