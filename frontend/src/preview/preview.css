@@ -286,7 +286,7 @@
   line-height: 1.4;
 }
 .preview-event h2 a { color: var(--ink); text-decoration: none; }
-.preview-event h2 a:hover { text-decoration: underline; }
+.preview-event h2 a:hover { color: var(--blue); }
 .preview-summary { color: var(--muted); line-height: 1.55; }
 .preview-meta { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 .preview-chip {
@@ -384,7 +384,7 @@
 /* Keep the preview aligned with the original reading hierarchy. */
 .preview-categories label { min-height: 44px; border-radius: 8px; }
 .preview-categories label:has(input:checked) { padding: 0 8px; background: var(--blue-soft); color: var(--blue); }
-.preview-clear { padding: 0 4px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.preview-clear { padding: 0 4px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
 .preview-clear:hover { border: 0; background: transparent; color: var(--blue); }
 .preview-year-heading { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
 .preview-year-heading h2 { margin: 0; color: var(--blue); font-size: 20px; font-weight: 650; }
