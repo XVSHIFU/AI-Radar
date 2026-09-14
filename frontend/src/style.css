@@ -301,7 +301,9 @@ blockquote {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  .ask-more > summary::before,
+  .ask-data-table > summary::before {
     animation: none !important;
     transition: none !important;
   }
@@ -863,3 +865,57 @@ select:focus {
 .ask-chart details { margin-top: 24px; }.ask-chart summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--blue); }.ask-chart table { width: 100%; border-collapse: collapse; }.ask-chart th, .ask-chart td { padding: 6px; border-bottom: 1px solid var(--line); text-align: left; }
 .ask-question, .ask-events { margin-top: 28px; padding: 22px 28px; border-radius: 16px; background: var(--paper); box-shadow: 0 12px 30px rgba(34, 61, 93, .08); }.ask-question label { display: grid; gap: 4px; }.ask-question .row { margin-top: 12px; }.ask-events article { padding: 14px 0; border-bottom: 1px solid var(--line); }.ask-events article h3 { margin: 6px 0; font-size: 18px; font-weight: 500; }.ask-events article h3 a { color: var(--ink); text-decoration: none; }.ask-events article h3 a:hover { text-decoration: underline; }
 @media (max-width: 900px) { .ask-charts { grid-template-columns: 1fr; }.ask-question, .ask-events { padding: 20px; } }
+/* Statistics overview: preserve native details semantics while supplying a visible state cue. */
+.ask-more > summary,
+.ask-data-table > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-left: 22px;
+  list-style: none;
+}
+.ask-more > summary::-webkit-details-marker,
+.ask-data-table > summary::-webkit-details-marker { display: none; }
+.ask-more > summary::before,
+.ask-data-table > summary::before {
+  position: absolute;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  content: "";
+  transform: rotate(-45deg);
+  transition: transform 160ms ease;
+}
+.ask-more[open] > summary::before,
+.ask-data-table[open] > summary::before { transform: rotate(45deg); }
+.daily-bars {
+  align-items: flex-end;
+  min-height: 216px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: 18px 0 24px;
+}
+.daily-bar {
+  display: grid !important;
+  flex: 1 0 42px;
+  grid-template-rows: 18px 150px 18px;
+  align-items: end;
+  min-width: 44px !important;
+  min-height: 216px !important;
+  padding: 0 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+}
+.daily-bar__value { justify-self: center; font-variant-numeric: tabular-nums; }
+.daily-bar__fill { display: block; width: 100%; justify-self: stretch; align-self: end; min-height: 0 !important; background: var(--blue); }
+.daily-bar small { justify-self: center; color: var(--muted) !important; transform: none !important; }
+.category-bars em { display: block; min-width: 0; height: 0; }
+@media (max-width: 900px) {
+  .daily-bars { margin-inline: -4px; padding-inline: 4px; }
+  .daily-bar { flex-basis: 44px; }
+}

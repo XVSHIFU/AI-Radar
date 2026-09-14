@@ -12,6 +12,7 @@ import {
   dataMode,
   err,
   events,
+  isDemo,
   type Article,
   type Category,
   type Event,
@@ -311,9 +312,8 @@ onBeforeUnmount(() => {
           <button data-testid="drawer-back" aria-label="返回时间线" @click="closeAll"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
           <h2 id="drawer-event-title">事件</h2>
         </div>        <div class="drawer-body">
-          <p v-if="dataMode === 'fixture'" class="drawer-fixture">
-            后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
-          </p>
+          <p v-if="isDemo()" class="drawer-fixture">前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
+          <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
           <p v-if="loading" class="drawer-status" aria-live="polite">
             正在读取事件与关联证据…
           </p>
@@ -386,9 +386,8 @@ onBeforeUnmount(() => {
           <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
           <h2 id="drawer-source-title">来源</h2>
         </div>        <div class="drawer-body">
-          <p v-if="dataMode === 'fixture'" class="drawer-fixture">
-            后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
-          </p>
+          <p v-if="isDemo()" class="drawer-fixture">前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
+          <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
           <div v-if="!item && !loading" class="drawer-error" role="alert">
             无法定位此来源所属的事件。<button @click="moveToParent">
               返回
@@ -442,9 +441,8 @@ onBeforeUnmount(() => {
           <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
           <h2 id="drawer-evidence-title">证据</h2>
         </div>        <div class="drawer-body">
-          <p v-if="dataMode === 'fixture'" class="drawer-fixture">
-            后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
-          </p>
+          <p v-if="isDemo()" class="drawer-fixture">前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
+          <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
           <div v-if="!item && !loading" class="drawer-error" role="alert">
             无法定位此证据所属的事件。<button @click="moveToParent">
               返回
