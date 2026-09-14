@@ -130,6 +130,30 @@
         "title": "ClarificationCandidate",
         "type": "object"
       },
+      "DailyCategoryInsight": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "category",
+          "count"
+        ],
+        "title": "DailyCategoryInsight",
+        "type": "object"
+      },
       "DailyInsight": {
         "properties": {
           "count": {
@@ -845,6 +869,13 @@
             "title": "Daily",
             "type": "array"
           },
+          "daily_categories": {
+            "items": {
+              "$ref": "#/components/schemas/DailyCategoryInsight"
+            },
+            "title": "Daily Categories",
+            "type": "array"
+          },
           "data_mode": {
             "enum": [
               "fixture",
@@ -894,6 +925,7 @@
           "total_events",
           "daily",
           "categories",
+          "daily_categories",
           "as_of",
           "data_revision",
           "data_mode",

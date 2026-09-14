@@ -42,6 +42,7 @@ async def test_insights_uses_filtered_database_aggregates_in_one_snapshot() -> N
                 Result([]),
                 Result([(date(2026, 9, 8), 2)]),
                 Result([("research", 2)]),
+                Result([(date(2026, 9, 8), "research", 2)]),
             ]
 
         async def __aenter__(self) -> "Session":
@@ -83,7 +84,7 @@ async def test_insights_uses_filtered_database_aggregates_in_one_snapshot() -> N
         )
         for statement in session.statements[1:]
     ]
-    assert len(sql) == 3
+    assert len(sql) == 4
     assert all("events.status = 'published'" in statement for statement in sql)
     assert all("events.category = 'research'" in statement for statement in sql)
     assert all("events.date_precision = 'day'" in statement for statement in sql)
@@ -93,7 +94,9 @@ async def test_insights_uses_filtered_database_aggregates_in_one_snapshot() -> N
     assert all("deepseek" in statement.lower() for statement in sql)
     assert "GROUP BY events.event_date" in sql[1]
     assert "GROUP BY events.category" in sql[2]
+    assert "GROUP BY events.event_date, events.category" in sql[3]
     assert all(" LIMIT " not in statement.upper() for statement in sql)
     assert snapshot.total_events == 2
     assert snapshot.daily == {date(2026, 9, 8): 2}
     assert snapshot.categories == {Category.RESEARCH: 2}
+    assert snapshot.daily_categories == {(date(2026, 9, 8), Category.RESEARCH): 2}

@@ -215,6 +215,13 @@ class FixtureRepository:
                 Counter(event.event_date for event in events if event.event_date is not None)
             ),
             categories=dict(Counter(event.category for event in events)),
+            daily_categories=dict(
+                Counter(
+                    (event.event_date, event.category)
+                    for event in events
+                    if event.event_date is not None
+                )
+            ),
             as_of=self.now,
             data_revision=self.dataset,
         )

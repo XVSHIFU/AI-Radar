@@ -345,10 +345,22 @@ class PostgresRepository:
                         .group_by(EventRow.category)
                     )
                 ).all()
+                daily_category_rows = (
+                    await session.execute(
+                        select(EventRow.event_date, EventRow.category, func.count())
+                        .where(*clauses)
+                        .group_by(EventRow.event_date, EventRow.category)
+                        .order_by(EventRow.event_date, EventRow.category)
+                    )
+                ).all()
             return InsightsSnapshot(
                 total_events=total,
                 daily={row[0]: int(row[1]) for row in daily_rows},
                 categories={Category(str(row[0])): int(row[1]) for row in category_rows},
+                daily_categories={
+                    (row[0], Category(str(row[1]))): int(row[2])
+                    for row in daily_category_rows
+                },
                 as_of=datetime.now(UTC),
                 data_revision="postgres-live",
             )

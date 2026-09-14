@@ -41,6 +41,24 @@ def test_insights_aggregates_complete_inclusive_range(client: TestClient) -> Non
     assert [item["category"] for item in body["categories"]] == CATEGORIES
     assert sum(item["count"] for item in body["categories"]) == body["total_events"]
     assert sum(item["count"] for item in body["daily"]) == body["total_events"]
+    assert len(body["daily_categories"]) == 5 * len(CATEGORIES)
+    assert [item["date"] for item in body["daily_categories"]] == [
+        f"2026-09-{day:02d}" for day in range(8, 13) for _category in CATEGORIES
+    ]
+    assert [item["category"] for item in body["daily_categories"]] == CATEGORIES * 5
+    assert sum(item["count"] for item in body["daily_categories"]) == body["total_events"]
+    for daily in body["daily"]:
+        assert sum(
+            item["count"]
+            for item in body["daily_categories"]
+            if item["date"] == daily["date"]
+        ) == daily["count"]
+    for category in body["categories"]:
+        assert sum(
+            item["count"]
+            for item in body["daily_categories"]
+            if item["category"] == category["category"]
+        ) == category["count"]
     assert body["as_of"]
     assert body["data_revision"]
     assert body["data_mode"] == "fixture"
@@ -66,6 +84,11 @@ def test_insights_combines_query_and_category_filters(client: TestClient) -> Non
     assert counts == {
         category: (6 if category == "model_release" else 0) for category in CATEGORIES
     }
+    assert all(
+        item["count"] == 0
+        for item in body["daily_categories"]
+        if item["category"] != "model_release"
+    )
 
 
 def test_insights_applies_minimum_importance_to_all_aggregates(client: TestClient) -> None:
@@ -98,6 +121,19 @@ def test_insights_zero_result_still_fills_daily_and_categories(client: TestClien
     assert body["total_events"] == 0
     assert [item["count"] for item in body["daily"]] == [0, 0, 0]
     assert [item["count"] for item in body["categories"]] == [0] * 6
+    assert len(body["daily_categories"]) == 3 * len(CATEGORIES)
+    assert [item["count"] for item in body["daily_categories"]] == [0] * 18
+
+
+def test_insights_month_range_uses_all_32_fixture_events(client: TestClient) -> None:
+    body = client.get(
+        "/api/v1/insights/summary",
+        params={"date_from": "2026-09-01", "date_to": "2026-09-30"},
+    ).json()
+
+    assert body["total_events"] == 32
+    assert sum(item["count"] for item in body["daily_categories"]) == 32
+    assert len(body["daily_categories"]) == 30 * len(CATEGORIES)
 
 
 def test_insights_rejects_missing_inverted_and_overlong_ranges(client: TestClient) -> None:

@@ -77,6 +77,7 @@ async def test_insights_excludes_unknown_dates_and_counts_event_identity_once(
     assert snapshot.total_events == 1
     assert snapshot.daily == {repository.now.date(): 1}
     assert sum(snapshot.categories.values()) == 1
+    assert snapshot.daily_categories == {(repository.now.date(), "research"): 1}
 
 
 @pytest.mark.asyncio

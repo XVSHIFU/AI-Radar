@@ -74,6 +74,12 @@ class CategoryInsight(BaseModel):
     count: int = Field(ge=0)
 
 
+class DailyCategoryInsight(BaseModel):
+    date: date
+    category: Category
+    count: int = Field(ge=0)
+
+
 class InsightsResponse(BaseModel):
     date_from: date
     date_to: date
@@ -82,6 +88,7 @@ class InsightsResponse(BaseModel):
     total_relation: Literal["eq"] = "eq"
     daily: list[DailyInsight]
     categories: list[CategoryInsight]
+    daily_categories: list[DailyCategoryInsight]
     as_of: datetime
     data_revision: str
     data_mode: Literal["fixture", "postgres"]

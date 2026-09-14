@@ -21,6 +21,7 @@ class InsightsSnapshot:
     total_events: int
     daily: dict[date, int]
     categories: dict[Category, int]
+    daily_categories: dict[tuple[date, Category], int]
     as_of: datetime
     data_revision: str
 

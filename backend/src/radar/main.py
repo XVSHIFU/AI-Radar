@@ -379,6 +379,17 @@ async def insight_summary(
         categories=[
             {"category": item, "count": snapshot.categories.get(item, 0)} for item in Category
         ],
+        daily_categories=[
+            {
+                "date": date_from + timedelta(days=offset),
+                "category": category_item,
+                "count": snapshot.daily_categories.get(
+                    (date_from + timedelta(days=offset), category_item), 0
+                ),
+            }
+            for offset in range((date_to - date_from).days + 1)
+            for category_item in Category
+        ],
         as_of=snapshot.as_of,
         data_revision=snapshot.data_revision,
         data_mode=data_mode(request),
