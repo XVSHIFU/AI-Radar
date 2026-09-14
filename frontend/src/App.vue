@@ -60,7 +60,10 @@ const viewKey = computed(
         >演示模式</RouterLink
       >
       <RouterLink v-else :to="route.path" class="switch">连接服务</RouterLink>
+      <div id="assistant-mobile-slot" aria-label="研究助手入口"></div>
+
     </header>
+
     <div class="app-content">
       <p v-if="demoEnabled" class="demo" role="note">
         前端模拟：仅用于交互演示，不代表真实服务结果。
