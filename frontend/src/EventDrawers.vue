@@ -296,7 +296,14 @@ const onEscape = (event: KeyboardEvent) => {
 
 };
 
-onMounted(() => document.addEventListener("keydown", onEscape));
+const onPagePointer = (event: PointerEvent) => {
+  if (!eventLayer.value || matchMedia("(max-width: 900px)").matches) return;
+  const target = event.target as Element | null;
+  if (target?.closest(".drawer-surface, #global-assistant")) return;
+  moveToParent();
+};
+
+onMounted(() => { document.addEventListener("keydown", onEscape); document.addEventListener("pointerdown", onPagePointer); });
 
 
 
