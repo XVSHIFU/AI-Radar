@@ -140,6 +140,31 @@ def test_assistant_history_cannot_inject_filters_or_evidence(client: TestClient)
     assert any("assistant" in warning for warning in body["warnings"])
 
 
+def test_irrelevant_chatter_does_not_hide_the_recent_relevant_user_turn(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/v1/query-plan",
+        json={
+            "question": "这些事件呢",
+            "history": [
+                {
+                    "role": "user",
+                    "content": "DeepSeek",
+                    "filters": {"entity_ids": [DEEPSEEK_ENTITY_ID]},
+                },
+                {"role": "user", "content": "谢谢"},
+            ],
+            "client_request_id": "skip-acknowledgement",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["filters"]["entity_ids"] == [DEEPSEEK_ENTITY_ID]
+    assert body["history_user_turns_used"] == 1
+    assert body["requires_clarification"] is False
+
+
 def test_unfrozen_relative_history_requires_clarification(client: TestClient) -> None:
     response = client.post(
         "/api/v1/query-plan",
@@ -155,6 +180,26 @@ def test_unfrozen_relative_history_requires_clarification(client: TestClient) ->
     assert body["filters"]["date_from"] is None
     assert body["filters"]["date_to"] is None
     assert body["filters"]["entity_ids"] == [DEEPSEEK_ENTITY_ID]
+    assert any("没有冻结绝对范围" in warning for warning in body["warnings"])
+
+
+def test_one_current_date_bound_does_not_make_relative_history_safe(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/v1/query-plan",
+        json={
+            "question": "这些事件呢",
+            "filters": {"date_from": "2026-09-10"},
+            "history": [{"role": "user", "content": "最近7天"}],
+            "client_request_id": "partial-current-date",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["requires_clarification"] is True
+    assert body["filters"]["date_from"] == "2026-09-10"
+    assert body["filters"]["date_to"] is None
     assert any("没有冻结绝对范围" in warning for warning in body["warnings"])
 
 

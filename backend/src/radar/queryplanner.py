@@ -99,6 +99,19 @@ FOLLOW_UP_REFERENCES = (
     "还有",
     "继续",
 )
+HISTORY_ACKNOWLEDGEMENTS = {
+    "好",
+    "好的",
+    "好吧",
+    "嗯",
+    "收到",
+    "明白",
+    "明白了",
+    "知道了",
+    "谢谢",
+    "谢谢你",
+    "感谢",
+}
 
 
 def normalize_query(value: str) -> str:
@@ -335,6 +348,10 @@ class QueryPlanner:
         for message in reversed(history):
             if message.role != "user":
                 continue
+            historical_text = normalize_query(message.content)
+            acknowledgement = historical_text.strip(" ,，。!！?？")
+            if acknowledgement in HISTORY_ACKNOWLEDGEMENTS and message.filters is None:
+                continue
             historical = await self.parse(
                 message.content,
                 message.filters or Filters(),
@@ -361,7 +378,7 @@ class QueryPlanner:
                 values["entity_match"] = historical.filters.entity_match
 
             has_relative_date = any(
-                term in normalize_query(message.content) for term in RELATIVE_DATE_TERMS
+                term in historical_text for term in RELATIVE_DATE_TERMS
             )
             frozen_date = bool(
                 message.filters
@@ -393,8 +410,7 @@ class QueryPlanner:
 
         requires_clarification = plan.requires_clarification
         candidates = list(plan.clarification_candidates)
-        current_has_date = "date_from" in origins or "date_to" in origins
-        if unsafe_relative_date and not current_has_date:
+        if unsafe_relative_date:
             requires_clarification = True
             warnings.append("历史相对日期没有冻结绝对范围，未按当前时间重新解释")
             candidates.append(
