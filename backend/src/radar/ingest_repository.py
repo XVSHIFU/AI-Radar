@@ -161,6 +161,11 @@ class IngestRepository:
             job.lease_generation += 1
             job.lease_until = now + timedelta(seconds=lease_seconds)
             job.attempts += 1
+            await session.execute(
+                update(IngestRunRow)
+                .where(IngestRunRow.id == job.run_id, IngestRunRow.status == "queued")
+                .values(status="running")
+            )
             await session.flush()
             session.expunge(job)
             return job
