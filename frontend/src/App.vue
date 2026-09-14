@@ -17,7 +17,7 @@ const viewKey = computed(
       <RouterLink :to="link('/preview')" class="preview-shell-brand">AI 革新雷达 <span>预览版</span></RouterLink>
       <nav class="preview-shell-nav" aria-label="预览导航">
         <RouterLink :to="link('/preview')">AI 动态</RouterLink>
-        <RouterLink :to="link('/preview/ask')">问答</RouterLink>
+        <RouterLink :to="link('/preview/ask')">统计与问答</RouterLink>
       </nav>
       <RouterLink :to="link('/')" class="preview-shell-return">返回原版</RouterLink>
     </header>
@@ -42,7 +42,7 @@ const viewKey = computed(
         <RouterLink :to="link('/ask')"
           ><svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 5h14v10H9l-4 4z" /></svg
-          >问答</RouterLink
+          >统计与问答</RouterLink
         >
         <RouterLink :to="link('/ingest')"
           ><svg viewBox="0 0 24 24" aria-hidden="true">
