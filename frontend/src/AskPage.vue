@@ -198,7 +198,7 @@ function scheduleOverview() {
   resetAnswer();
   timer = window.setTimeout(() => void loadOverview(), 260);
 }
-function selectDay(date: string, end = date) { rangeMode.value = "custom"; from.value = date; to.value = end > today ? today : end; }
+function selectDay(date: string, end = date) { rangeMode.value = "custom"; from.value = date; to.value = end; }
 async function planFromQuestion() {
   const current = ++ruleGeneration;
   ruleController?.abort();
