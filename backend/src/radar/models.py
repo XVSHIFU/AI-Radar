@@ -198,9 +198,7 @@ class ArticleCandidateRow(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     run_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ingest_runs.id", ondelete="CASCADE"))
     source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
-    article_version_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("article_versions.id")
-    )
+    article_version_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("article_versions.id"))
     canonical_url: Mapped[str] = mapped_column(Text)
     original_url: Mapped[str] = mapped_column(Text)
     title: Mapped[str] = mapped_column(Text)
@@ -239,6 +237,7 @@ class LlmCallRow(Base):
     __tablename__ = "llm_calls"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     ingest_run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("ingest_runs.id"))
+    article_version_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("article_versions.id"))
     logical_request_id: Mapped[str] = mapped_column(String(200))
     purpose: Mapped[str] = mapped_column(String(48))
     provider: Mapped[str] = mapped_column(String(100))
@@ -250,6 +249,13 @@ class LlmCallRow(Base):
     currency: Mapped[str] = mapped_column(String(8), default="USD")
     cost_status: Mapped[str] = mapped_column(String(16), default="unknown")
     status: Mapped[str] = mapped_column(String(24))
+    provider_response_id: Mapped[str | None] = mapped_column(String(200))
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer)
+    total_tokens: Mapped[int | None] = mapped_column(Integer)
+    response_content_hash: Mapped[str | None] = mapped_column(String(64))
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class BudgetReservationRow(Base):

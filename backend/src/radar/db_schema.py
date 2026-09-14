@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0005_source_cooldown"
+SCHEMA_REVISION = "0006_llm_extraction"
