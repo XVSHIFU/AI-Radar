@@ -1,0 +1,39 @@
+{
+  "captured_at": "2026-09-14T15:58:41.051813+00:00",
+  "layer": "ubuntu_live_postgres_ingestion",
+  "readiness": {
+    "status": "ready",
+    "data_mode": "postgres",
+    "synthetic": false,
+    "postgres_ready": true
+  },
+  "table_counts": {
+    "sources": 5,
+    "articles": 486,
+    "article_versions": 486,
+    "article_candidates": 486,
+    "events": 0,
+    "evidence": 0,
+    "llm_calls": 0
+  },
+  "jobs": {
+    "queued": 780,
+    "retry_wait": 85,
+    "running": 1,
+    "succeeded": 491
+  },
+  "invalid_candidate_version_links": 0,
+  "unauthenticated_management_status": 401,
+  "authenticated_management_status": 200,
+  "notes": [
+    "Snapshot only: background collection continues.",
+    "Articles/candidates are not published standard events.",
+    "No model calls; models and historical gold remain deferred."
+  ],
+  "schema_revision": "0005_source_cooldown",
+  "cooling_sources": [
+    "Hugging Face"
+  ],
+  "active_leases": 0,
+  "worker_interval_seconds": 10.0
+}

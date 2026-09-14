@@ -1,7 +1,7 @@
 # 验收状态
 
 项目 P0 整体仍未验收通过。2026-09-14 已在 Ubuntu 运行真实 PostgreSQL 16 + pgvector，
-迁移到 0004、readiness、五源生产抓取样本和隔离备份恢复演练通过。持久采集运行中，
+迁移到 0005、readiness、五源生产抓取样本和隔离备份恢复演练通过。持久采集运行中，
 标准事件发布及模型仍未实现。最新数据库证据见 db-live-validation.md，环境见 ubuntu-development.md。
 下表保留此前各轮 UI/合成回归记录，不合并计算通过率。
 
@@ -25,7 +25,7 @@
 | 原RSS入口探测 | 5/5 XML解析 | source-validation.json；使用旧入口探测脚本，不能代替生产transport |
 | 生产抓取/正文样本 | 5/5 | source-body-validation.json；Ubuntu 显式 DoH，保留公网校验和 IP 固定 |
 | 完整来源链路、真实标准事件 | 0/5、0/100 | 当前止于正文版本与待审候选；未完成模型提取/发布 |
-| PostgreSQL16+pgvector真实迁移 | 0001→0004、ready、备份/隔离恢复通过 | ubuntu-development.md、db-live-validation.md；不替代模型与事件质量验收 |
+| PostgreSQL16+pgvector真实迁移 | 0001→0005、ready、备份/隔离恢复通过 | ubuntu-development.md、db-live-validation.md；不替代模型与事件质量验收 |
 | 历史T01/E01 gold | 未执行 | 用户暂无原站ID/材料，明确同意合成结构回归 |
 | 全文/向量/RRF及真实问答 | 未完成 | 无真实模型调用；预算表/账本基础不等于执行结算 |
 | 旧API/SSE兼容、生产恢复 | 旧接口及生产部署未验收；开发库恢复已通过 | 缺原站抓包；隔离恢复见 ubuntu-development.md |
