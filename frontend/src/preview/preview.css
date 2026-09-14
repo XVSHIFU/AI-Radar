@@ -381,3 +381,14 @@
   .ask-layout--streamlined .ask-conditions summary::before,
   .preview-reader[open] { animation: none; transition: none; }
 }
+/* Keep the preview aligned with the original reading hierarchy. */
+.preview-categories label { min-height: 44px; border-radius: 8px; }
+.preview-categories label:has(input:checked) { padding: 0 8px; background: var(--blue-soft); color: var(--blue); }
+.preview-clear { padding: 0 4px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.preview-clear:hover { border: 0; background: transparent; color: var(--blue); }
+.preview-year-heading { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
+.preview-year-heading h2 { margin: 0; color: var(--blue); font-size: 20px; font-weight: 650; }
+.preview-year-heading small,
+.preview-day-heading small { margin-left: auto; color: var(--muted); font-size: 12px; }
+.preview-day-heading { display: flex; align-items: center; min-height: 44px; margin: 0; padding: 7px 0; color: var(--muted); font-size: 13px; }
+.preview-day .timeline-day-toggle { display: none; }

@@ -47,6 +47,9 @@ const categories: { v: Category; l: string }[] = [
   { v: "industry", l: "产业" },
 ];
 const timeline = computed(() => buildTimeline(items.value));
+const hasFilters = computed(() =>
+  Boolean(q.value || category.value || from.value || to.value),
+);
 const invalid = computed(() =>
   Boolean(from.value && to.value && from.value > to.value),
 );
@@ -210,6 +213,7 @@ onBeforeUnmount(() => {
         <div id="advanced" v-show="!compact || advanced" class="filter-details">
           <fieldset class="category-list">
             <legend>分类</legend>
+            <label class="category-list__all"><input v-model="category" type="radio" value="" />全部</label>
             <label v-for="entry in categories" :key="entry.v"
               ><input v-model="category" type="radio" :value="entry.v" />{{
                 entry.l
@@ -221,7 +225,7 @@ onBeforeUnmount(() => {
             ><label>至<input v-model="to" type="date" class="control" /></label>
           </div>
         </div>
-        <div class="filter-actions"><button @click="clear">清除</button></div>
+        <div v-if="hasFilters" class="filter-actions"><button class="filter-clear" @click="clear">清除条件</button></div>
       </div>
       <p v-if="invalid" class="status danger">
         日期范围无效：起始日期不能晚于截止日期。
@@ -245,120 +249,65 @@ onBeforeUnmount(() => {
         :class="{ 'timeline-year--unknown': year.unknown }"
       >
         <div class="timeline-year__heading">
-          <button
-            class="timeline-year__toggle"
-            data-testid="timeline-year-toggle"
-            :data-key="year.key"
-            :aria-expanded="timelineState[year.key]"
-            @click="toggle(year.key)"
+          <h2 class="timeline-year__label">{{ year.label }}</h2>
+          <span class="timeline-year__count"
+            >已加载
+            {{
+              year.months.reduce(
+                (sum, month) =>
+                  sum +
+                  month.days.reduce(
+                    (days, day) => days + day.events.length,
+                    0,
+                  ),
+                0,
+              )
+            }}
+            条</span
           >
-            <span class="timeline-year__label">{{ year.label }}</span>
-            <span class="timeline-year__count"
+        </div>
+        <section
+          v-for="month in year.months"
+          :key="month.key"
+          class="timeline-month"
+        >
+          <button
+            class="timeline-month__toggle"
+            data-testid="timeline-month-toggle"
+            :data-key="month.key"
+            :aria-expanded="timelineState[month.key]"
+            @click="toggle(month.key)"
+          >
+            <span>{{ month.label }}</span>
+            <span class="timeline-month__count"
               >已加载
-              {{
-                year.months.reduce(
-                  (sum, month) =>
-                    sum +
-                    month.days.reduce(
-                      (days, day) => days + day.events.length,
-                      0,
-                    ),
-                  0,
-                )
-              }}
+              {{ month.days.reduce((sum, day) => sum + day.events.length, 0) }}
               条</span
             >
           </button>
-          <div
-            v-if="timeline[0]?.key === year.key"
-            class="timeline-year__tools"
-            aria-label="时间线展开控制"
-          >
-            <button aria-label="展开全部" @click="setAll(true)">展开</button>
-            <button aria-label="折叠全部" @click="setAll(false)">折叠</button>
+          <div v-if="timelineState[month.key]">
+            <section v-for="day in month.days" :key="day.key" class="timeline-day">
+              <p class="timeline-day__label">
+                <span>{{ day.label }}</span>
+                <span class="timeline-day__loaded">已加载 {{ day.events.length }} 条</span>
+              </p>
+              <article v-for="item in day.events" :key="item.id" class="timeline-event">
+                <span class="pill">{{ categories.find((entry) => entry.v === item.category)?.l }}</span>
+                <h2 class="timeline-event__title">
+                  <a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a>
+                </h2>
+                <p class="muted">{{ item.summary_zh }}</p>
+                <p class="meta tabular timeline-event__meta">
+                  重要度 {{ item.importance }}/5 · {{ item.source_count }} 个来源 · {{ item.evidence_count }} 条关联证据
+                </p>
+                <p v-if="item.entities.length" class="timeline-event__entities">
+                  <span v-for="entity in item.entities" :key="entity" class="pill">{{ entity }}</span>
+                </p>
+              </article>
+            </section>
           </div>
-        </div>
-        <div v-if="timelineState[year.key]">
-          <section
-            v-for="month in year.months"
-            :key="month.key"
-            class="timeline-month"
-          >
-            <button
-              class="timeline-month__toggle"
-              data-testid="timeline-month-toggle"
-              :data-key="month.key"
-              :aria-expanded="timelineState[month.key]"
-              @click="toggle(month.key)"
-            >
-              <span>{{ month.label }}</span>
-              <span class="timeline-month__count"
-                >已加载
-                {{
-                  month.days.reduce((sum, day) => sum + day.events.length, 0)
-                }}
-                条</span
-              >
-            </button>
-            <div v-if="timelineState[month.key]">
-              <section
-                v-for="day in month.days"
-                :key="day.key"
-                class="timeline-day"
-              >
-                <button
-                  class="timeline-day__toggle"
-                  data-testid="timeline-day-toggle"
-                  :data-key="day.key"
-                  :aria-expanded="timelineState[day.key]"
-                  @click="toggle(day.key)"
-                >
-                  <span>{{ day.label }}</span
-                  ><span class="timeline-day__loaded"
-                    >已加载 {{ day.events.length }} 条</span
-                  >
-                </button>
-                <div v-if="timelineState[day.key]">
-                  <article
-                    v-for="item in day.events"
-                    :key="item.id"
-                    class="timeline-event"
-                  >
-                    <span class="pill">{{
-                      categories.find((entry) => entry.v === item.category)?.l
-                    }}</span>
-                    <h2 class="timeline-event__title">
-                      <a
-                        :href="directEventHref(item.id)"
-                        @click="openEvent($event, item.id)"
-                        >{{ item.title_zh }}</a
-                      >
-                    </h2>
-                    <p class="muted">{{ item.summary_zh }}</p>
-                    <p class="meta tabular timeline-event__meta">
-                      重要度 {{ item.importance }}/5 ·
-                      {{ item.source_count }} 个来源 ·
-                      {{ item.evidence_count }} 条关联证据
-                    </p>
-                    <p
-                      v-if="item.entities.length"
-                      class="timeline-event__entities"
-                    >
-                      <span
-                        v-for="entity in item.entities"
-                        :key="entity"
-                        class="pill"
-                        >{{ entity }}</span
-                      >
-                    </p>
-                  </article>
-                </div>
-              </section>
-            </div>
-          </section>
-        </div>
-      </section>
-      <button v-if="next && !loading" @click="load(next, true)">
+        </section>
+      </section>      <button v-if="next && !loading" @click="load(next, true)">
         加载更多
       </button>
     </div>

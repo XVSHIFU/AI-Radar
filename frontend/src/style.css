@@ -810,3 +810,43 @@ blockquote[tabindex]:focus-visible {
     padding-bottom: 14px;
   }
 }
+
+/* Home filter refinement: compact native radios with a quiet reset action. */
+.filter-strip .category-list {
+  gap: 0 10px;
+  align-items: center;
+}
+.filter-strip .category-list label {
+  min-height: 44px;
+  padding: 0 2px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.filter-strip .category-list input {
+  accent-color: var(--blue);
+}
+.filter-strip .category-list label:has(input:checked) {
+  padding: 0 8px;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.filter-actions .filter-clear {
+  min-height: 44px;
+  margin-top: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.filter-actions .filter-clear:hover {
+  border: 0;
+  background: transparent;
+  color: var(--blue);
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--blue);
+}

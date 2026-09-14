@@ -72,14 +72,6 @@ const categoryLabels: Record<Category, string> = {
 };
 const verificationLabel = (status: string) =>
   status === "synthetic_verified" ? "合成回归：已核对" : status || "未提供";
-const eventDetailHref = computed(() =>
-  eventId.value
-    ? router.resolve({
-        path: `/events/${eventId.value}`,
-        query: route.query.demo === "1" ? { demo: "1" } : {},
-      }).href
-    : "/",
-);
 
 const sources = computed<SourceChoice[]>(() => {
   const rows: SourceChoice[] = [];
@@ -180,12 +172,7 @@ function openEvidence(row: Evidence) {
     },
   });
 }
-function handleEscape(event: KeyboardEvent) {
-  if (event.key !== "Escape" || !eventLayer.value) return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  if (!event.repeat) moveToParent();
-}
+
 function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   if (!dialog) return;
   if (open && !dialog.open) {
@@ -289,11 +276,7 @@ watch(evidenceId, async (next, previous) => {
     evidenceOpener?.focus();
   }
 });
-onMounted(() => {
-  window.addEventListener("keydown", handleEscape, true);
-});
 onBeforeUnmount(() => {
-  window.removeEventListener("keydown", handleEscape, true);
   generation++;
   controller?.abort();
   unlockScroll();
@@ -315,16 +298,9 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <h2 id="drawer-event-title">事件 · 当前层</h2>
-          <button
-            data-testid="drawer-close"
-            aria-label="关闭事件抽屉"
-            @click="moveToParent"
-          >
-            关闭
-          </button>
-        </div>
-        <div class="drawer-body">
+          <button data-testid="drawer-back" aria-label="返回时间线" @click="closeAll">← 返回</button>
+          <h2 id="drawer-event-title">事件</h2>
+        </div>        <div class="drawer-body">
           <p v-if="dataMode === 'fixture'" class="drawer-fixture">
             后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
           </p>
@@ -350,15 +326,12 @@ onBeforeUnmount(() => {
                 >{{ entity }}</span
               >
             </p>
-            <p class="drawer-full-page">
-              <a :href="eventDetailHref">打开完整事件页</a>
-            </p>
             <p class="meta tabular">
               {{ item.event_date || "日期未知" }} ·
               {{ item.source_count }} 个来源 ·
               {{ item.evidence_count }} 条关联证据
             </p>
-            <h3>来源</h3>
+            <h3>来源与保存证据</h3>
             <p v-if="evidenceError" class="drawer-error" role="alert">
               证据暂时无法读取：{{ evidenceError.message }}
               <button @click="loadEvent">重试</button>
@@ -366,33 +339,23 @@ onBeforeUnmount(() => {
             <p v-else-if="!sources.length" class="drawer-status">
               此事件没有可打开的来源或关联证据。
             </p>
-            <div
-              v-for="source in sources"
-              :key="source.key"
-              class="drawer-source"
-            >
-              <p class="drawer-source__name">{{ source.title }}</p>
-              <p class="meta">
-                {{
-                  source.evidence.length
-                    ? `${source.evidence.length} 条已保存证据`
-                    : "未提供关联证据"
-                }}
-              </p>
-              <button data-testid="source-open" @click="openSource(source)">
-                查看来源
-              </button>
-            </div>
-          </template>
+            <section v-for="source in sources" :key="source.key" class="drawer-source">
+              <h4 class="drawer-source__name">{{ source.title }}</h4>
+              <p v-if="safeUrl(source.sourceUrl)"><a :href="source.sourceUrl" target="_blank" rel="noopener">打开原始来源</a></p>
+              <p v-else class="drawer-status">该来源未提供可安全打开的链接。</p>
+              <p v-if="!source.evidence.length" class="drawer-status">该来源没有已保存的段落证据。</p>
+              <section v-for="row in source.evidence" :key="row.id" class="drawer-evidence">
+                <blockquote class="drawer-quote">{{ row.quote_text || "未保存段落摘录。" }}</blockquote>
+                <details class="drawer-source__details"><summary>来源信息</summary><p>不可变版本：{{ row.article_version_id || "未提供" }}</p><p>段落：{{ row.paragraph_id || "未提供" }}</p><p>核验状态：{{ verificationLabel(row.verification_status) }}</p></details>
+              </section>
+              <button data-testid="source-open" @click="openSource(source)">来源详情</button>
+            </section>          </template>
           <div v-else class="drawer-error" role="alert">
             <p>缺少事件标识，无法打开来源层。</p>
             <button data-testid="drawer-back" @click="moveToParent">
               返回
             </button>
           </div>
-          <button v-if="eventLayer" class="drawer-return" @click="closeAll">
-            返回时间线
-          </button>
         </div>
       </div>
     </dialog>
@@ -410,23 +373,9 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button
-            data-testid="drawer-back"
-            aria-label="返回事件"
-            @click="moveToParent"
-          >
-            返回
-          </button>
-          <h2 id="drawer-source-title">事件 › 来源 · 当前层</h2>
-          <button
-            data-testid="drawer-close"
-            aria-label="关闭来源抽屉"
-            @click="moveToParent"
-          >
-            关闭
-          </button>
-        </div>
-        <div class="drawer-body">
+          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent">← 返回</button>
+          <h2 id="drawer-source-title">来源</h2>
+        </div>        <div class="drawer-body">
           <p v-if="dataMode === 'fixture'" class="drawer-fixture">
             后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
           </p>
@@ -461,20 +410,10 @@ onBeforeUnmount(() => {
             <p v-if="!selectedSource.evidence.length" class="drawer-status">
               该来源没有已保存的段落证据。
             </p>
-            <div
-              v-for="row in selectedSource.evidence"
-              :key="row.id"
-              class="drawer-evidence"
-            >
-              <p>{{ row.title }}</p>
-              <p class="meta">
-                版本 {{ row.article_version_id }} · 段落 {{ row.paragraph_id }}
-              </p>
-              <button data-testid="evidence-open" @click="openEvidence(row)">
-                查看证据
-              </button>
-            </div>
-          </template>
+            <section v-for="row in selectedSource.evidence" :key="row.id" class="drawer-evidence">
+              <blockquote class="drawer-quote">{{ row.quote_text || "未保存段落摘录。" }}</blockquote>
+              <details class="drawer-source__details"><summary>来源信息</summary><p>不可变版本：{{ row.article_version_id || "未提供" }}</p><p>段落：{{ row.paragraph_id || "未提供" }}</p><p>核验状态：{{ verificationLabel(row.verification_status) }}</p></details>
+            </section>          </template>
           <p v-else class="drawer-status">正在读取来源…</p>
         </div>
       </div>
@@ -490,23 +429,9 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button
-            data-testid="drawer-back"
-            aria-label="返回来源"
-            @click="moveToParent"
-          >
-            返回
-          </button>
-          <h2 id="drawer-evidence-title">事件 › 来源 › 证据 · 当前层</h2>
-          <button
-            data-testid="drawer-close"
-            aria-label="关闭证据抽屉"
-            @click="moveToParent"
-          >
-            关闭
-          </button>
-        </div>
-        <div class="drawer-body">
+          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent">← 返回</button>
+          <h2 id="drawer-evidence-title">证据</h2>
+        </div>        <div class="drawer-body">
           <p v-if="dataMode === 'fixture'" class="drawer-fixture">
             后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
           </p>

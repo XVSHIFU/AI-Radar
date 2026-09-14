@@ -43,8 +43,6 @@ const categoryName = (value: Category) =>
   categories.find((entry) => entry.v === value)?.l || value;
 const countRows = (days: { events: Event[] }[]) =>
   days.reduce((sum, day) => sum + day.events.length, 0);
-const countYear = (year: (typeof timeline.value)[number]) =>
-  year.months.reduce((sum, month) => sum + countRows(month.days), 0);
 
 function sync() {
   q.value = String(route.query.q || "");
@@ -189,20 +187,18 @@ onBeforeUnmount(() => {
       <p v-if="loading" class="preview-state" aria-live="polite">正在读取事件流…</p>
       <div v-else-if="error" class="preview-error" role="alert">{{ error.message }} <button @click="load()">重试</button></div>
       <p v-else-if="!invalid && !items.length" class="preview-state">这个范围内没有事件。</p>
-      <section v-for="year in timeline" :key="year.key" class="preview-year" :class="{ 'preview-year--unknown': year.unknown }">
-        <div class="preview-period">
-          <button class="timeline-year-toggle" data-testid="timeline-year-toggle" :data-key="year.key" :aria-expanded="timelineState[year.key]" @click="toggle(year.key)">{{ year.label }} <small>已加载 {{ countYear(year) }} 条</small></button>
-          <button v-if="year.months[0]" class="timeline-month-toggle" data-testid="timeline-month-toggle" :data-key="year.months[0].key" :aria-expanded="timelineState[year.months[0].key]" @click="toggle(year.months[0].key)">{{ year.months[0].label }} <small>已加载 {{ countRows(year.months[0].days) }} 条</small></button>
-        </div>
-        <div v-if="timelineState[year.key] && year.months[0] && timelineState[year.months[0].key]">
-          <section v-for="day in year.months[0].days" :key="day.key" class="preview-day">
-            <button class="timeline-day-toggle" data-testid="timeline-day-toggle" :data-key="day.key" :aria-expanded="timelineState[day.key]" @click="toggle(day.key)"><span class="preview-day-label">{{ day.label }}</span><small>已加载 {{ day.events.length }} 条</small></button>
-            <div v-if="timelineState[day.key]"><article v-for="item in day.events" :key="item.id" class="preview-event" data-testid="preview-event"><p><span class="preview-chip">{{ categoryName(item.category) }}</span></p><h2><a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a></h2><p class="preview-summary">{{ item.summary_zh }}</p><p v-if="item.entities.length" class="preview-entities"><span v-for="entity in item.entities" :key="entity" class="preview-chip">{{ entity }}</span></p></article></div>
-          </section>
-        </div>
-        <section v-for="month in year.months.slice(1)" :key="month.key" v-show="timelineState[year.key]" class="preview-later-month"><button class="timeline-month-toggle" data-testid="timeline-month-toggle" :data-key="month.key" :aria-expanded="timelineState[month.key]" @click="toggle(month.key)">{{ month.label }} <small>已加载 {{ countRows(month.days) }} 条</small></button><div v-if="timelineState[month.key]"><section v-for="day in month.days" :key="day.key" class="preview-day"><button class="timeline-day-toggle" data-testid="timeline-day-toggle" :data-key="day.key" :aria-expanded="timelineState[day.key]" @click="toggle(day.key)"><span class="preview-day-label">{{ day.label }}</span><small>已加载 {{ day.events.length }} 条</small></button><div v-if="timelineState[day.key]"><article v-for="item in day.events" :key="item.id" class="preview-event" data-testid="preview-event"><p><span class="preview-chip">{{ categoryName(item.category) }}</span></p><h2><a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a></h2><p class="preview-summary">{{ item.summary_zh }}</p><p v-if="item.entities.length" class="preview-entities"><span v-for="entity in item.entities" :key="entity" class="preview-chip">{{ entity }}</span></p></article></div></section></div></section>
-      </section>
-      <button v-if="next && !loading" data-testid="preview-load-more" class="preview-more" @click="load(next, true)">加载更多</button>
+      <section v-for="year in timeline" :key="year.key" class="preview-year">
+        <div class="preview-year-heading"><h2>{{ year.label }}</h2><small>已加载 {{ year.months.reduce((sum, month) => sum + countRows(month.days), 0) }} 条</small></div>
+        <section v-for="month in year.months" :key="month.key" class="preview-later-month">
+          <button class="timeline-month-toggle" data-testid="timeline-month-toggle" :data-key="month.key" :aria-expanded="timelineState[month.key]" @click="toggle(month.key)">{{ month.label }} <small>已加载 {{ countRows(month.days) }} 条</small></button>
+          <div v-if="timelineState[month.key]">
+            <section v-for="day in month.days" :key="day.key" class="preview-day">
+              <p class="preview-day-heading"><span>{{ day.label }}</span><small>已加载 {{ day.events.length }} 条</small></p>
+              <article v-for="item in day.events" :key="item.id" class="preview-event" data-testid="preview-event"><p><span class="preview-chip">{{ categoryName(item.category) }}</span></p><h2><a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a></h2><p class="preview-summary">{{ item.summary_zh }}</p><p v-if="item.entities.length" class="preview-entities"><span v-for="entity in item.entities" :key="entity" class="preview-chip">{{ entity }}</span></p></article>
+            </section>
+          </div>
+        </section>
+      </section>      <button v-if="next && !loading" data-testid="preview-load-more" class="preview-more" @click="load(next, true)">加载更多</button>
     </section>
     <PreviewReader :event-id="eventId" />
   </section>
