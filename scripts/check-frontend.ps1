@@ -1,6 +1,6 @@
-param([string]$BaseUrl = 'http://127.0.0.1:5175')
+param([string]$BaseUrl = 'http://127.0.0.1:5175', [string]$BrowserSession = 'radar-acceptance')
 $ErrorActionPreference = 'Stop'
-$session = 'radar-acceptance'
+$session = $BrowserSession
 $results = [Collections.Generic.List[object]]::new()
 function Js([string]$code) {
     $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($code))

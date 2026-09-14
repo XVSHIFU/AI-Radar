@@ -1,0 +1,139 @@
+{
+  "observed_at": "2026-09-14T01:21:38.6342656+00:00",
+  "base_url": "http://127.0.0.1:5175",
+  "layer": "fixture_api_visual_capture",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "state": "home",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\desktop-home.png",
+      "layout": {
+        "firstEventTop": 407.140625,
+        "focusInside": true,
+        "layerCount": 0,
+        "panelOverflow": false,
+        "scrollWidth": 1430,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "home-full",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\desktop-home-full.png",
+      "layout": {
+        "firstEventTop": 407.140625,
+        "focusInside": true,
+        "layerCount": 0,
+        "panelOverflow": false,
+        "scrollWidth": 1430,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "reader",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\desktop-reader.png",
+      "layout": {
+        "firstEventTop": 407.140625,
+        "focusInside": true,
+        "layerCount": 1,
+        "panelLeft": 736,
+        "panelOverflow": false,
+        "panelRight": 1416,
+        "scrollWidth": 1440,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 1440
+      }
+    },
+    {
+      "state": "ask",
+      "device": "desktop",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\desktop-ask.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "panelOverflow": false,
+        "scrollWidth": 1440,
+        "synthetic": false,
+        "title": "研究问答",
+        "width": 1440
+      }
+    },
+    {
+      "state": "home",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\mobile-home.png",
+      "layout": {
+        "firstEventTop": 534.546875,
+        "focusInside": true,
+        "layerCount": 0,
+        "panelOverflow": false,
+        "scrollWidth": 380,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "home-full",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\mobile-home-full.png",
+      "layout": {
+        "firstEventTop": 534.546875,
+        "focusInside": true,
+        "layerCount": 0,
+        "panelOverflow": false,
+        "scrollWidth": 380,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "reader",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\mobile-reader.png",
+      "layout": {
+        "firstEventTop": -119.453125,
+        "focusInside": true,
+        "layerCount": 1,
+        "panelLeft": 0,
+        "panelOverflow": false,
+        "panelRight": 390,
+        "scrollWidth": 390,
+        "synthetic": true,
+        "title": "AI 动态",
+        "width": 390
+      }
+    },
+    {
+      "state": "ask",
+      "device": "mobile",
+      "passed": true,
+      "path": "E:\\AI-AGENT\\AI-Radar-Implementation-Spec\\codex\\.impeccable\\review\\simple-mvp\\reviewer-fix-1\\mobile-ask.png",
+      "layout": {
+        "focusInside": true,
+        "layerCount": 0,
+        "panelOverflow": false,
+        "scrollWidth": 390,
+        "synthetic": false,
+        "title": "研究问答",
+        "width": 390
+      }
+    }
+  ]
+}

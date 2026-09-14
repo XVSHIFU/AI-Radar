@@ -8,6 +8,7 @@
 | 两原型共用浏览器检查 | 14/14 | prototype-browser-results.json |
 | 本轮四页重设计 | 四项独立审查修复均resolved，ship | ui-redesign-report.md、ui-finish-verdict-final.md；仅该修复范围，不代表完整P0通过 |
 | 时间层级与叠层抽屉 | 浏览器24/24；动效2/2；四项修复resolved，ship | drawer-browser-results.json、drawer-motion-results.json、drawer-ui-report.md |
+| 简化阅读预览 MVP | 浏览器27/27；两项修复resolved，ship | simple-mvp-report.md、simple-mvp-finish-verdict.md；独立预览，8张最终截图，合成数据 |
 | 正式四页浏览器 | 42/42 | frontend-browser-results.json；390/768/1440、分页、取消、引用、错误、实际计划与长文本 |
 | 实际HTTP合成API | 14/14 | api-smoke-results.json；确切ID、日期、别名、分页和证据定位 |
 | 独立确定性计划HTTP | 30/30 | query-plan-regression-results.json；固定Clock、日期、别名、实体跨度、UI冲突 |
@@ -29,6 +30,6 @@
 
 固定双轴审查见review-575d571.md、review-0b5cbb9.md、review-4eb258e.md。查询计划发现的实体漏检、冲突提示和日期上界问题均经过原负责人修复与固定复验；仍不等于真实PG语义/事务验收。
 
-当前预览 http://127.0.0.1:5175 ，API http://127.0.0.1:8002/docs 。启动/停止脚本已实际验证。后续依赖和验收顺序见next-acceptance.md。
+简化阅读预览 http://127.0.0.1:5175/preview ，原版 http://127.0.0.1:5175 ，API http://127.0.0.1:8002/docs 。启动/停止脚本已实际验证。后续依赖和验收顺序见next-acceptance.md。
 
-Pro周额度用户起始报告95%；2026-09-12 13:39观测83%，最新2026-09-13 11:22观测97%，分别记录观测值；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。
+Pro周额度用户起始报告95%；2026-09-12 13:39观测83%，最新2026-09-14 09:25观测94%，分别记录观测值；<=80%即停止所有模型工作。实际货币费用与用户返工时间unknown，不能用周百分比推算现金或补填0。
