@@ -93,7 +93,7 @@ async def test_history_resume_reuses_frozen_versions_and_deduplicates_shared_job
                     select(func.count())
                     .select_from(IngestJobRow)
                     .where(
-                        IngestJobRow.payload["url"].astext == new_url,
+                        IngestJobRow.payload["canonical_url"].astext == new_url,
                     )
                 )
                 == 1

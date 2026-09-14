@@ -311,7 +311,7 @@ async def enqueue(
                             source_id=source.id,
                             job_key=article_job_key(run.id, entry.url),
                             stage="article_fetch",
-                            payload={"url": entry.url},
+                            payload={"canonical_url": entry.url},
                         )
                         .on_conflict_do_nothing(
                             index_elements=["job_key"],
