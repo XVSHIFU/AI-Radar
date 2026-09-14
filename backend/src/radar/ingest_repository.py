@@ -14,8 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased
 
 from .models import (
-    ArticleCandidateRow,
-    ArticleVersionRow,
+    ArticleDiscoveryRow,
     BudgetReservationRow,
     EventArticleRow,
     EventRow,
@@ -103,15 +102,11 @@ class IngestRepository:
     async def published_counts(self, run_ids: list[UUID]) -> dict[UUID, int]:
         async with self._database_boundary(), self.sessions() as session:
             rows = await session.execute(
-                select(ArticleCandidateRow.run_id, func.count(func.distinct(EventRow.id)))
-                .join(
-                    ArticleVersionRow,
-                    ArticleVersionRow.id == ArticleCandidateRow.article_version_id,
-                )
-                .join(EventArticleRow, EventArticleRow.article_id == ArticleVersionRow.article_id)
+                select(ArticleDiscoveryRow.run_id, func.count(func.distinct(EventRow.id)))
+                .join(EventArticleRow, EventArticleRow.article_id == ArticleDiscoveryRow.article_id)
                 .join(EventRow, EventRow.id == EventArticleRow.event_id)
-                .where(ArticleCandidateRow.run_id.in_(run_ids), EventRow.status == "published")
-                .group_by(ArticleCandidateRow.run_id)
+                .where(ArticleDiscoveryRow.run_id.in_(run_ids), EventRow.status == "published")
+                .group_by(ArticleDiscoveryRow.run_id)
             )
             return {run_id: count for run_id, count in rows}
 
