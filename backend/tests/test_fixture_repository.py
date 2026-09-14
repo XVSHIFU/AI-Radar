@@ -70,13 +70,33 @@ async def test_insights_excludes_unknown_dates_and_counts_event_identity_once(
             unknown,
         ],
     )
-    snapshot = await repository.insights(
+    snapshot = await repository.insight_summary(
         Filters(date_from=repository.now.date(), date_to=repository.now.date())
     )
 
     assert snapshot.total_events == 1
     assert snapshot.daily == {repository.now.date(): 1}
     assert sum(snapshot.categories.values()) == 1
+
+
+@pytest.mark.asyncio
+async def test_legacy_headlines_rank_all_today_events_before_limit(tmp_path: Path) -> None:
+    fixture = tmp_path / "fixture.json"
+    fixture.write_text('{"dataset":"test","items":[]}', encoding="utf-8")
+    repository = FixtureRepository(
+        fixture,
+        "secret-secret-secret",
+        items=[
+            item(1, "最高重要度但最小 ID", 5, ["示例研究团队"]),
+            item(2, "普通二", 2, ["示例研究团队"]),
+            item(3, "普通三", 3, ["示例研究团队"]),
+            item(4, "普通四", 4, ["示例研究团队"]),
+        ],
+    )
+    headlines = (await repository.insights())["headlines"]
+    ids = {event.id for event in headlines}
+    assert UUID("50000000-0000-4000-8000-000000000001") in ids
+    assert len(ids) == 3
 
 
 @pytest.mark.asyncio

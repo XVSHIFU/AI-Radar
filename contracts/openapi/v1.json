@@ -1446,6 +1446,26 @@
     "/api/v1/insights": {
       "get": {
         "operationId": "insights_api_v1_insights_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Insights Api V1 Insights Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Insights"
+      }
+    },
+    "/api/v1/insights/summary": {
+      "get": {
+        "operationId": "insight_summary_api_v1_insights_summary_get",
         "parameters": [
           {
             "in": "query",
@@ -1540,7 +1560,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Insights"
+        "summary": "Insight Summary"
       }
     },
     "/api/v1/query-plan": {

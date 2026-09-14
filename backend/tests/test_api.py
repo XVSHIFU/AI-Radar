@@ -13,9 +13,20 @@ CATEGORIES = [
 ]
 
 
+def test_legacy_insights_contract_remains_available(client: TestClient) -> None:
+    response = client.get("/api/v1/insights")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert {"headlines", "tags", "scope", "as_of", "data_revision"} <= body.keys()
+    assert body["scope"] == "global"
+    assert body["data_mode"] == "fixture"
+    assert body["synthetic"] is True
+
+
 def test_insights_aggregates_complete_inclusive_range(client: TestClient) -> None:
     response = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={"date_from": "2026-09-08", "date_to": "2026-09-12"},
     )
 
@@ -38,7 +49,7 @@ def test_insights_aggregates_complete_inclusive_range(client: TestClient) -> Non
 
 def test_insights_combines_query_and_category_filters(client: TestClient) -> None:
     response = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={
             "q": "深度求索",
             "category": "model_release",
@@ -59,7 +70,7 @@ def test_insights_combines_query_and_category_filters(client: TestClient) -> Non
 
 def test_insights_applies_minimum_importance_to_all_aggregates(client: TestClient) -> None:
     response = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={
             "date_from": "2026-09-08",
             "date_to": "2026-09-12",
@@ -76,7 +87,7 @@ def test_insights_applies_minimum_importance_to_all_aggregates(client: TestClien
 
 def test_insights_zero_result_still_fills_daily_and_categories(client: TestClient) -> None:
     body = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={
             "q": "绝对不存在的合成事件",
             "date_from": "2026-09-10",
@@ -103,7 +114,7 @@ def test_insights_rejects_missing_inverted_and_overlong_ranges(client: TestClien
     ]
 
     for params, message in cases:
-        response = client.get("/api/v1/insights", params=params)
+        response = client.get("/api/v1/insights/summary", params=params)
         assert response.status_code == 422
         assert response.json()["code"] == "INVALID_DATE_RANGE"
         assert response.json()["message"] == message
@@ -111,7 +122,7 @@ def test_insights_rejects_missing_inverted_and_overlong_ranges(client: TestClien
 
 def test_insights_allows_366_inclusive_days_across_leap_day(client: TestClient) -> None:
     response = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={"date_from": "2024-02-29", "date_to": "2025-02-28"},
     )
 
@@ -126,7 +137,7 @@ def test_insights_uses_existing_unconfigured_database_503(client: TestClient) ->
     client.app.state.repository = None
 
     response = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={"date_from": "2026-09-12", "date_to": "2026-09-12"},
     )
 
@@ -136,7 +147,7 @@ def test_insights_uses_existing_unconfigured_database_503(client: TestClient) ->
 
 
 class BrokenInsightsRepository:
-    async def insights(self, _filters: object) -> None:
+    async def insight_summary(self, _filters: object) -> None:
         raise RepositoryUnavailable("database offline")
 
 
@@ -144,7 +155,7 @@ def test_insights_runtime_failure_uses_existing_retryable_503(client: TestClient
     client.app.state.repository = BrokenInsightsRepository()
 
     response = client.get(
-        "/api/v1/insights",
+        "/api/v1/insights/summary",
         params={"date_from": "2026-09-12", "date_to": "2026-09-12"},
     )
 

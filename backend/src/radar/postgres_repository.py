@@ -289,7 +289,33 @@ class PostgresRepository:
             "data_revision": "postgres-live",
         }
 
-    async def insights(self, filters: Filters) -> InsightsSnapshot:
+    async def insights(self) -> dict[str, object]:
+        today = datetime.now(self.timezone).date()
+        statement = (
+            select(EventRow)
+            .options(selectinload(EventRow.entities).selectinload(EventEntityRow.entity))
+            .where(
+                EventRow.status == "published",
+                EventRow.date_precision == "day",
+                EventRow.event_date == today,
+            )
+            .order_by(EventRow.importance.desc(), EventRow.id.desc())
+            .limit(3)
+        )
+        try:
+            async with self.sessions() as session:
+                rows = list((await session.scalars(statement)).all())
+        except Exception as exc:
+            raise RepositoryUnavailable("PostgreSQL query failed") from exc
+        return {
+            "headlines": [self._event(row) for row in rows],
+            "tags": [],
+            "scope": "global",
+            "as_of": datetime.now(UTC),
+            "data_revision": "postgres-live",
+        }
+
+    async def insight_summary(self, filters: Filters) -> InsightsSnapshot:
         clauses = self._filters(filters)
         try:
             async with self.sessions() as session, session.begin():

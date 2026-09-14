@@ -186,7 +186,28 @@ class FixtureRepository:
             "data_revision": self.dataset,
         }
 
-    async def insights(self, filters: Filters) -> InsightsSnapshot:
+    async def insights(self) -> dict[str, object]:
+        today = self.now.date()
+        headlines = sorted(
+            [event for event in self.events if event.event_date == today],
+            key=lambda event: (event.importance, event.id),
+            reverse=True,
+        )[:3]
+        tags = [
+            {"name": name, "count": count}
+            for name, count in Counter(
+                name for item in self.events for name in item.entities
+            ).most_common(8)
+        ]
+        return {
+            "headlines": headlines,
+            "tags": tags,
+            "scope": "global",
+            "as_of": self.now,
+            "data_revision": self.dataset,
+        }
+
+    async def insight_summary(self, filters: Filters) -> InsightsSnapshot:
         events = self._matching_events(filters)
         return InsightsSnapshot(
             total_events=len(events),

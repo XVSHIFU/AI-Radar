@@ -63,7 +63,7 @@ async def test_insights_uses_filtered_database_aggregates_in_one_snapshot() -> N
 
     session = Session()
     repository = PostgresRepository(lambda: session, "secret-secret-secret")
-    snapshot = await repository.insights(
+    snapshot = await repository.insight_summary(
         Filters(
             q="DeepSeek",
             category=Category.RESEARCH,

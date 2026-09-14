@@ -96,7 +96,7 @@ async def handle_http_error(_request: Request, exc: HTTPException) -> JSONRespon
 
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
-    missing_insight_dates = request.url.path == "/api/v1/insights" and any(
+    missing_insight_dates = request.url.path == "/api/v1/insights/summary" and any(
         item["type"] == "missing" and item["loc"] in {("query", "date_from"), ("query", "date_to")}
         for item in exc.errors()
     )
@@ -304,8 +304,19 @@ async def stats(
     }
 
 
-@app.get("/api/v1/insights", response_model=InsightsResponse)
+@app.get("/api/v1/insights")
 async def insights(
+    request: Request, repository: Annotated[EventRepository, Depends(get_repository)]
+) -> dict[str, object]:
+    return {
+        **await repository.insights(),
+        "data_mode": data_mode(request),
+        "synthetic": data_mode(request) == "fixture",
+    }
+
+
+@app.get("/api/v1/insights/summary", response_model=InsightsResponse)
+async def insight_summary(
     request: Request,
     repository: Annotated[EventRepository, Depends(get_repository)],
     date_from: Annotated[date, Query()],
@@ -318,7 +329,7 @@ async def insights(
         raise api_error("INVALID_DATE_RANGE", "date_from 不能晚于 date_to", 422)
     if date_to - date_from > timedelta(days=365):
         raise api_error("INVALID_DATE_RANGE", "时间范围最多为 366 天", 422)
-    snapshot = await repository.insights(
+    snapshot = await repository.insight_summary(
         Filters(
             q=q,
             category=category,
