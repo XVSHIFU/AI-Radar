@@ -1,6 +1,7 @@
 import { ref, watch } from "vue";
 export type Locale = "zh" | "en";
-const stored = typeof localStorage === "undefined" ? null : localStorage.getItem("ai-radar-locale");
+let stored: string | null = null;
+try { stored = typeof localStorage === "undefined" ? null : localStorage.getItem("ai-radar-locale"); } catch {}
 export const locale = ref<Locale>(stored === "en" ? "en" : "zh");
 const dictionary = {
   zh: { events:"事件", ask:"统计与问答", admin:"管理员后台", demo:"演示模式", service:"连接服务", maintenance:"维护入口", simulation:"前端模拟：仅用于交互演示，不代表真实服务结果。", fixture:"后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。", theme:"主题", close:"收起", previousTheme:"上一套主题", nextTheme:"下一套主题", themeCount:"{current} / {total} 套配色", themeHelp:"拖动或滚轮转动 · 点击色块应用", localeZh:"中文", localeEn:"EN", assistant:"研究助手", openAssistant:"打开研究助手", question:"问题", send:"发送", cancel:"取消", history:"历史会话", newConversation:"新建会话", source:"来源", evidence:"证据", back:"返回", openSource:"打开原始来源", loading:"正在读取…", retry:"重试", all:"全部", dateUnknown:"日期未知", noAnswer:"当前范围没有可回答资料。", completed:"已完成", failed:"失败", queued:"排队中", partial:"部分完成" },
