@@ -52,3 +52,12 @@ SSE设置立即flush，见 [Caddy reverse_proxy](https://caddyserver.com/docs/ca
 
 2026-09-15：0007数据库备份在隔离库恢复，8来源、1483报道、1485版本、293事件、1145条可定位Evidence，DeepSeek主体检索2条。
 恢复流程数秒内完成，主库未受影响；计数是该备份快照，不能代替事件质量验收。
+
+## 本地向量索引维护
+
+BGE-M3 模型固定在 `~/.local/share/ai-radar/models/bge-m3-7698c0c30eafe2736771e96d733545270cdec56f`，不依赖 `/tmp`。
+配置 `EMBEDDING_MODEL_DIR` 与 `EMBEDDING_MODEL_REVISION` 后，安装 `uv sync --frozen --extra embedding-local`。
+首次回填用 `backend/.venv/bin/radar-index-embeddings --limit 500 --activate`；只有全库当前版本都已有索引才允许激活。
+`bash scripts/install-index-timer.sh` 安装15分钟增量维护，每批最多100条，已就绪的当前版本会在限额前排除。
+模型输入或事件版本变化后会重新计算；版本不一致的向量不能进入语义检索。该过程只运行本机CPU，不调用Flash或其他付费API。
+定时任务的内存上限2GiB，单次最长15分钟，文件锁防止同一工程重入。
