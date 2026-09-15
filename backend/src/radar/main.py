@@ -24,7 +24,7 @@ from .admin_persistence import (
     PostgresAdminSessionStore,
     append_admin_audit,
 )
-from .config import get_settings
+from .config import REPO_ROOT, get_settings
 from .data_quality_api import router as data_quality_router
 from .fixture_repository import FixtureRepository
 from .ingest.dns import configured_resolver
@@ -41,6 +41,9 @@ from .qa_service import QaError, answer_question
 from .qa_stream_service import StreamContext, prepare_stream, sse, stream_answer
 from .queryplanner import InvalidTimezone, QueryPlanner
 from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
+from .research_endpoints import public_research_response
+from .research_http import ResearchSessions, research_router
+from .research_policy import ResearchPolicy
 from .schemas import (
     AskRequest,
     Category,
@@ -90,6 +93,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.ask_admission = AskAdmission()
     app.state.public_identity = None
     app.state.public_quota = None
+    app.state.research_sessions = research_sessions
+    app.state.research_policy = (
+        ResearchPolicy.load(REPO_ROOT / "agent/research")
+        if settings.research_agent_enabled
+        else None
+    )
     if settings.radar_data_mode == "fixture":
         path = Path(__file__).resolve().parents[3] / "contracts" / "prototype-events.json"
         app.state.repository = FixtureRepository(path, settings.cursor_secret)
@@ -127,8 +136,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await app.state.engine.dispose()
 
 
+research_sessions = ResearchSessions()
+
 app = FastAPI(title="AI Radar API", version="0.1.0", lifespan=lifespan)
 app.include_router(public_assistant_router)
+app.include_router(research_router(research_sessions))
 app.include_router(session_router)
 app.include_router(admin_router)
 app.include_router(data_quality_router)
@@ -704,6 +716,10 @@ async def ask(
     clock: Annotated[datetime, Depends(get_clock)],
 ) -> dict[str, object]:
     plan = await create_query_plan(payload, request, repository, clock)
+    if request.app.state.settings.research_agent_enabled:
+        result = await public_research_response(payload, plan, request, repository, streaming=False)
+        assert isinstance(result, dict)
+        return result
     public_plan = plan.model_dump(mode="json")
     if request.app.state.sessions is not None:
         try:
@@ -797,6 +813,12 @@ async def ask_stream(
     clock: Annotated[datetime, Depends(get_clock)],
 ) -> StreamingResponse:
     plan = await create_query_plan(payload, request, repository, clock)
+    if request.app.state.settings.research_agent_enabled:
+        response = await public_research_response(
+            payload, plan, request, repository, streaming=True
+        )
+        assert isinstance(response, StreamingResponse)
+        return response
     if request.app.state.sessions is None:
         raise api_error("MODEL_UNAVAILABLE", "真实流式回答仅在数据库模式下可用。", 503)
     client_id = request.client.host if request.client else "unknown"

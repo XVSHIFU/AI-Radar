@@ -139,3 +139,14 @@ test("accepts the live ask stream envelope and preserves partial tokens before f
   assert.equal(JSON.parse(events.find((event) => event.event === "token")!.data).text, "部分正文");
   assert.equal(JSON.parse(events.at(-1)!.data).status, "failed");
 });
+test("research v2 replaces drafts while preserving ordered final text and citation gates", async () => {
+  const events = [
+    ["meta", { protocol_version: 2 }], ["reset", { turn: 1, text: "" }],
+    ["token", { turn: 1, seq: 1, text: "draft" }],
+    ["reset", { turn: 2, text: "" }], ["token", { turn: 2, seq: 1, text: "final[1]" }],
+  ].map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("");
+  assert.equal((await collect(events + done())).at(-1)?.event, "done");
+  await assert.rejects(() => collect(events + 'event: reset\ndata: {"turn":1,"text":""}\n\n' + done()), /草稿/);
+  await assert.rejects(() => collect('event: reset\ndata: {"turn":1,"text":""}\n\n' + done()), /草稿/);
+  await assert.rejects(() => collect(events + 'event: token\ndata: {"turn":1,"seq":2,"text":"stale"}\n\n' + done()), /顺序/);
+});

@@ -4,7 +4,7 @@ import {
   type ServerResponse,
 } from "node:http";
 import { timingSafeEqual } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { loadPolicy } from "./policy.ts";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { once } from "node:events";
@@ -14,6 +14,7 @@ import { runResearch, type Broker, type PublicEvent } from "./runner.ts";
 type Configuration = {
   token: string;
   system: string;
+  policyDigest?: string;
   broker: (capability: string) => Broker;
   deadlineMs?: number;
 };
@@ -46,9 +47,8 @@ export function createRuntimeServer(config: Configuration) {
   let active = 0;
   return createServer(async (request, response) => {
     if (request.url === "/health" && request.method === "GET") {
-      response.end(
-        '{"status":"ready","runtime":"pi-agent-core","python":false}',
-      );
+      response.end(JSON.stringify({status: "ready", runtime: "pi-agent-core", python: false,
+        policy_digest: config.policyDigest}));
       return;
     }
     if (request.method !== "POST" || request.url !== "/v1/run") {
@@ -146,15 +146,13 @@ if (
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  const system = await readFile(
-    new URL("../../../research/SYSTEM.md", import.meta.url),
-    "utf8",
-  );
+  const policy = await loadPolicy(new URL("../../../research/", import.meta.url));
   const token = process.env.RADAR_RUNTIME_TOKEN ?? "";
   const origin = process.env.RADAR_BROKER_ORIGIN ?? "http://127.0.0.1:8000";
   const server = createRuntimeServer({
     token,
-    system,
+    system: policy.system,
+    policyDigest: policy.digest,
     broker: (capability) => httpBroker(origin, capability),
   });
   server.requestTimeout = 90000;

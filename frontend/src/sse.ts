@@ -13,6 +13,9 @@ export async function* parseSse(
   let sawSources = false;
   let sawError = false;
   let sawDone = false;
+  let protocolVersion = 1;
+  let turn = 0;
+  let tokenSequence = 0;
   const abort = () => void reader.cancel("aborted");
   signal?.addEventListener("abort", abort, { once: true });
   const emit = (): SseEvent | null => {
@@ -25,11 +28,29 @@ export async function* parseSse(
   const validate = (value: SseEvent) => {
     if (sawDone) throw new Error("done 后收到额外事件");
     if (
-      !["meta", "status", "token", "sources", "error", "done"].includes(
+      !["meta", "status", "reset", "token", "sources", "error", "done"].includes(
         value.event,
       )
     )
       throw new Error(`未知 SSE 事件：${value.event}`);
+    if (value.event === "meta") {
+      const version = JSON.parse(value.data).protocol_version ?? 1;
+      if (![1, 2].includes(version)) throw new Error("不支持的 SSE 协议版本");
+      protocolVersion = version;
+    }
+    if (value.event === "reset") {
+      const payload = JSON.parse(value.data);
+      if (protocolVersion !== 2 || sawError || sawSources || !Number.isInteger(payload.turn) ||
+          payload.turn < 1 || payload.turn > 3 || payload.turn < turn || payload.turn > turn + 1 ||
+          typeof payload.text !== "string") throw new Error("无效的研究草稿切换");
+      turn = payload.turn; tokenSequence = 0;
+    }
+    if (value.event === "token" && protocolVersion === 2) {
+      const payload = JSON.parse(value.data);
+      if (!turn || payload.turn !== turn || payload.seq !== tokenSequence + 1 || typeof payload.text !== "string")
+        throw new Error("研究文字顺序无效");
+      tokenSequence = payload.seq;
+    }
     if (value.event === "token" && sawSources)
       throw new Error("sources 后不能再发送 token");
     if (value.event === "error") sawError = true;

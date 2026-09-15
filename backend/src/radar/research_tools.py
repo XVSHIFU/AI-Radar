@@ -73,6 +73,7 @@ async def research_scope(
             toolset._datasets.clear()
             toolset._cursors.clear()
             toolset.citations.clear()
+            toolset.sources.clear()
 
 
 class ResearchTools:
@@ -98,6 +99,8 @@ class ResearchTools:
         self._datasets: dict[str, dict[str, Any]] = {}
         self._cursors: dict[str, tuple[str, int]] = {}
         self.citations: dict[str, Evidence] = {}
+        self.sources: dict[int, dict[str, Any]] = {}
+        self.retrieved_events: set[str] = set()
         self._closed = False
 
     def _check(self) -> None:
@@ -223,6 +226,7 @@ class ResearchTools:
             cursor = secrets.token_urlsafe(24)
             self._cursors[cursor] = (fingerprint, offset + len(rows))
         for row in rows:
+            self.retrieved_events.add(row["id"])
             row["summary_truncated"] = len(row["summary_zh"]) > 500
             row["summary_zh"] = row["summary_zh"][:500]
         return {
@@ -260,6 +264,17 @@ class ResearchTools:
         }
         if len(canonical(dataset).encode("utf-8")) > 30000:
             raise ResearchRejected("RESOURCE_LIMIT")
+        index = len(self.sources) + 1
+        if index > 60:
+            raise ResearchRejected("RESOURCE_LIMIT")
+        dataset["citation_index"] = index
+        self.sources[index] = {
+            "index": index,
+            "kind": "dataset",
+            "title": "数据库统计",
+            "source_url": "",
+            "dataset": json.loads(canonical(dataset)),
+        }
         self._datasets[dataset["dataset_id"]] = json.loads(canonical(dataset))
         return dataset
 
@@ -396,7 +411,7 @@ class ResearchTools:
         )
         if len(rows) > 30:
             raise ResearchRejected("RESOURCE_LIMIT")
-        output = []
+        output: list[dict[str, Any]] = []
         for row in rows:
             paragraph = row.article_version.paragraphs.get(row.paragraph_id)
             if not row.quote_text or not paragraph or row.quote_text not in paragraph:
@@ -424,10 +439,50 @@ class ResearchTools:
                 }
             )
             citation_id = str(row.id)
-            output.append({"citation_id": citation_id, **evidence.model_dump(mode="json")})
+            index = next(
+                (
+                    i
+                    for i, source in self.sources.items()
+                    if source.get("evidence_id") == citation_id
+                ),
+                0,
+            )
+            if not index:
+                index = len(self.sources) + 1 + sum(1 for item in output if item.get("_new_index"))
+            output.append(
+                {
+                    "citation_id": citation_id,
+                    "citation_index": index,
+                    "_new_index": index not in self.sources,
+                    **evidence.model_dump(mode="json"),
+                }
+            )
         result = {**self._metadata(), "evidence": output, "complete": True}
         if len(canonical(result).encode("utf-8")) > 32768:
             raise ResearchRejected("RESOURCE_LIMIT")
+        if any(item["citation_index"] > 60 for item in output):
+            raise ResearchRejected("RESOURCE_LIMIT")
         for item in output:
+            item.pop("_new_index")
             self.citations[item["citation_id"]] = Evidence.model_validate(item)
+            self.retrieved_events.add(str(item["canonical_event_id"]))
+            index = item["citation_index"]
+            self.sources[index] = {
+                "index": index,
+                "kind": "evidence",
+                "evidence_id": item["citation_id"],
+                "event_id": item["canonical_event_id"],
+                **{
+                    key: item[key]
+                    for key in (
+                        "article_version_id",
+                        "paragraph_id",
+                        "quote_text",
+                        "source_url",
+                        "title",
+                        "verification_status",
+                        "support_type",
+                    )
+                },
+            }
         return result

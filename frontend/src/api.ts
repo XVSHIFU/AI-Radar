@@ -216,7 +216,13 @@ export const ask = async (payload: unknown, signal?: AbortSignal) => {
     signal,
   }); } finally { void refreshAssistantQuota().catch(() => {}); }
 };
+export type ResearchDataset = {
+  dataset_id: string; fields: string[]; rows: Record<string, unknown>[];
+  excluded_unverified_dates?: number; zero_baseline?: boolean;
+};
 export type Citation = {
+  kind?: "evidence" | "dataset";
+  dataset?: ResearchDataset;
   index: number;
   source_url: string;
   title: string;

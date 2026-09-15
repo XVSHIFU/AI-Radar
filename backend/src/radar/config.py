@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     model_config_path: Path = Path.home() / ".config" / "ai-radar" / "model.json"
     cursor_secret: str = Field(default="development-only-change-me", min_length=16)
     public_assistant_secret: str | None = Field(default=None, min_length=32)
+    research_agent_enabled: bool = False
+    research_runtime_url: str = "http://127.0.0.1:8081"
+    research_runtime_token: str | None = Field(default=None, min_length=32, repr=False)
     assistant_input_per_day: int = Field(default=200_000, ge=24_000)
     assistant_output_per_day: int = Field(default=32_000, ge=4_800)
     embedding_model_dir: Path | None = None

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "design_contract_not_active",
+  "status": "candidate_runtime_enforced_python_disabled",
   "runtime": "pi-agent-core",
   "default_allow": false,
   "tools": [

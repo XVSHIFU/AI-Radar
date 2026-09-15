@@ -1,4 +1,5 @@
 import { reactive } from "vue";
+import type { Citation } from "./api";
 
 export type Attachment = { id: string; title: string };
 export type StoredPlan = {
@@ -7,7 +8,7 @@ export type StoredPlan = {
 };
 export type ConversationMessage = {
   id: string; role: "user" | "assistant"; text: string; createdAt: number; scope: string;
-  filters?: Record<string, unknown>; mode: "demo" | "live"; citations?: { index: number; title: string; quote_text?: string; source_url: string; paragraph_id?: string }[];
+  filters?: Record<string, unknown>; mode: "demo" | "live"; citations?: Citation[];
   status?: "running" | "completed" | "cancelled" | "interrupted" | "error"; attachment?: Attachment; plan?: StoredPlan; metrics?: { scope_total?: number; retrieved_count?: number; summarized_count?: number; citation_count?: number; coverage?: string }; error?: { code: string; message: string };
 };
 export type Conversation = { id: string; title: string; draft: string; attachment?: Attachment; scopeState?: { label:string; snapshot:string; filters:Record<string,unknown> }; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
