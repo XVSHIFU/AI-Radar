@@ -61,6 +61,24 @@ def test_event_list_and_keyword_p95(migration_database: Any) -> None:
                     for _ in range(20)
                 )
             )
+            if os.environ.get("RADAR_EXPLAIN_SNAPSHOT_PAGE") == "1":
+                explain_connection = await migration_database.connect()
+                try:
+                    plan = await explain_connection.fetch(
+                        """EXPLAIN (ANALYZE, BUFFERS)
+                        SELECT entry.value FROM retrieval_snapshots s
+                        CROSS JOIN LATERAL jsonb_array_elements(
+                          jsonb_path_query_array(
+                            s.items, '$[$lo to $hi]',
+                            jsonb_build_object('lo', 5000, 'hi', 5019)
+                          )
+                        ) WITH ORDINALITY AS entry(value, ordinal)
+                        WHERE s.id=(SELECT id FROM retrieval_snapshots LIMIT 1)
+                        ORDER BY entry.ordinal"""
+                    )
+                    print({"snapshot_page_explain": [row[0] for row in plan]})
+                finally:
+                    await explain_connection.close()
         finally:
             await engine.dispose()
         return sorted(list_times)[18], sorted(search_times)[18]

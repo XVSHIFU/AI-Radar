@@ -63,6 +63,12 @@ def upgrade() -> None:
             {"id": row["id"], "document": _search_document(row["title_zh"], row["summary_zh"])},
         )
     op.create_index("ix_events_search_vector", "events", ["search_vector"], postgresql_using="gin")
+    op.create_index(
+        "ix_events_merged_into_event_id",
+        "events",
+        ["merged_into_event_id"],
+        postgresql_where=sa.text("merged_into_event_id IS NOT NULL"),
+    )
     op.create_table(
         "embedding_profiles",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
@@ -171,6 +177,7 @@ def downgrade() -> None:
     op.drop_table("retrieval_snapshots")
     op.drop_table("event_embeddings_v1")
     op.drop_table("embedding_profiles")
+    op.drop_index("ix_events_merged_into_event_id", table_name="events")
     op.drop_index("ix_events_search_vector", table_name="events")
     for column in (
         "search_indexed_at",

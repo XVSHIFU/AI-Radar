@@ -8,20 +8,29 @@ cold requests and was deleted after the run.
 | ---: | ---: | ---: | --- |
 | 10,000 events, initial implementation | 5.45 s | 4.30 s | full ORM materialization and application JSON decoding |
 | 10,000 events, SQL snapshot + ID-first search | 0.465 s | 0.588 s | exact totals and complete immutable snapshot preserved |
-| 100,000 events, diagnostic run | 1.972 s | 4.587 s | full snapshot aggregation and exact hard-scope ID enumeration dominate |
+| 10,000 events, full 0008-0010 chain + final query path | 0.477 s | 0.126 s | merged-event projection indexed; exact scope count stays in PostgreSQL |
+| 100,000 events, final diagnostic run | 1.974 s | 0.381 s | complete projection aggregation dominates list latency |
 
-The 10k result improves list latency by 91.5% and keyword latency by 86.3%.
-The 100k run is diagnostic evidence, not a claimed service objective.
+The earlier 10k result improves list latency by 91.5% and keyword latency by
+86.3%. The complete migration chain adds canonical merge projection work; its measured
+10k keyword result meets the 500 ms example; complete cold snapshot construction remains above the 300 ms list example. The 100k run is diagnostic
+evidence, not a claimed service objective.
 
 The benchmark is reproducible with
 `tests/integration/test_retrieval_performance.py`. Set
 `RADAR_RUN_POSTGRES_TESTS=1`, `RADAR_RUN_PERFORMANCE_TESTS=1`, and optionally
-`RADAR_PERFORMANCE_EVENT_COUNT` (default 10000). The harness accepts only
+`RADAR_PERFORMANCE_EVENT_COUNT` (default 10000), and optionally
+`RADAR_EXPLAIN_SNAPSHOT_PAGE=1`. The harness accepts only
 loopback servers and disposable `radar_test_*` databases.
 
 Strict pagination stores the entire ordered public event representation as JSONB in
-PostgreSQL. Subsequent pages slice JSONB in SQL and decode only the requested page.
+PostgreSQL. Subsequent pages use a JSONPath array range in SQL and decode only the requested
+page. On the 10k fixture, `EXPLAIN (ANALYZE, BUFFERS)` for offset 5000, limit 20
+returned 20 rows in 2.221 ms; the function scan itself took 2.058 ms.
 A statement-level revision trigger invalidates snapshot reuse after any event/entity
 change; an advisory transaction lock shares one immutable snapshot across concurrent
-identical first-page requests. Hybrid search enumerates only IDs for the exact hard
-scope, then loads entities for the final ranked page.
+identical first-page requests. Hybrid search obtains an exact hard-scope count, applies the complete hard filters
+independently to keyword and semantic SQL in the same repeatable-read transaction,
+and loads the frozen public projection only for the final ranked page. FTS candidates
+run first through the GIN index; ILIKE fills any remaining candidate slots so Chinese
+single-character substring behavior is retained.

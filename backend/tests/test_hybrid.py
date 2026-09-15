@@ -1,6 +1,6 @@
 import pytest
 
-from radar.hybrid import hybrid_search
+from radar.hybrid import hybrid_search, hybrid_search_scoped
 
 
 @pytest.mark.asyncio
@@ -30,3 +30,19 @@ async def test_embedding_failure_degrades_without_becoming_empty_scope() -> None
     assert result.scope_ids == ["a", "b"]
     assert result.ranked_ids == ["a"]
     assert result.degraded_reason == "embedding_failed"
+
+
+@pytest.mark.asyncio
+async def test_database_scoped_candidates_fuse_without_materialized_scope_ids() -> None:
+    async def keyword(_query: str, _limit: int) -> list[str]:
+        return ["a", "b", "a"]
+
+    async def semantic(_query: str, _limit: int) -> list[str]:
+        return ["b", "c"]
+
+    result = await hybrid_search_scoped("model", 100_000, keyword, semantic)
+    assert result.scope_ids == []
+    assert result.ranked_ids == ["b", "a", "c"]
+    assert result.keyword_count == 2
+    assert result.semantic_count == 2
+    assert result.degraded_reason is None

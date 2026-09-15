@@ -1,17 +1,16 @@
-from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import and_, case, exists, func, insert, literal, or_, select, text
+from sqlalchemy import and_, case, column, exists, func, insert, literal, or_, select, table, text
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased, selectinload
 
 from .cursor import decode_snapshot_cursor, encode_snapshot_cursor, filters_fingerprint
 from .db_schema import SCHEMA_REVISION
-from .hybrid import hybrid_search
+from .hybrid import hybrid_search_scoped
 from .models import (
     EmbeddingProfileRow,
     EntityAliasRow,
@@ -326,11 +325,13 @@ class PostgresRepository:
                     offset = 0
                 rows = await session.execute(
                     text(
-                        "SELECT entry.value FROM retrieval_snapshots s, "
-                        "LATERAL jsonb_array_elements(s.items) WITH ORDINALITY "
-                        "AS entry(value, ordinal) WHERE s.id=:snapshot_id "
-                        "AND entry.ordinal > :offset AND entry.ordinal <= :end "
-                        "ORDER BY entry.ordinal"
+                        "SELECT entry.value FROM retrieval_snapshots s "
+                        "CROSS JOIN LATERAL jsonb_array_elements("
+                        "jsonb_path_query_array(s.items, '$[$lo to $hi]', "
+                        "jsonb_build_object('lo', CAST(:offset AS integer), 'hi', "
+                        "LEAST(CAST(:end AS integer) - 1, s.total - 1)))) "
+                        "WITH ORDINALITY AS entry(value, ordinal) "
+                        "WHERE s.id=:snapshot_id ORDER BY entry.ordinal"
                     ),
                     {"snapshot_id": snapshot_id, "offset": offset, "end": offset + limit},
                 )
@@ -367,44 +368,54 @@ class PostgresRepository:
                     text("SELECT revision FROM retrieval_data_revision WHERE singleton")
                 )
                 now = (await session.execute(select(func.transaction_timestamp()))).scalar_one()
-                scope_uuid_ids = list(
-                    (
-                        await session.scalars(
-                            select(EventRow.id).where(*self._filters(hard_filters))
-                        )
-                    ).all()
+                hard_scope = (
+                    select(EventRow.id.label("event_id"))
+                    .where(*self._filters(hard_filters))
+                    .cte("hard_scope")
                 )
-                scope_ids = [str(event_id) for event_id in scope_uuid_ids]
+                scope_total = int(
+                    await session.scalar(select(func.count()).select_from(hard_scope)) or 0
+                )
 
-                async def keyword(
-                    query: str, allowed: Sequence[str], candidate_limit: int
-                ) -> list[str]:
-                    if not allowed:
+                async def keyword(query: str, candidate_limit: int) -> list[str]:
+                    if scope_total == 0:
                         return []
                     query_document = search_document(query)
-                    statement = (
+                    ts_query = func.plainto_tsquery("simple", query_document)
+                    fts_statement = (
                         select(EventRow.id)
                         .where(
                             *self._filters(hard_filters),
-                            or_(
-                                EventRow.search_vector.op("@@")(
-                                    func.plainto_tsquery("simple", query_document)
-                                ),
-                                EventRow.title_zh.ilike(f"%{query}%"),
-                                EventRow.summary_zh.ilike(f"%{query}%"),
-                            ),
+                            EventRow.search_vector.op("@@")(ts_query),
                         )
                         .order_by(
-                            func.ts_rank(
-                                EventRow.search_vector,
-                                func.plainto_tsquery("simple", query_document),
-                            ).desc(),
+                            func.ts_rank(EventRow.search_vector, ts_query).desc(),
                             EventRow.event_date.desc().nulls_last(),
                             EventRow.id.desc(),
                         )
                         .limit(candidate_limit)
                     )
-                    return [str(item) for item in (await session.scalars(statement)).all()]
+                    fts_ids = list((await session.scalars(fts_statement)).all())
+                    if len(fts_ids) == candidate_limit:
+                        return [str(item) for item in fts_ids]
+                    fallback = (
+                        select(EventRow.id)
+                        .where(
+                            *self._filters(hard_filters),
+                            EventRow.id.notin_(fts_ids),
+                            or_(
+                                EventRow.title_zh.ilike(f"%{query}%"),
+                                EventRow.summary_zh.ilike(f"%{query}%"),
+                            ),
+                        )
+                        .order_by(
+                            EventRow.event_date.desc().nulls_last(),
+                            EventRow.id.desc(),
+                        )
+                        .limit(candidate_limit - len(fts_ids))
+                    )
+                    fallback_ids = list((await session.scalars(fallback)).all())
+                    return [str(item) for item in (*fts_ids, *fallback_ids)]
 
                 semantic_retriever = None
                 profile_label = None
@@ -431,33 +442,41 @@ class PostgresRepository:
                     ):
                         profile_label = profile.fingerprint
 
-                        async def semantic_query(
-                            query: str, allowed: Sequence[str], candidate_limit: int
-                        ) -> list[str]:
+                        async def semantic_query(query: str, candidate_limit: int) -> list[str]:
                             vector = await checked_query_embedding(provider, query)
                             rendered = "[" + ",".join(str(item) for item in vector) + "]"
-                            rows = await session.execute(
-                                text(
-                                    "SELECT ee.event_id::text FROM event_embeddings_v1 ee "
-                                    "JOIN events e ON e.id=ee.event_id "
-                                    "WHERE ee.profile_id=:profile_id AND ee.status='ready' "
-                                    "AND ee.event_content_version=e.content_version "
-                                    "AND ee.event_id = ANY(CAST(:allowed AS uuid[])) "
-                                    "ORDER BY ee.embedding <=> CAST(:embedding AS vector) "
-                                    "LIMIT :limit"
-                                ),
-                                {
-                                    "profile_id": active.id,
-                                    "allowed": [UUID(item) for item in allowed],
-                                    "embedding": rendered,
-                                    "limit": candidate_limit,
-                                },
+                            embeddings = table(
+                                "event_embeddings_v1",
+                                column("event_id"),
+                                column("profile_id"),
+                                column("event_content_version"),
+                                column("embedding"),
+                                column("status"),
+                            ).alias("ee")
+                            statement = (
+                                select(embeddings.c.event_id)
+                                .select_from(
+                                    embeddings.join(
+                                        hard_scope,
+                                        hard_scope.c.event_id == embeddings.c.event_id,
+                                    ).join(EventRow, EventRow.id == embeddings.c.event_id)
+                                )
+                                .where(
+                                    embeddings.c.profile_id == active.id,
+                                    embeddings.c.status == "ready",
+                                    embeddings.c.event_content_version == EventRow.content_version,
+                                )
+                                .order_by(text("ee.embedding <=> CAST(:embedding AS vector)"))
+                                .limit(candidate_limit)
                             )
-                            return [str(row[0]) for row in rows]
+                            rows = await session.scalars(statement, {"embedding": rendered})
+                            return [str(row) for row in rows]
 
                         semantic_retriever = semantic_query
 
-                result = await hybrid_search(filters.q, scope_ids, keyword, semantic_retriever)
+                result = await hybrid_search_scoped(
+                    filters.q, scope_total, keyword, semantic_retriever
+                )
                 ranked_ids = [UUID(item) for item in result.ranked_ids[:limit]]
                 ranked_rows = (
                     await session.execute(
@@ -471,7 +490,7 @@ class PostgresRepository:
             raise RepositoryUnavailable("PostgreSQL search failed") from exc
         return SearchPage(
             items=[by_id[event_id] for event_id in ranked_ids],
-            scope_total=len(scope_ids),
+            scope_total=scope_total,
             keyword_count=result.keyword_count,
             semantic_count=result.semantic_count,
             retrieval_mode=result.retrieval_mode,
