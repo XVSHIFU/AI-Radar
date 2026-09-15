@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from uuid import UUID, uuid4
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
@@ -18,6 +18,7 @@ class DateCandidate:
     current_date: date | None
     status: str
     candidates: tuple[tuple[date, UUID, str], ...]
+    title_zh: str = ""
 
 
 class DateCorrectionRejected(ValueError):
@@ -29,13 +30,19 @@ class DateQualityService:
         self.sessions = sessions
 
     async def audit(self, *, limit: int = 1000) -> list[DateCandidate]:
-        """Dry-run only: expose exact ISO dates in frozen quotes; never changes events."""
+        """Dry-run only: expose literal dates in frozen quotes; never changes events."""
         async with self.sessions() as session:
             events = list(
                 (
                     await session.scalars(
                         select(EventRow)
-                        .where(EventRow.date_basis == "report_date_unverified")
+                        .where(
+                            or_(
+                                EventRow.date_basis == "report_date_unverified",
+                                EventRow.date_conflict.is_(True),
+                            ),
+                            EventRow.status == "published",
+                        )
                         .order_by(EventRow.id)
                         .limit(limit)
                     )
@@ -61,7 +68,9 @@ class DateQualityService:
                     status = "candidate"
                 else:
                     status = "conflict"
-                result.append(DateCandidate(event.id, event.event_date, status, tuple(found)))
+                result.append(
+                    DateCandidate(event.id, event.event_date, status, tuple(found), event.title_zh)
+                )
             return result
 
     async def apply(

@@ -66,9 +66,7 @@ async def merge_events(payload: EventMergeRequest, request: Request) -> dict[str
 @router.post("/event-merges/{merge_id}/revert")
 async def unmerge_events(merge_id: UUID, request: Request) -> dict[str, object]:
     try:
-        await EventMergeService(_sessions(request)).unmerge(
-            merge_id, operator=_operator(request)
-        )
+        await EventMergeService(_sessions(request)).unmerge(merge_id, operator=_operator(request))
     except MergeRejected as exc:
         raise admin_error("EVENT_UNMERGE_REJECTED", str(exc), 409) from exc
     return {"merge_id": str(merge_id), "status": "reverted"}
@@ -85,6 +83,7 @@ async def review_event_dates(
             {
                 "event_id": str(row.event_id),
                 "current_date": row.current_date,
+                "title_zh": row.title_zh,
                 "status": row.status,
                 "candidates": [
                     {

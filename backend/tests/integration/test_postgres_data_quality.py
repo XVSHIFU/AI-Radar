@@ -83,6 +83,15 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
             )
             assert corrected.date_conflict is False
 
+        # A new conflict must return an already verified event to the review queue.
+        async with sessions() as session, session.begin():
+            conflicted = await session.get(EventRow, first)
+            assert conflicted is not None
+            conflicted.date_conflict = True
+        reviewed = await dates.audit()
+        assert next(item for item in reviewed if item.event_id == first).title_zh == "事件一"
+        await dates.apply(first, evidence_id, date(2026, 8, 17), operator="reviewer")
+
         merges = EventMergeService(sessions)
         log_id = await merges.merge(
             first,
