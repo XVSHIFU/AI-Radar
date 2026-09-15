@@ -1,15 +1,39 @@
 import asyncio
+import math
 import os
 from time import perf_counter
 from typing import Any
 
 import pytest
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
 from radar.postgres_repository import PostgresRepository
 from radar.schemas import Filters
 
 pytestmark = [pytest.mark.postgres, pytest.mark.performance]
+CONCURRENCY = 20
+STEADY_ROUNDS = 5
+
+
+def _p95(samples: list[float]) -> float:
+    return sorted(samples)[math.ceil(len(samples) * 0.95) - 1]
+
+
+async def _warm_pool(engine: AsyncEngine) -> None:
+    gate = asyncio.Event()
+    ready = 0
+
+    async def hold_connection() -> None:
+        nonlocal ready
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+            ready += 1
+            if ready == CONCURRENCY:
+                gate.set()
+            await gate.wait()
+
+    await asyncio.gather(*(hold_connection() for _ in range(CONCURRENCY)))
 
 
 def test_event_list_and_keyword_p95(migration_database: Any) -> None:
@@ -18,7 +42,7 @@ def test_event_list_and_keyword_p95(migration_database: Any) -> None:
     event_count = int(os.environ.get("RADAR_PERFORMANCE_EVENT_COUNT", "10000"))
     migration_database.upgrade()
 
-    async def run() -> tuple[float, float]:
+    async def run() -> dict[str, float | int]:
         connection = await migration_database.connect()
         try:
             await connection.execute(
@@ -34,33 +58,65 @@ def test_event_list_and_keyword_p95(migration_database: Any) -> None:
             )
         finally:
             await connection.close()
-        engine = create_async_engine(migration_database.rendered_url, pool_size=20)
-        repository = PostgresRepository(
-            async_sessionmaker(engine, expire_on_commit=False), "benchmark-secret-is-long"
-        )
 
         async def measure(call: Any) -> float:
             started = perf_counter()
             await call()
             return perf_counter() - started
 
+        cold_engine = create_async_engine(migration_database.rendered_url, pool_size=CONCURRENCY)
+        cold_repository = PostgresRepository(
+            async_sessionmaker(cold_engine, expire_on_commit=False), "benchmark-secret-is-long"
+        )
         try:
-            list_times = await asyncio.gather(
-                *(
-                    measure(lambda: repository.list_events(Filters(category="research"), 20, None))
-                    for _ in range(20)
-                )
-            )
-            search_times = await asyncio.gather(
+            cold_samples = await asyncio.gather(
                 *(
                     measure(
-                        lambda: repository.search_events(
-                            Filters(q="人工智能", category="research"), 20
-                        )
+                        lambda: cold_repository.list_events(Filters(category="research"), 20, None)
                     )
-                    for _ in range(20)
+                    for _ in range(CONCURRENCY)
                 )
             )
+        finally:
+            await cold_engine.dispose()
+
+        warm_engine = create_async_engine(migration_database.rendered_url, pool_size=CONCURRENCY)
+        warm_repository = PostgresRepository(
+            async_sessionmaker(warm_engine, expire_on_commit=False), "benchmark-secret-is-long"
+        )
+        await _warm_pool(warm_engine)
+        warm_filters = Filters(category="research", min_importance=3)
+        try:
+            warm_snapshot_samples = await asyncio.gather(
+                *(
+                    measure(lambda: warm_repository.list_events(warm_filters, 20, None))
+                    for _ in range(CONCURRENCY)
+                )
+            )
+            steady_samples: list[float] = []
+            for _ in range(STEADY_ROUNDS):
+                steady_samples.extend(
+                    await asyncio.gather(
+                        *(
+                            measure(lambda: warm_repository.list_events(warm_filters, 20, None))
+                            for _ in range(CONCURRENCY)
+                        )
+                    )
+                )
+            keyword_samples: list[float] = []
+            for _ in range(STEADY_ROUNDS):
+                keyword_samples.extend(
+                    await asyncio.gather(
+                        *(
+                            measure(
+                                lambda: warm_repository.search_events(
+                                    Filters(q="人工智能", category="research"), 20
+                                )
+                            )
+                            for _ in range(CONCURRENCY)
+                        )
+                    )
+                )
             if os.environ.get("RADAR_EXPLAIN_SNAPSHOT_PAGE") == "1":
                 explain_connection = await migration_database.connect()
                 try:
@@ -80,15 +136,18 @@ def test_event_list_and_keyword_p95(migration_database: Any) -> None:
                 finally:
                     await explain_connection.close()
         finally:
-            await engine.dispose()
-        return sorted(list_times)[18], sorted(search_times)[18]
-
-    list_p95, search_p95 = asyncio.run(run())
-    print(
-        {
+            await warm_engine.dispose()
+        return {
             "events": event_count,
-            "concurrency": 20,
-            "list_p95_seconds": list_p95,
-            "keyword_p95_seconds": search_p95,
+            "concurrency": CONCURRENCY,
+            "cold_snapshot_samples": len(cold_samples),
+            "cold_snapshot_p95_seconds": _p95(list(cold_samples)),
+            "warm_pool_cold_snapshot_samples": len(warm_snapshot_samples),
+            "warm_pool_cold_snapshot_p95_seconds": _p95(list(warm_snapshot_samples)),
+            "steady_snapshot_samples": len(steady_samples),
+            "steady_snapshot_p95_seconds": _p95(steady_samples),
+            "warm_keyword_samples": len(keyword_samples),
+            "warm_keyword_p95_seconds": _p95(keyword_samples),
         }
-    )
+
+    print(asyncio.run(run()))
