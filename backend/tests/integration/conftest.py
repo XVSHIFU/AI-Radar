@@ -123,6 +123,6 @@ def postgres_database() -> Iterator[DatabaseHarness]:
         yield harness
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def migration_database() -> Iterator[DatabaseHarness]:
     yield from _database_fixture()
