@@ -120,11 +120,11 @@ const sources = computed<SourceChoice[]>(() => {
   }
   return rows;
 });
-const selectedSource = computed(() =>
-  sources.value.find((source) => source.key === sourceKey.value),
+const selectedSource = computed<SourceChoice | undefined>((previous) =>
+  sourceKey.value ? sources.value.find((source) => source.key === sourceKey.value) : previous,
 );
-const selectedEvidence = computed(() =>
-  selectedSource.value?.evidence.find((row) => row.id === evidenceId.value),
+const selectedEvidence = computed<Evidence | undefined>((previous) =>
+  evidenceId.value ? selectedSource.value?.evidence.find((row) => row.id === evidenceId.value) : previous,
 );
 
 function baseQuery(): LocationQueryRaw {
@@ -155,6 +155,7 @@ function attachToConversation(item: Event) { window.dispatchEvent(new CustomEven
 function closeAll() {
   void router.replace({ path: pagePath.value, query: baseQuery() });
 }
+function blockLeavingInteraction(event: globalThis.Event) { if ((event.currentTarget as HTMLElement).classList.contains("drawer-surface--leaving")) { event.preventDefault(); event.stopImmediatePropagation(); } }
 function closeFromBackdrop(event: MouseEvent, layer: "event" | "source" | "evidence") {
   if (event.target !== event.currentTarget) return;
   const surface = event.currentTarget as HTMLDialogElement;
@@ -305,7 +306,7 @@ watch(evidenceId, async (next, previous) => {
   }
 });
 const onEscape = (event: KeyboardEvent) => {
-  if (event.key === "Tab" && eventLayer.value && matchMedia("(max-width:900px)").matches) {
+  if (event.key === "Tab" && shieldVisible.value && matchMedia("(max-width:900px)").matches) {
     const dialog = evidenceId.value ? evidenceDialog.value : sourceKey.value ? sourceDialog.value : eventDialog.value;
     const nodes = [...(dialog?.querySelectorAll<HTMLElement>("button,a[href],summary,input,[tabindex='0']") || []), ...document.querySelectorAll<HTMLElement>("[data-testid='assistant-toggle']")].filter(n => n.getClientRects().length && !n.hasAttribute("disabled") && !n.closest("[inert]"));
     const first=nodes[0], last=nodes.at(-1);
@@ -350,7 +351,7 @@ onBeforeUnmount(() => {
       }"
       data-testid="drawer-event" :inert="eventInactive"
       aria-labelledby="drawer-event-title"
-      @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'event')"
+      @click.capture="blockLeavingInteraction" @pointerdown.capture="blockLeavingInteraction" @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'event')"
     >
       <div class="drawer-shell">
         <div class="drawer-header">
@@ -424,7 +425,7 @@ onBeforeUnmount(() => {
       }"
       data-testid="drawer-source" :inert="sourceInactive"
       aria-labelledby="drawer-source-title"
-      @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'source')"
+      @click.capture="blockLeavingInteraction" @pointerdown.capture="blockLeavingInteraction" @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'source')"
     >
       <div class="drawer-shell">
         <div class="drawer-header">
@@ -472,7 +473,7 @@ onBeforeUnmount(() => {
       :class="{ 'drawer-surface--active': Boolean(evidenceId) }"
       data-testid="drawer-evidence"
       aria-labelledby="drawer-evidence-title"
-      @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'evidence')"
+      @click.capture="blockLeavingInteraction" @pointerdown.capture="blockLeavingInteraction" @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'evidence')"
     >
       <div class="drawer-shell">
         <div class="drawer-header">

@@ -1113,3 +1113,8 @@ select:focus {
 .global-assistant-open .assistant-trigger { visibility:hidden; opacity:0; pointer-events:none; }
 @media(max-width:900px) { .assistant-trigger--mobile { top:auto!important; bottom:16px!important; right:16px!important; } }
 @media(prefers-reduced-motion:reduce) { .drawer-surface[open].drawer-surface--leaving { animation:none!important; opacity:0; } }
+/* Prevent old arrival styles or mobile modal rules from overriding the lifecycle. */
+.drawer-surface[open]:not(.drawer-surface--inactive):not(.drawer-surface--leaving) { animation:drawer-enter 420ms cubic-bezier(.16,1,.3,1); }
+.drawer-shield[data-testid] { display:block; }
+.drawer-surface[open].drawer-surface--leaving { pointer-events:auto; }
+@media(prefers-reduced-motion:reduce) { .drawer-surface[open]:not(.drawer-surface--inactive):not(.drawer-surface--leaving),.drawer-surface[open].drawer-surface--leaving { animation:none!important; } }
