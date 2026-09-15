@@ -223,7 +223,7 @@ export type ProbeResult = { ok: boolean; checked_at: string; http_status?: numbe
 export type Run = { id: string; status: string; started_at: string; finished_at: string | null; found: number; candidates: number; versions: number; kept: number; parser_failures: number; failed_jobs: number; cost: string | number | null; cost_status: "actual" | "estimated" | "unknown"; error_summary: string | null };
 export type ModelSettings = { provider: string; base_url: string; model: string; configured: boolean; enabled: boolean; max_tokens: number };
 export type ModelTest = { ok: boolean; message: string; model: string; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number } };
-export type Usage = { items: Array<{ purpose: string; status: string; calls: number; usage_recorded: boolean; input_tokens: number; output_tokens: number; total_tokens: number }>; as_of: string };
+export type Usage = { items: Array<{ purpose: string; status: string; calls: number; usage_recorded: number | null; input_tokens: number | null; output_tokens: number | null; total_tokens: number | null }>; as_of: string };
 const csrfHeaders = (csrf: string, extra: HeadersInit = {}) => ({ ...extra, "X-CSRF-Token": csrf });
 export const admin = {
   session: (token?: string) => token === undefined ? api<AdminSession>("/api/v1/admin/session") : api<AdminSession>("/api/v1/admin/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) }),

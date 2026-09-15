@@ -8,6 +8,7 @@ import "./preview/preview.css";
 const route = useRoute();
 const demoEnabled = computed(() => route.query.demo === "1");
 const previewEnabled = computed(() => route.path.startsWith("/preview"));
+const adminEnabled = computed(() => route.path === "/ingest");
 const link = (path: string) => (demoEnabled.value ? `${path}?demo=1` : path);
 const viewKey = computed(
   () => `${route.path}|${demoEnabled.value ? "demo" : "api"}`,
@@ -23,7 +24,7 @@ const viewKey = computed(
       </nav>
       <RouterLink :to="link('/')" class="preview-shell-return">返回原版</RouterLink>
     </header>
-    <p v-if="demoEnabled" class="demo" role="note">前端模拟：仅用于交互演示，不代表真实服务结果。</p>
+    <p v-if="demoEnabled && !adminEnabled" class="demo" role="note">前端模拟：仅用于交互演示，不代表真实服务结果。</p>
     <p v-else-if="dataMode === 'fixture'" class="demo" role="note">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
     <main class="preview-shell-main"><RouterView :key="viewKey" /></main>
     <footer class="preview-shell-footer"><RouterLink :to="'/ingest'">维护入口</RouterLink></footer>
@@ -55,19 +56,19 @@ const viewKey = computed(
       <div class="rail-footer">
       <ThemeWheel />
       <RouterLink
-        v-if="!demoEnabled"
+        v-if="!demoEnabled && !adminEnabled"
         :to="route.path + '?demo=1'"
         class="switch"
         >演示模式</RouterLink
       >
-      <RouterLink v-else :to="route.path" class="switch">连接服务</RouterLink>
+      <RouterLink v-else-if="!adminEnabled" :to="route.path" class="switch">连接服务</RouterLink>
       <div v-if="route.path !== '/ingest'" id="assistant-mobile-slot" aria-label="研究助手入口"></div>
       </div>
 
     </header>
 
     <div class="app-content">
-      <p v-if="demoEnabled" class="demo" role="note">
+      <p v-if="demoEnabled && !adminEnabled" class="demo" role="note">
         前端模拟：仅用于交互演示，不代表真实服务结果。
       </p>
       <p v-else-if="dataMode === 'fixture'" class="demo" role="note">
