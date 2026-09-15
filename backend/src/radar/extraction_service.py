@@ -29,6 +29,7 @@ from .models import (
     SourceRow,
 )
 from .normalize import normalize_text
+from .retrieval import SEARCH_CONFIG_VERSION, search_document
 
 SYSTEM_PROMPT = """你是 AI 行业新闻抽取器。只返回一个 JSON 对象，不要 Markdown。
 不得推测事件日期。JSON 字段如下：
@@ -321,6 +322,11 @@ class ExtractionService:
                     source_count=source_count,
                     evidence_count=len(extraction.evidence),
                     content_version=1,
+                    search_document=search_document(
+                        extraction.title_zh.strip(), extraction.summary_zh.strip()
+                    ),
+                    search_config_version=SEARCH_CONFIG_VERSION,
+                    search_indexed_at=datetime.now(UTC),
                 )
                 session.add(event)
                 await session.flush()
@@ -343,6 +349,9 @@ class ExtractionService:
                 event.source_count = source_count
                 event.content_version += 1
                 event.evidence_count += len(extraction.evidence)
+                event.search_document = search_document(event.title_zh, event.summary_zh)
+                event.search_config_version = SEARCH_CONFIG_VERSION
+                event.search_indexed_at = datetime.now(UTC)
                 event.updated_at = datetime.now(UTC)
             for evidence_item in extraction.evidence:
                 session.add(

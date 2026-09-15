@@ -1,13 +1,13 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, case, exists, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
-from .cursor import decode_cursor, encode_cursor
+from .cursor import decode_snapshot_cursor, encode_snapshot_cursor, filters_fingerprint
 from .db_schema import SCHEMA_REVISION
 from .models import (
     EntityAliasRow,
@@ -15,11 +15,18 @@ from .models import (
     EventEntityRow,
     EventRow,
     EvidenceRow,
+    RetrievalSnapshotRow,
     SourceRow,
 )
 from .normalize import normalize_text
 from .queryplanner import EntityResolution, ResolvedEntity, resolve_confirmed_entities
-from .repository import EvidenceInvalid, InsightsSnapshot, Page, RepositoryUnavailable
+from .repository import (
+    EvidenceInvalid,
+    InsightsSnapshot,
+    InvalidCursor,
+    Page,
+    RepositoryUnavailable,
+)
 from .schemas import Article, Category, Event, Evidence, Filters
 
 
@@ -108,57 +115,58 @@ class PostgresRepository:
         return resolve_confirmed_entities(normalized, aliases)
 
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
-        clauses = self._filters(filters)
-        if cursor:
-            last_date, last_id = decode_cursor(cursor, filters, self.cursor_secret)
-            if last_date is None:
-                clauses.append(and_(EventRow.event_date.is_(None), EventRow.id < last_id))
-            else:
-                clauses.append(
-                    or_(
-                        EventRow.event_date < last_date,
-                        and_(EventRow.event_date == last_date, EventRow.id < last_id),
-                        EventRow.event_date.is_(None),
-                    )
-                )
+        now = datetime.now(UTC)
         try:
             async with self.sessions() as session, session.begin():
-                await session.execute(
-                    text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
-                )
-                total = int(
-                    (
-                        await session.scalar(
-                            select(func.count())
-                            .select_from(EventRow)
-                            .where(*self._filters(filters))
+                if cursor:
+                    snapshot_id, offset = decode_snapshot_cursor(
+                        cursor, filters, self.cursor_secret
+                    )
+                    snapshot = await session.get(RetrievalSnapshotRow, snapshot_id)
+                    if snapshot is None or snapshot.expires_at <= now:
+                        raise InvalidCursor("cursor snapshot has expired")
+                    if snapshot.filters_hash != filters_fingerprint(filters):
+                        raise InvalidCursor("cursor does not belong to these filters")
+                    frozen = snapshot.items
+                    as_of = snapshot.created_at
+                else:
+                    await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"))
+                    statement = (
+                        select(EventRow)
+                        .options(
+                            selectinload(EventRow.entities).selectinload(EventEntityRow.entity)
+                        )
+                        .where(*self._filters(filters))
+                        .order_by(EventRow.event_date.desc().nulls_last(), EventRow.id.desc())
+                    )
+                    rows = list((await session.scalars(statement)).all())
+                    frozen = [self._event(row).model_dump(mode="json") for row in rows]
+                    snapshot_id = uuid4()
+                    offset = 0
+                    as_of = now
+                    session.add(
+                        RetrievalSnapshotRow(
+                            id=snapshot_id,
+                            filters_hash=filters_fingerprint(filters),
+                            items=frozen,
+                            total=len(frozen),
+                            created_at=as_of,
+                            expires_at=as_of + timedelta(minutes=15),
                         )
                     )
-                    or 0
-                )
-                statement = (
-                    select(EventRow)
-                    .options(selectinload(EventRow.entities).selectinload(EventEntityRow.entity))
-                    .where(*clauses)
-                    .order_by(EventRow.event_date.desc().nulls_last(), EventRow.id.desc())
-                    .limit(limit + 1)
-                )
-                rows = list((await session.scalars(statement)).all())
+        except InvalidCursor:
+            raise
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
-        more = len(rows) > limit
-        rows = rows[:limit]
+        page_items = [Event.model_validate(item) for item in frozen[offset : offset + limit]]
+        next_offset = offset + len(page_items)
         next_cursor = (
-            encode_cursor(rows[-1].event_date, rows[-1].id, filters, self.cursor_secret)
-            if more
+            encode_snapshot_cursor(snapshot_id, next_offset, filters, self.cursor_secret)
+            if next_offset < len(frozen)
             else None
         )
         return Page(
-            [self._event(row) for row in rows],
-            total,
-            next_cursor,
-            datetime.now(UTC),
-            "postgres-live-no-cross-page-snapshot",
+            page_items, len(frozen), next_cursor, as_of, f"postgres-snapshot-v1:{snapshot_id}"
         )
 
     def _event(self, row: EventRow) -> Event:
@@ -360,8 +368,7 @@ class PostgresRepository:
                 daily={row[0]: int(row[1]) for row in daily_rows},
                 categories={Category(str(row[0])): int(row[1]) for row in category_rows},
                 daily_categories={
-                    (row[0], Category(str(row[1]))): int(row[2])
-                    for row in daily_category_rows
+                    (row[0], Category(str(row[1]))): int(row[2]) for row in daily_category_rows
                 },
                 as_of=datetime.now(UTC),
                 data_revision="postgres-live",

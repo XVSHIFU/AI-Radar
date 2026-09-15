@@ -18,7 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -56,6 +56,10 @@ class EventRow(Base):
     source_count: Mapped[int] = mapped_column(Integer, default=0)
     evidence_count: Mapped[int] = mapped_column(Integer, default=0)
     content_version: Mapped[int] = mapped_column(Integer, default=1)
+    search_document: Mapped[str] = mapped_column(Text, default="")
+    search_vector: Mapped[Any] = mapped_column(TSVECTOR, nullable=True)
+    search_config_version: Mapped[str] = mapped_column(String(32), default="cjk-bigram-v1")
+    search_indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -71,6 +75,30 @@ class EventRow(Base):
             postgresql_where=(status == "published"),
         ),
     )
+
+
+class EmbeddingProfileRow(Base):
+    __tablename__ = "embedding_profiles"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(100))
+    model_id: Mapped[str] = mapped_column(String(200))
+    revision: Mapped[str] = mapped_column(String(200))
+    dimension: Mapped[int] = mapped_column(Integer)
+    normalize: Mapped[bool] = mapped_column(Boolean)
+    input_template_version: Mapped[str] = mapped_column(String(64))
+    active: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[str] = mapped_column(String(24), default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RetrievalSnapshotRow(Base):
+    __tablename__ = "retrieval_snapshots"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    filters_hash: Mapped[str] = mapped_column(String(64))
+    items: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
+    total: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class EntityRow(Base):
