@@ -210,4 +210,17 @@ def test_admin_sources_and_usage_live_postgres(
             headers=headers,
         )
         assert invalid.status_code == 422
+        audit = client.get("/api/v1/admin/audit", headers=headers)
+        assert audit.status_code == 200
+        audit_items = audit.json()["items"]
+        assert any(
+            item["action"] == "model.update" and item["outcome"] == "success"
+            for item in audit_items
+        )
+        assert any(
+            item["action"] == "model.update" and item["outcome"] == "failure"
+            for item in audit_items
+        )
+        assert "test-only-key" not in str(audit_items)
+        assert "replacement" not in str(audit_items)
         assert client.get("/api/v1/ingest/runs").status_code == 401
