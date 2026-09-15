@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "./targeted-controls.css";
 import { categoryLabel, countLabel, formatDate, locale, translate as tr } from "./reader-locale";
 import {
   computed,
@@ -400,7 +401,14 @@ onBeforeUnmount(() => {
               {{ tr("此事件没有可打开的来源或关联证据。", "This event has no accessible sources or linked evidence.") }}
             </p>
             <section v-for="source in sources" :key="source.key" class="drawer-source">
-              <h4 class="drawer-source__name">{{ source.title }}</h4>
+              <div class="drawer-source__heading">
+                <h4 class="drawer-source__name">{{ source.title }}</h4>
+                <button class="drawer-source__open" type="button" data-testid="source-open" :aria-label="tr('查看 {title} 的来源详情', 'View source details for {title}', { title: source.title })" @click="openSource(source)">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M11.5 2.5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9zM11.5 2.5v5H16M7 11h6M7 14h4" /></svg>
+                  <span>{{ tr("来源详情", "Source details") }}</span>
+                  <svg class="drawer-source__chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
+                </button>
+              </div>
               <p v-if="safeUrl(source.sourceUrl)" class="row"><a :href="readingUrl(source.sourceUrl)" target="_blank" rel="noopener">{{ readingUrl(source.sourceUrl) === source.sourceUrl ? tr("打开原始来源", "Open original source") : tr("打开中文页面", "Open Chinese page") }}</a><a v-if="readingUrl(source.sourceUrl) !== source.sourceUrl" :href="source.sourceUrl" target="_blank" rel="noopener">{{ tr("查看采集原文（英文摘录核验）", "View collected original (verify English excerpt)") }}</a></p>
               <p v-else class="drawer-status">{{ tr("该来源未提供可安全打开的链接。", "This source does not provide a safely accessible link.") }}</p>
               <p v-if="!source.evidence.length" class="drawer-status">{{ tr("该来源没有已保存的段落证据。", "This source has no saved paragraph evidence.") }}</p>
@@ -408,7 +416,7 @@ onBeforeUnmount(() => {
                 <blockquote class="drawer-quote">{{ row.quote_text || tr("未保存段落摘录。", "No paragraph excerpt was saved.") }}</blockquote>
 
               </section>
-              <button data-testid="source-open" @click="openSource(source)">{{ tr("来源详情", "Source details") }}</button>
+
             </section>          </template>
           <div v-else class="drawer-error" role="alert">
             <p>{{ tr("缺少事件标识，无法打开来源层。", "The event identifier is missing, so the source layer cannot open.") }}</p>

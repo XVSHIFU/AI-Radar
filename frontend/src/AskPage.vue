@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "./targeted-controls.css";
 import { categoryLabel, countLabel, formatDate, locale, translate as tr } from "./reader-locale";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";

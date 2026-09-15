@@ -1,0 +1,60 @@
+/* Scoped refinements: only the two requested statistics control groups. */
+.app-shell .ask-overview .ask-range-buttons button:not(:disabled):hover,
+.app-shell .ask-overview .chart-tabs button:not(:disabled):hover {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+/* Keep the source action with its title, rather than in an empty footer row. */
+.drawer-surface--event .drawer-source__heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 4px;
+}
+.drawer-surface--event .drawer-source__heading .drawer-source__name {
+  flex: 1 1 160px;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.drawer-surface--event button.drawer-source__open {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 5px;
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.drawer-surface--event button.drawer-source__open:hover {
+  background: transparent;
+  color: var(--blue);
+}
+.drawer-surface--event .drawer-source__open svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.drawer-surface--event .drawer-source__open .drawer-source__chevron {
+  width: 12px;
+  height: 12px;
+}
+.drawer-surface--event .drawer-source > .drawer-evidence:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+@media (max-width: 900px) {
+  .drawer-surface--event button.drawer-source__open { min-height: 44px; }
+}
