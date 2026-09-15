@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { admin, err, type ModelPreset, type ModelSettings, type ProbeResult, type Run, type Source, type Usage } from "./api";
 import BatchProbe from "./BatchProbe.vue";
 import { adminRequestGeneration, recordedUsage, usageValue } from "./admin-state";
@@ -12,6 +12,7 @@ const batchBusy = ref(false), loading = ref(false), actionId = ref(""), pageErro
 const sourceDraft = ref({ name: "", feed_url: "", channel_type: "rss" }), editingId = ref<string | null>(null), editDraft = ref({ name: "", feed_url: "" });
 const selectedSourceIds = ref<string[]>([]), apiKey = ref(""), maxTokens = ref(1024), modelEnabled = ref(false), testResult = ref(""), testTranscript = ref<{ request: Array<{ role: string; content: string }>; response: string; error: string }>(), selectedPreset = ref("custom"), providerDraft = ref(""), baseUrlDraft = ref(""), modelDraft = ref(""), submission = idempotentSubmission();
 const requests = adminRequestGeneration();
+watch([baseUrlDraft, modelDraft], () => { apiKey.value = ""; });
 const busy = computed(() => Boolean(actionId.value) || loading.value || batchBusy.value);
 const selectableSources = computed(() => sources.value.filter((source) => source.enabled && source.channel_type === "rss"));
 const formatTime = (value?: string | null) => value ? new Intl.DateTimeFormat("zh-CN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : "—";
