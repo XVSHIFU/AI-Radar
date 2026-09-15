@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from datetime import date
 from uuid import UUID, uuid4
@@ -9,9 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
+from .date_literals import explicit_dates
 from .models import EventDateAuditLogRow, EventRow, EvidenceRow
-
-ISO_DATE = re.compile(r"(?<!\d)(20\d{2})-(0[1-9]|1[0-2])-([012]\d|3[01])(?!\d)")
 
 
 @dataclass(frozen=True)
@@ -54,11 +52,7 @@ class DateQualityService:
                 )
                 found: list[tuple[date, UUID, str]] = []
                 for item in evidence:
-                    for match in ISO_DATE.finditer(item.quote_text):
-                        try:
-                            candidate = date.fromisoformat(match.group())
-                        except ValueError:
-                            continue
+                    for candidate in explicit_dates(item.quote_text):
                         found.append((candidate, item.id, item.paragraph_id))
                 distinct = {item[0] for item in found}
                 if not distinct:
@@ -88,7 +82,7 @@ class DateQualityService:
             if (
                 paragraph is None
                 or evidence.quote_text not in paragraph
-                or event_date.isoformat() not in evidence.quote_text
+                or event_date not in explicit_dates(evidence.quote_text)
             ):
                 raise DateCorrectionRejected("chosen date lacks exact frozen paragraph evidence")
             audit_id = uuid4()

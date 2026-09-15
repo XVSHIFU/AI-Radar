@@ -209,10 +209,10 @@ class ExtractionService:
         source_names: dict[UUID, str] = {}
         for version_id, published_at, published_text, source_id, source_name in rows:
             report_date = self._source_report_date(published_at, published_text)
-            if report_date is None or not date_from <= report_date <= date_to:
+            if report_date is not None and not date_from <= report_date <= date_to:
                 continue
             source_key = UUID(str(source_id))
-            item = (UUID(str(version_id)), report_date)
+            item = (UUID(str(version_id)), report_date or date_from)
             bucket = by_source.setdefault(source_key, [])
             if item not in bucket:
                 bucket.append(item)
@@ -343,7 +343,8 @@ class ExtractionService:
                 event.event_date = extraction.event_date
                 event.date_precision = extraction.date_precision
                 event.date_basis = extraction.date_basis
-                event.status = "published"
+                if event.status != "merged":
+                    event.status = "published"
                 event.source_count = source_count
                 event.content_version += 1
                 event.evidence_count += len(extraction.evidence)
@@ -365,6 +366,7 @@ class ExtractionService:
                 session.add(evidence_row)
                 if evidence_item.paragraph_id == extraction.date_evidence_paragraph_id:
                     date_evidence_id = evidence_row.id
+            await session.flush()
             event.date_evidence_id = date_evidence_id
             for entity_item in extraction.entities:
                 entity_name = entity_item.canonical_name.strip()

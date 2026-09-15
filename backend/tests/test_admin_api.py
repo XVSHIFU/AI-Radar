@@ -25,6 +25,21 @@ def test_admin_session_cookie_csrf_and_logout(monkeypatch: pytest.MonkeyPatch) -
             assert "HttpOnly" in response.headers["set-cookie"]
             assert "SameSite=strict" in response.headers["set-cookie"]
             csrf = response.json()["csrf_token"]
+            merge_payload = {
+                "source_event_id": "10000000-0000-4000-8000-000000000001",
+                "target_event_id": "10000000-0000-4000-8000-000000000002",
+                "reason": "reviewed duplicate",
+                "evidence": {"ticket": "DQ-1"},
+            }
+            assert client.post("/api/v1/admin/event-merges", json=merge_payload).status_code == 403
+            assert (
+                client.post(
+                    "/api/v1/admin/event-merges",
+                    json=merge_payload,
+                    headers={"X-CSRF-Token": csrf},
+                ).status_code
+                == 503
+            )
             assert client.delete("/api/v1/admin/session").status_code == 403
             assert (
                 client.delete("/api/v1/admin/session", headers={"X-CSRF-Token": csrf}).status_code

@@ -29,8 +29,8 @@ class FakeSession:
     async def scalars(self, statement: object) -> ScalarRows:
         return ScalarRows(self.rows)
 
-    async def get(self, model: object, identity: object) -> None:
-        return None
+    async def get(self, model: object, identity: object) -> object:
+        return SimpleNamespace(status="published", merged_into_event_id=None)
 
 
 class FakeSessions:

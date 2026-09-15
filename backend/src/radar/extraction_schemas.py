@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .date_literals import explicit_dates
+
 Category = Literal[
     "model_release", "agent_tool", "framework_sdk", "research", "product", "industry"
 ]
@@ -82,7 +84,7 @@ class ExtractionResult(BaseModel):
         if self.date_evidence_paragraph_id is not None and not any(
             item.paragraph_id == self.date_evidence_paragraph_id
             and self.event_date is not None
-            and self.event_date.isoformat() in item.quote_text
+            and self.event_date in explicit_dates(item.quote_text, self.date_precision)
             for item in self.evidence
         ):
             raise ValueError("date evidence quote must contain the extracted date")

@@ -58,6 +58,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    active_merge = op.get_bind().execute(
+        sa.text("SELECT 1 FROM event_merge_log WHERE reverted_at IS NULL LIMIT 1")
+    ).scalar()
+    if active_merge is not None:
+        raise RuntimeError("refusing lossy downgrade while active event merges exist")
     op.drop_table("event_date_audit_log")
     op.drop_index("ix_event_merge_log_source", table_name="event_merge_log")
     op.drop_table("event_merge_log")

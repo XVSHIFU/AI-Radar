@@ -2,6 +2,7 @@ from datetime import date
 
 import pytest
 
+from radar.date_literals import explicit_dates
 from radar.extraction_schemas import ExtractionResult
 
 
@@ -51,3 +52,16 @@ def test_known_event_date_accepts_matching_frozen_evidence() -> None:
     )
     extraction.validate_publishable({"p-1": "Released on 2026-09-01."})
     assert extraction.event_date == date(2026, 9, 1)
+
+
+@pytest.mark.parametrize(
+    ("text", "precision", "expected"),
+    [
+        ("released June 1, 2026", "day", date(2026, 6, 1)),
+        ("于2026年6月1日发布", "day", date(2026, 6, 1)),
+        ("2026年6月发布", "month", date(2026, 6, 1)),
+        ("released in 2026-06", "month", date(2026, 6, 1)),
+    ],
+)
+def test_literal_date_formats(text: str, precision: str, expected: date) -> None:
+    assert expected in explicit_dates(text, precision)

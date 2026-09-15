@@ -18,7 +18,7 @@ pytestmark = pytest.mark.postgres
 async def test_evidence_gated_date_correction_and_reversible_merge(postgres_database) -> None:
     connection = await postgres_database.connect()
     source_id, article_id, version_id = uuid4(), uuid4(), uuid4()
-    first, second, evidence_id = uuid4(), uuid4(), uuid4()
+    first, second, third, evidence_id = uuid4(), uuid4(), uuid4(), uuid4()
     quote = "Example AI released Model X on 2026-08-17."
     try:
         await connection.execute(
@@ -44,7 +44,7 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
             json.dumps({"p-1": quote}),
             hashlib.sha256(quote.encode()).hexdigest(),
         )
-        for event_id, title in ((first, "事件一"), (second, "事件二")):
+        for event_id, title in ((first, "事件一"), (second, "事件二"), (third, "事件三")):
             await connection.execute(
                 "INSERT INTO events (id,title_zh,summary_zh,category,importance,event_date,"
                 "date_precision,date_basis,status,source_count,evidence_count,content_version) "
@@ -93,6 +93,14 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
         with pytest.raises(MergeRejected):
             await merges.merge(
                 first, second, reason="repeat", evidence={"ticket": "DQ-1"}, operator="reviewer"
+            )
+        with pytest.raises(MergeRejected, match="merged members"):
+            await merges.merge(
+                second,
+                third,
+                reason="attempted chain",
+                evidence={"ticket": "DQ-2"},
+                operator="reviewer",
             )
         await merges.unmerge(log_id, operator="reviewer-2")
         async with sessions() as session:
