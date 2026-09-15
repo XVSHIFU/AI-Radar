@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { dataMode } from "./api";
 import AssistantPanel from "./AssistantPanel.vue";
+import RadarMark from "./RadarMark.vue";
 import ThemeWheel from "./ThemeWheel.vue";
 import "./preview/preview.css";
 const route = useRoute();
@@ -17,7 +18,7 @@ const viewKey = computed(
 <template>
   <div v-if="previewEnabled" class="preview-shell">
     <header class="preview-shell-header">
-      <RouterLink :to="link('/preview')" class="preview-shell-brand">AI 革新雷达 <span>预览版</span></RouterLink>
+      <RouterLink :to="link('/preview')" class="preview-shell-brand"><RadarMark /> AI 革新雷达 <span>预览版</span></RouterLink>
       <nav class="preview-shell-nav" aria-label="预览导航">
         <RouterLink :to="link('/preview')">AI 动态</RouterLink>
         <RouterLink :to="link('/preview/ask')">统计与问答</RouterLink>
@@ -32,9 +33,7 @@ const viewKey = computed(
   <div v-else class="app-shell">
     <header class="app-rail">
       <RouterLink :to="link('/')" class="brand"
-        ><svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 12h16M12 4v16" /></svg
-        >AI 革新雷达</RouterLink
+        ><RadarMark />AI 革新雷达</RouterLink
       >
       <nav>
         <RouterLink :to="link('/')"
@@ -74,7 +73,8 @@ const viewKey = computed(
       <p v-else-if="dataMode === 'fixture' && !adminEnabled" class="demo" role="note">
         后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
       </p>
-      <main><RouterView :key="viewKey" /></main><AssistantPanel />
+      <main><RouterView :key="viewKey" /></main>
     </div>
   </div>
+  <AssistantPanel />
 </template>

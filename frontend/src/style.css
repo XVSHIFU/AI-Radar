@@ -1106,3 +1106,10 @@ select:focus {
 @media (prefers-reduced-motion: reduce) { .assistant-trigger,.assistant-launch-enter-active,.assistant-launch-leave-active { transition: opacity 120ms ease; }.assistant-trigger:hover { transform:none; }.assistant-launch-enter-from,.assistant-launch-leave-to { transform:none; clip-path:none; opacity:0; }.drawer-surface[open],.drawer-surface--leaving,.drawer-shield { animation: none !important; transition:opacity 120ms ease; } }
 
 .drawer-surface--leaving { animation: drawer-leave 260ms cubic-bezier(.4,0,1,1) forwards !important; pointer-events:none; }.drawer-shield { transition: opacity 260ms ease; }.drawer-shield--leaving { opacity:0; pointer-events:auto; }@keyframes drawer-leave { to { opacity:0; transform:translateX(32px); } }
+
+.brand svg { width:26px; height:26px; flex-shrink:0; }
+.preview-shell-brand svg { width:24px; height:24px; vertical-align:middle; }
+.assistant-trigger { top:auto; bottom:24px; visibility:visible; opacity:1; }
+.global-assistant-open .assistant-trigger { visibility:hidden; opacity:0; pointer-events:none; }
+@media(max-width:900px) { .assistant-trigger--mobile { top:auto!important; bottom:16px!important; right:16px!important; } }
+@media(prefers-reduced-motion:reduce) { .drawer-surface[open].drawer-surface--leaving { animation:none!important; opacity:0; } }

@@ -196,7 +196,7 @@ function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   if (open) {
     if (pending) { clearTimeout(pending); dialogTimers.delete(dialog); }
     dialog.classList.remove("drawer-surface--leaving");
-    if (!dialog.open) try { if (matchMedia("(max-width: 900px)").matches) dialog.showModal(); else dialog.show(); } catch {}
+    if (!dialog.open) try { dialog.show(); } catch {}
     return;
   }
   if (!dialog.open || pending) return;
@@ -237,11 +237,11 @@ async function loadEvent() {
   const current = ++generation;
   controller?.abort();
   controller = undefined;
+  if (!id) return;
   item.value = undefined;
   evidence.value = [];
   error.value = undefined;
   evidenceError.value = undefined;
-  if (!id) return;
   controller = new AbortController();
   loading.value = true;
   try {
@@ -296,15 +296,23 @@ watch(
 );
 watch(sourceKey, async (next, previous) => {
   if (!next && previous && !evidenceId.value) {
-    window.setTimeout(() => sourceOpener?.focus(), 260);
+    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus(); }, 260);
   }
 });
 watch(evidenceId, async (next, previous) => {
   if (!next && previous) {
-    window.setTimeout(() => evidenceOpener?.focus(), 260);
+    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus(); }, 260);
   }
 });
 const onEscape = (event: KeyboardEvent) => {
+  if (event.key === "Tab" && eventLayer.value && matchMedia("(max-width:900px)").matches) {
+    const dialog = evidenceId.value ? evidenceDialog.value : sourceKey.value ? sourceDialog.value : eventDialog.value;
+    const nodes = [...(dialog?.querySelectorAll<HTMLElement>("button,a[href],summary,input,[tabindex='0']") || []), ...document.querySelectorAll<HTMLElement>("[data-testid='assistant-toggle']")].filter(n => n.getClientRects().length && !n.hasAttribute("disabled") && !n.closest("[inert]"));
+    const first=nodes[0], last=nodes.at(-1);
+    if(first && last && event.shiftKey && document.activeElement===first){event.preventDefault();last.focus();}
+    else if(first && last && !event.shiftKey && document.activeElement===last){event.preventDefault();first.focus();}
+  }
+
 
   if (event.key === "Escape" && eventLayer.value && !event.defaultPrevented) { event.preventDefault(); moveToParent(); }
 
