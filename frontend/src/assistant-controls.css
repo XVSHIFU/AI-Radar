@@ -74,3 +74,20 @@
   .assistant-workspace .history-panel .history-title { min-height:44px; }
   .assistant-workspace .history-panel .history-title { padding:10px 12px; }
 }
+
+/* The live assistant is a sibling of .app-shell. Restore its intended surface
+   treatment here; experimental layout choices remain in /assistant-preview. */
+.assistant-workspace .assistant-main { background:var(--bg); }
+.assistant-workspace .assistant-main .assistant-composer {
+  padding:12px; border:1px solid var(--line); border-radius:12px;
+  background:var(--paper); margin-top:12px;
+}
+.assistant-workspace .assistant-main .assistant-composer:focus-within { border-color:var(--blue); box-shadow:none; }
+.assistant-workspace .assistant-composer textarea {
+  display:block; min-height:72px; max-height:25dvh; padding:8px 0;
+  border:0; outline:none; box-shadow:none; background:transparent;
+}
+.assistant-workspace .assistant-composer textarea:focus-visible { outline:none; }
+.assistant-workspace .assistant-main .assistant-empty { flex:1; display:flex; align-items:center; margin:0; padding:32px 12px; font-size:14px; }
+.assistant-workspace .assistant-main:has(.assistant-empty) .assistant-composer { margin:12px 0 0; }
+@media(forced-colors:active) { .assistant-workspace .assistant-composer:focus-within { outline:1px solid Highlight; } }

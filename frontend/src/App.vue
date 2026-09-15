@@ -82,5 +82,5 @@ const viewKey = computed(
       <main><TimelinePreviewBar v-if="route.path === '/timeline-preview'" /><RouterView :key="viewKey" /></main>
     </div>
   </div>
-  <AssistantPanel />
+  <AssistantPanel v-if="route.path !== '/assistant-preview'" />
 </template>

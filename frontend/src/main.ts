@@ -14,6 +14,7 @@ initTheme();
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: "/assistant-preview", component: () => import("./AssistantPreview.vue") },
     { path: "/type-preview", component: () => import("./TypePreview.vue") },
     { path: "/timeline-preview", component: () => import("./HomePage.vue") },
     { path: "/brand-preview", component: () => import("./BrandPreview.vue") },
