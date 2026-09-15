@@ -42,7 +42,7 @@ class PublicAskRow(Base):
     owner_hash: Mapped[str] = mapped_column(String(64))
     client_request_id: Mapped[str] = mapped_column(String(128))
     payload_hash: Mapped[str] = mapped_column(String(64))
-    ip_hash: Mapped[str] = mapped_column(String(64))
+    ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     admitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     active_until: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     charged: Mapped[bool] = mapped_column(Boolean)
