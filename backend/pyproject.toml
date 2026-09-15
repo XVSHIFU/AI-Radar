@@ -43,6 +43,7 @@ packages = ["src/radar"]
 [tool.pytest.ini_options]
 markers = [
   "postgres: requires an explicitly enabled disposable PostgreSQL test database",
+  "performance: requires RADAR_RUN_PERFORMANCE_TESTS=1 and disposable PostgreSQL",
 ]
 asyncio_mode = "auto"
 testpaths = ["tests"]
