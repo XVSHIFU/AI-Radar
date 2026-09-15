@@ -99,7 +99,7 @@ onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!h
 <div class="theme-wheel-controls">
 <p class="theme-wheel-count">{{ t("themeCount", { current: centerIndex + 1, total: themes.length }) }}</p><strong aria-live="polite">{{themeName(browsed)}}</strong><p class="theme-wheel-note">{{themeNote(browsed)}}</p>
 <p id="theme-wheel-help">{{ t("themeHelp") }}</p>
-<div class="locale-switch" :aria-label="tr('语言', 'Language')"><button type="button" :aria-pressed="locale === 'zh'" @click="setLocale('zh')">{{ t("localeZh") }}</button><button type="button" :aria-pressed="locale === 'en'" @click="setLocale('en')">{{ t("localeEn") }}</button></div><div class="theme-wheel-actions"><button  :aria-label="t('previousTheme')" @click="rotate(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button  :aria-label="t('nextTheme')" @click="rotate(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button><button @click="close">{{ t("close") }}</button></div>
+<div class="locale-switch theme-wheel-locale" :aria-label="tr('语言', 'Language')"><button type="button" :aria-pressed="locale === 'zh'" @click="setLocale('zh')">{{ t("localeZh") }}</button><button type="button" :aria-pressed="locale === 'en'" @click="setLocale('en')">{{ t("localeEn") }}</button></div><div class="theme-wheel-actions"><button @click="close">{{ t("close") }}</button></div>
 <p class="theme-wheel-status" role="status">{{themeStorageFailed?tr('已应用，本次未能保存偏好','Applied, but this preference could not be saved.'):tr('已应用 · {name}', 'Applied · {name}', { name: themeName(activeTheme) })}}</p>
 </div>
 </section>

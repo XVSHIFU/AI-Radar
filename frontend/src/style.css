@@ -1120,4 +1120,25 @@ select:focus {
 @media(prefers-reduced-motion:reduce) { .drawer-surface[open]:not(.drawer-surface--inactive):not(.drawer-surface--leaving),.drawer-surface[open].drawer-surface--leaving { animation:none!important; } }
 html[lang="en"] { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
 html[lang="zh-CN"] { font-family: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; }
-.locale-switch { display:inline-flex; gap:2px; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--paper); }.locale-switch button { min-height:28px; padding:2px 7px; border:0; border-radius:999px; background:transparent; font-size:12px; }.locale-switch button[aria-pressed="true"] { background:var(--blue-soft); color:var(--blue); font-weight:700; }
+.locale-switch { display:inline-flex; gap:2px; padding:2px; border:1px solid var(--line); border-radius:999px; background:var(--paper); }.locale-switch button { min-height:28px; padding:2px 7px; border:0; border-radius:999px; background:transparent; font-size:12px; }.locale-switch button[aria-pressed="true"] { background:var(--blue-soft); color:var(--blue); font-weight:700; }/* Drawer stability: reserve the scrollbar column before and during the pinned-body lock. */
+html { scrollbar-gutter: stable; }
+html.drawer-scroll-locked { overflow: hidden; }
+
+/* Drawers deliberately move faster than the research assistant's launch motion. */
+.drawer-surface[open]:not(.drawer-surface--inactive):not(.drawer-surface--leaving) {
+  animation: drawer-enter var(--drawer-enter, 380ms) cubic-bezier(.22,.7,.2,1);
+}
+.drawer-surface--leaving {
+  animation: drawer-leave var(--drawer-exit, 260ms) cubic-bezier(.4,0,1,1) forwards !important;
+}
+.drawer-shield { transition-duration: var(--drawer-exit, 260ms); }
+@media (prefers-reduced-motion: reduce) {
+  .drawer-surface[open]:not(.drawer-surface--inactive):not(.drawer-surface--leaving),
+  .drawer-surface[open].drawer-surface--leaving { animation: none !important; }
+}
+
+/* Keep the assistant mark calm: the lift remains, without the former bright halo. */
+.assistant-trigger { box-shadow: 0 6px 15px rgb(34 61 93 / .16); }
+.assistant-trigger:hover { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 19px rgb(34 61 93 / .19); filter: brightness(.97) saturate(.94); }
+.theme-wheel-locale { transform: scale(.9); transform-origin: left center; }
+.theme-wheel-locale button { min-height:25px; padding:1px 6px; font-size:11px; }

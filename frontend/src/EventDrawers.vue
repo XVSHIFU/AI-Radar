@@ -51,7 +51,7 @@ let controller: AbortController | undefined;
 let savedScroll = 0;
 let locked = false;
 let priorBodyStyles:
-  | { position: string; top: string; width: string }
+  | { position: string; top: string; left: string; right: string; width: string }
   | undefined;
 let eventOpener: HTMLElement | undefined;
 let sourceOpener: HTMLElement | undefined;
@@ -198,7 +198,7 @@ function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   }
   if (!dialog.open || pending) return;
   dialog.classList.add("drawer-surface--leaving");
-  syncMotionVariables(); dialogTimers.set(dialog, window.setTimeout(() => { dialog.close(); dialog.classList.remove("drawer-surface--leaving"); dialogTimers.delete(dialog); }, motionDuration("exit")));
+  syncMotionVariables(); dialogTimers.set(dialog, window.setTimeout(() => { dialog.close(); dialog.classList.remove("drawer-surface--leaving"); dialogTimers.delete(dialog); }, motionDuration("drawerExit")));
 }
 function syncDialogs() {
   void nextTick(() => {
@@ -213,20 +213,30 @@ function lockScroll() {
   priorBodyStyles = {
     position: document.body.style.position,
     top: document.body.style.top,
+    left: document.body.style.left,
+    right: document.body.style.right,
     width: document.body.style.width,
   };
+  // Keep the reserved scrollbar gutter while the visual page is pinned. Using
+  // left/right avoids a fixed 100% width changing when the root stops scrolling.
+  document.documentElement.classList.add("drawer-scroll-locked");
   document.body.style.position = "fixed";
   document.body.style.top = `-${savedScroll}px`;
-  document.body.style.width = "100%";
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "auto";
   locked = true;
 }
 function unlockScroll() {
   if (!locked) return;
   document.body.style.position = priorBodyStyles?.position || "";
   document.body.style.top = priorBodyStyles?.top || "";
+  document.body.style.left = priorBodyStyles?.left || "";
+  document.body.style.right = priorBodyStyles?.right || "";
   document.body.style.width = priorBodyStyles?.width || "";
+  document.documentElement.classList.remove("drawer-scroll-locked");
   priorBodyStyles = undefined;
-  window.scrollTo(0, savedScroll);
+  window.scrollTo({ top: savedScroll, behavior: "instant" as ScrollBehavior });
   locked = false;
 }
 async function loadEvent() {
@@ -286,19 +296,19 @@ watch(
         await nextTick();
         eventOpener?.focus();
         outerExitTimer = undefined;
-      }, motionDuration("exit"));
+      }, motionDuration("drawerExit"));
     }
   },
   { immediate: true },
 );
 watch(sourceKey, async (next, previous) => {
   if (!next && previous && !evidenceId.value) {
-    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus(); }, motionDuration("exit"));
+    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus(); }, motionDuration("drawerExit"));
   }
 });
 watch(evidenceId, async (next, previous) => {
   if (!next && previous) {
-    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus(); }, motionDuration("exit"));
+    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus(); }, motionDuration("drawerExit"));
   }
 });
 const onEscape = (event: KeyboardEvent) => {
