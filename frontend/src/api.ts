@@ -224,7 +224,7 @@ export type ProbeResult = { ok: boolean; checked_at: string; http_status?: numbe
 export type Run = { id: string; status: string; started_at: string; finished_at: string | null; found: number; candidates: number; versions: number; kept: number; parser_failures: number; failed_jobs: number; cost: string | number | null; cost_status: "actual" | "estimated" | "unknown"; error_summary: string | null };
 export type ModelSettings = { provider: string; base_url: string; model: string; configured: boolean; enabled: boolean; max_tokens: number };
 export type ModelPreset = { id: string; name: string; base_url: string; model: string; protocol: "openai-compatible" };
-export type ModelTest = { ok: boolean; message: string; model: string; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number } };
+export type ModelTest = { ok: boolean; message: string; model: string; usage?: { prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null }; request_messages?: Array<{ role: string; content: string }>; response_text?: string | null; error_code?: string | null };
 export type Usage = { items: Array<{ purpose: string; status: string; calls: number; usage_recorded: number | null; input_tokens: number | null; output_tokens: number | null; total_tokens: number | null }>; as_of: string };
 const csrfHeaders = (csrf: string, extra: HeadersInit = {}) => ({ ...extra, "X-CSRF-Token": csrf });
 export const admin = {
