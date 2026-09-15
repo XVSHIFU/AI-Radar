@@ -29,4 +29,6 @@ not match [BAAI's published BGE-M3 pooling configuration](https://huggingface.co
 which selects CLS. The adapter now uses CLS + L2 normalization and profile template
 `plain-cls512-v2`; vectors from the old template cannot be mixed with the new profile.
 CPU inference/lazy model loading are serialized to avoid concurrent model copies.
-The corrected profile still needs real-model integration and labeled Recall evaluation.
+The corrected profile passed the real-model PostgreSQL indexing/activation/search test on 2026-09-15 (1 passed, 2.13s), using the complete 0008→0009→0010 migration chain. Labeled Recall evaluation remains separate.
+
+The model is now provisioned at `/home/xvsf/.local/share/ai-radar/models/bge-m3-7698c0c30eafe2736771e96d733545270cdec56f`; the copied ONNX SHA-256 was verified. It no longer depends on a temporary cache directory.
