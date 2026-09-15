@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0007_answer_idempotency"
+SCHEMA_REVISION = "0008_data_quality"

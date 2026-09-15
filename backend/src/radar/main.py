@@ -16,6 +16,7 @@ from .admin_api import router as admin_router
 from .admin_api import session_router
 from .admin_auth import AdminSessionStore, require_admin
 from .config import get_settings
+from .data_quality_api import router as data_quality_router
 from .fixture_repository import FixtureRepository
 from .ingest.dns import configured_resolver
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
@@ -94,6 +95,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="AI Radar API", version="0.1.0", lifespan=lifespan)
 app.include_router(session_router)
 app.include_router(admin_router)
+app.include_router(data_quality_router)
 
 
 @app.middleware("http")

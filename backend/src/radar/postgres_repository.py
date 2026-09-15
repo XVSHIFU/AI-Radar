@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, case, exists, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import aliased, selectinload
 
 from .cursor import decode_cursor, encode_cursor
 from .db_schema import SCHEMA_REVISION
@@ -36,8 +36,27 @@ class PostgresRepository:
 
     def _filters(self, filters: Filters) -> list[Any]:
         clauses: list[Any] = [EventRow.status == "published"]
+        member = aliased(EventRow)
+        member_event_ids = (
+            select(member.id)
+            .where(
+                or_(
+                    member.id == EventRow.id,
+                    member.merged_into_event_id == EventRow.id,
+                )
+            )
+            .correlate(EventRow)
+        )
         if filters.event_ids:
-            clauses.append(EventRow.id.in_(filters.event_ids))
+            clauses.append(
+                or_(
+                    EventRow.id.in_(filters.event_ids),
+                    exists().where(
+                        member.merged_into_event_id == EventRow.id,
+                        member.id.in_(filters.event_ids),
+                    ),
+                )
+            )
         if filters.category:
             clauses.append(EventRow.category == filters.category.value)
         if filters.date_from:
@@ -58,7 +77,7 @@ class PostgresRepository:
             alias_exists = exists().where(EntityAliasRow.normalized_alias == query)
             subject_match = exists().where(
                 and_(
-                    EventEntityRow.event_id == EventRow.id,
+                    EventEntityRow.event_id.in_(member_event_ids),
                     EventEntityRow.entity_id.in_(alias_ids),
                     EventEntityRow.role.in_(("subject", "product")),
                 )
@@ -74,7 +93,7 @@ class PostgresRepository:
                 select(func.count(func.distinct(EventEntityRow.entity_id)))
                 .where(
                     and_(
-                        EventEntityRow.event_id == EventRow.id,
+                        EventEntityRow.event_id.in_(member_event_ids),
                         EventEntityRow.entity_id.in_(entity_ids),
                         EventEntityRow.role.in_(("subject", "product")),
                     )
@@ -144,6 +163,13 @@ class PostgresRepository:
                     .limit(limit + 1)
                 )
                 rows = list((await session.scalars(statement)).all())
+                member_rows = (
+                    await session.execute(
+                        select(EventRow.id, EventRow.merged_into_event_id).where(
+                            EventRow.merged_into_event_id.in_([row.id for row in rows])
+                        )
+                    )
+                ).all()
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
         more = len(rows) > limit
@@ -154,14 +180,26 @@ class PostgresRepository:
             else None
         )
         return Page(
-            [self._event(row) for row in rows],
+            [
+                self._event(
+                    row,
+                    merged_source_event_ids=[
+                        member_id
+                        for member_id, canonical_id in member_rows
+                        if canonical_id == row.id
+                    ],
+                )
+                for row in rows
+            ],
             total,
             next_cursor,
             datetime.now(UTC),
             "postgres-live-no-cross-page-snapshot",
         )
 
-    def _event(self, row: EventRow) -> Event:
+    def _event(
+        self, row: EventRow, *, merged_source_event_ids: list[UUID] | None = None
+    ) -> Event:
         return Event(
             id=row.id,
             title_zh=row.title_zh,
@@ -174,23 +212,62 @@ class PostgresRepository:
             evidence_count=row.evidence_count,
             entities=[relation.entity.canonical_name for relation in row.entities],
             content_version=row.content_version,
+            date_basis=row.date_basis,
+            canonical_id=row.id,
+            merged_source_event_ids=merged_source_event_ids or [],
+            date_conflict=row.date_conflict,
         )
 
     async def event(self, event_id: UUID) -> Event | None:
         try:
             async with self.sessions() as session:
+                requested = await session.get(EventRow, event_id)
+                canonical_id = (
+                    requested.merged_into_event_id
+                    if requested is not None and requested.merged_into_event_id is not None
+                    else event_id
+                )
                 row = await session.scalar(
                     select(EventRow)
                     .options(selectinload(EventRow.entities).selectinload(EventEntityRow.entity))
-                    .where(EventRow.id == event_id, EventRow.status == "published")
+                    .where(EventRow.id == canonical_id, EventRow.status == "published")
+                )
+                members = (
+                    []
+                    if row is None
+                    else list(
+                        await session.scalars(
+                            select(EventRow.id).where(
+                                EventRow.merged_into_event_id == canonical_id
+                            )
+                        )
+                    )
                 )
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
-        return self._event(row) if row else None
+        return self._event(row, merged_source_event_ids=members) if row else None
 
     async def evidence_for(self, event_id: UUID) -> list[Evidence]:
         try:
             async with self.sessions() as session:
+                requested = await session.get(EventRow, event_id)
+                canonical_id = (
+                    requested.merged_into_event_id
+                    if requested is not None and requested.merged_into_event_id is not None
+                    else event_id
+                )
+                canonical = await session.get(EventRow, canonical_id)
+                if canonical is None or canonical.status != "published":
+                    return []
+                member_ids = select(EventRow.id).where(
+                    or_(
+                        EventRow.id == canonical_id,
+                        and_(
+                            EventRow.merged_into_event_id == canonical_id,
+                            EventRow.status == "merged",
+                        ),
+                    )
+                )
                 rows = list(
                     (
                         await session.scalars(
@@ -201,8 +278,7 @@ class PostgresRepository:
                                 selectinload(EvidenceRow.event),
                             )
                             .where(
-                                EvidenceRow.event_id == event_id,
-                                EventRow.status == "published",
+                                EvidenceRow.event_id.in_(member_ids),
                             )
                         )
                     ).all()
@@ -226,6 +302,11 @@ class PostgresRepository:
                     verification_status=row.verification_status,
                     source_published_at=row.article_version.published_at,
                     event_date=row.event.event_date,
+                    canonical_event_id=canonical_id,
+                    claim_key=row.claim_key,
+                    claim_text=row.claim_text,
+                    quote_hash=row.quote_hash,
+                    support_type=row.support_type,
                 )
             )
         return evidence

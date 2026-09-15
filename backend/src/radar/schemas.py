@@ -28,6 +28,15 @@ class Event(BaseModel):
     evidence_count: int = Field(ge=0)
     entities: list[str]
     content_version: int = Field(ge=1)
+    date_basis: Literal[
+        "explicit_body",
+        "official_publication",
+        "report_date_unverified",
+        "unknown",
+    ] = "unknown"
+    canonical_id: UUID | None = None
+    merged_source_event_ids: list[UUID] = Field(default_factory=list)
+    date_conflict: bool = False
 
 
 class Filters(BaseModel):
@@ -107,6 +116,11 @@ class Evidence(BaseModel):
     verification_status: Literal["synthetic_verified", "unverified"]
     source_published_at: datetime | None
     event_date: date | None
+    canonical_event_id: UUID | None = None
+    claim_key: str | None = None
+    claim_text: str | None = None
+    quote_hash: str | None = None
+    support_type: Literal["direct", "context", "contradicts"] = "direct"
 
 
 class EvidencePage(BaseModel):

@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 radar-register-sources = "radar.register_sources:main"
+radar-audit-event-dates = "radar.audit_event_dates:main"
 [dependency-groups]
 dev = [
   "mypy>=1.17,<2",
