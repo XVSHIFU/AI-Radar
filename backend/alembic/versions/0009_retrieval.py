@@ -111,7 +111,7 @@ def upgrade() -> None:
           OR (status IN ('pending','failed','stale') AND embedding IS NULL))
     )""")
     op.execute("""
-+    CREATE FUNCTION invalidate_event_embedding() RETURNS trigger LANGUAGE plpgsql AS $$
+    CREATE FUNCTION invalidate_event_embedding() RETURNS trigger LANGUAGE plpgsql AS $$
     BEGIN
       UPDATE event_embeddings_v1 SET status='stale', embedding=NULL, indexed_at=NULL
       WHERE event_id=NEW.id AND status='ready' AND event_content_version<>NEW.content_version;
