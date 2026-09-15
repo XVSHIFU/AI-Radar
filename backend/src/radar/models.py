@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy import (
     Boolean,
+    Computed,
     Date,
     DateTime,
     ForeignKey,
@@ -65,7 +66,10 @@ class EventRow(Base):
     evidence_count: Mapped[int] = mapped_column(Integer, default=0)
     content_version: Mapped[int] = mapped_column(Integer, default=1)
     search_document: Mapped[str] = mapped_column(Text, default="")
-    search_vector: Mapped[Any] = mapped_column(TSVECTOR, nullable=True)
+    search_vector: Mapped[Any] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector( 'simple', coalesce(search_document, ''))", persisted=True),
+    )
     search_config_version: Mapped[str] = mapped_column(String(32), default="cjk-bigram-v1")
     search_indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

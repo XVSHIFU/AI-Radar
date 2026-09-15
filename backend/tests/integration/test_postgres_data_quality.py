@@ -132,7 +132,9 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
         assert detail.date_basis == "report_date_unverified"
         assert detail.date_conflict is False
         assert (
-            await repository.list_events(Filters(date_from=date(2026, 8, 1)), 10, None)
+            await repository.list_events(
+                Filters(entity_ids=[entity_id], date_from=date(2026, 8, 1)), 10, None
+            )
         ).total == 0
         found = await repository.search_events(Filters(q="事件二", entity_ids=[entity_id]), 10)
         assert found.scope_total == 1 and found.items == [detail]

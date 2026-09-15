@@ -209,7 +209,8 @@ async def test_publish_idempotency_multisource_update_and_date_only(postgres_dat
             event = await connection.fetchrow("SELECT * FROM events WHERE id=$1", event_id)
             assert event is not None
             assert event["content_version"] == 2
-            assert event["event_date"] == date(2026, 9, 15)
+            assert event["event_date"] == date(2026, 9, 1)
+            assert event["date_conflict"] is True
             assert (
                 await connection.fetchval(
                     "SELECT count(*) FROM evidence WHERE event_id=$1", event_id
