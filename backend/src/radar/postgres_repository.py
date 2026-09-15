@@ -266,7 +266,7 @@ class PostgresRepository:
                                 ),
                                 {
                                     "profile_id": active.id,
-                                    "allowed": allowed,
+                                    "allowed": [UUID(item) for item in allowed],
                                     "embedding": rendered,
                                     "limit": candidate_limit,
                                 },
