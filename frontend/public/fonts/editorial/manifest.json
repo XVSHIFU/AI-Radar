@@ -1,0 +1,909 @@
+{
+  "generated_with": "fontTools varLib.instancer + subset, WOFF2/Brotli",
+  "sharding": "512-codepoint shards for Extension A and Basic CJK; separate symbols, compatibility, and supplement shards",
+  "sources": [
+    {
+      "css_family": "RadarSansSC",
+      "upstream_family": "Noto Sans SC",
+      "source_url": "https://github.com/google/fonts/tree/main/ofl/notosanssc",
+      "source_file": "NotoSansSC[wght].ttf",
+      "source_sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+      "axes": "static 400, 600",
+      "license": "licenses/OFL-Noto-Sans-SC.txt"
+    },
+    {
+      "css_family": "RadarSerifSC",
+      "upstream_family": "Noto Serif SC",
+      "source_url": "https://github.com/google/fonts/tree/main/ofl/notoserifsc",
+      "source_file": "NotoSerifSC[wght].ttf",
+      "source_sha256": "050080d9255a86808f2945bffac582b31ef32bc36411ce29563b4961670c66f9",
+      "axes": "static 600",
+      "license": "licenses/OFL-Noto-Serif-SC.txt"
+    },
+    {
+      "css_family": "RadarInter",
+      "upstream_family": "Inter",
+      "source_url": "https://github.com/google/fonts/tree/main/ofl/inter",
+      "source_file": "Inter[opsz,wght].ttf",
+      "source_sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+      "axes": "variable 100\u2013900; optical size 14\u201332",
+      "license": "licenses/OFL-Inter.txt"
+    },
+    {
+      "css_family": "RadarSourceSerif",
+      "upstream_family": "Source Serif 4",
+      "source_url": "https://github.com/google/fonts/tree/main/ofl/sourceserif4",
+      "source_file": "SourceSerif4[opsz,wght].ttf",
+      "source_sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+      "axes": "variable 200\u2013900; optical size 8\u201360",
+      "license": "licenses/OFL-Source-Serif-4.txt"
+    }
+  ],
+  "assets": [
+    {
+      "file": "radar-inter.woff2",
+      "bytes": 339180,
+      "sha256": "892d9186809b2f9e7af75134e3d5a2fc8264557361983d114052a35beb10828f"
+    },
+    {
+      "file": "radar-sans-sc-400-compat.woff2",
+      "bytes": 54516,
+      "sha256": "dd188f3a81b61781238d37754d91288a95a53cbba20b6cc18873c8b267770afd"
+    },
+    {
+      "file": "radar-sans-sc-400-supplement.woff2",
+      "bytes": 41328,
+      "sha256": "c55481763becf2bf6055979073c1cc4683fda7f15566f2b85a6a6dcf6ff81b86"
+    },
+    {
+      "file": "radar-sans-sc-400-symbols.woff2",
+      "bytes": 216584,
+      "sha256": "6e45ed80cae926a559a192d0ac39f2a1c4f755ff59209fc672a65763d26d4831"
+    },
+    {
+      "file": "radar-sans-sc-400-u3400-35ff.woff2",
+      "bytes": 80156,
+      "sha256": "d43e1374f743981ea6eb851fbe9b207c985f6c6905bcd28c60a53612142844a2"
+    },
+    {
+      "file": "radar-sans-sc-400-u3600-37ff.woff2",
+      "bytes": 87620,
+      "sha256": "15848ffa831eb77109e8c9cedad815f62729090171588bd072ea1fdc8735deb8"
+    },
+    {
+      "file": "radar-sans-sc-400-u3800-39ff.woff2",
+      "bytes": 88540,
+      "sha256": "a1da7b0af28a0089abe2b80aa8ed64bdbbcc0e58549a81ca3c53c8daccc813f1"
+    },
+    {
+      "file": "radar-sans-sc-400-u3a00-3bff.woff2",
+      "bytes": 92096,
+      "sha256": "e1ba90c0d97d469bf418a404cb875d0508cff6ec09c45e63ce6b16f1dcb019bb"
+    },
+    {
+      "file": "radar-sans-sc-400-u3c00-3dff.woff2",
+      "bytes": 101392,
+      "sha256": "2ac59b9593a31fb418a81765b3e60fa3d073efb880363145f4362b24525e24fb"
+    },
+    {
+      "file": "radar-sans-sc-400-u3e00-3fff.woff2",
+      "bytes": 93648,
+      "sha256": "270c1021b9629b99ff1f6bdfa6e7286261bec87f324d9fabcd4514ca389d3be1"
+    },
+    {
+      "file": "radar-sans-sc-400-u4000-41ff.woff2",
+      "bytes": 87500,
+      "sha256": "45ac32ccecda4541335f177259c6975adb5c7f3484fd5a272afb6dec6fc698ae"
+    },
+    {
+      "file": "radar-sans-sc-400-u4200-43ff.woff2",
+      "bytes": 104896,
+      "sha256": "db23f95dff308ae87186c6ac3bd5a616ebcf49b8d2749eafb3dc8fa5581ca085"
+    },
+    {
+      "file": "radar-sans-sc-400-u4400-45ff.woff2",
+      "bytes": 93808,
+      "sha256": "9b2d1088e3a85f95398b5e4eecc29d12d57931ad6bf48c2b4187792cdecdefa0"
+    },
+    {
+      "file": "radar-sans-sc-400-u4600-47ff.woff2",
+      "bytes": 95468,
+      "sha256": "3a4884f2fc3fe7f7f85f33af5d5b50a9d51150aae4933ff2d02e2b9c81c60169"
+    },
+    {
+      "file": "radar-sans-sc-400-u4800-49ff.woff2",
+      "bytes": 94180,
+      "sha256": "88b3b03caface34b27b1b72d72b11b6ce3147783a4f12c241c060c4dac44f13f"
+    },
+    {
+      "file": "radar-sans-sc-400-u4a00-4bff.woff2",
+      "bytes": 100432,
+      "sha256": "b53418110a7d4b9e433601d17682020b6ad4de778e9052c5765809c1d147d782"
+    },
+    {
+      "file": "radar-sans-sc-400-u4c00-4dbf.woff2",
+      "bytes": 100652,
+      "sha256": "6b064aab51339d84e923cc4e0dba6bf38bef5725bb1671d2908734c39d50f588"
+    },
+    {
+      "file": "radar-sans-sc-400-u4e00-4fff.woff2",
+      "bytes": 58808,
+      "sha256": "f6f473a2623745860446c3e4384ac3e71bf49be2cd3b2bc537c21fc7945544d5"
+    },
+    {
+      "file": "radar-sans-sc-400-u5000-51ff.woff2",
+      "bytes": 79344,
+      "sha256": "ec00990042e329358db643c5c71984f70faf56435317e07432688af5eb1206d4"
+    },
+    {
+      "file": "radar-sans-sc-400-u5200-53ff.woff2",
+      "bytes": 75840,
+      "sha256": "f9f447d1db19bc6158217a34d7cdcb1ac6d7f06ae306939e7d4d141b0423efb9"
+    },
+    {
+      "file": "radar-sans-sc-400-u5400-55ff.woff2",
+      "bytes": 65596,
+      "sha256": "a1b56af4a448e6ee7afe02dcddf2629c7bc71d47cb7f8d86703218fa44052822"
+    },
+    {
+      "file": "radar-sans-sc-400-u5600-57ff.woff2",
+      "bytes": 77756,
+      "sha256": "c6c389b141b11b607a875ff9b477dee685ad4c85d5bf99dfdf193218fb44f709"
+    },
+    {
+      "file": "radar-sans-sc-400-u5800-59ff.woff2",
+      "bytes": 81152,
+      "sha256": "851cf25bb74d8cf8ced1073a1d4561d6871dbdb2da963f8219dbeb524488d874"
+    },
+    {
+      "file": "radar-sans-sc-400-u5a00-5bff.woff2",
+      "bytes": 92000,
+      "sha256": "1b34f06a287fb5c1ed34c7f886aca4d9e4aa34f081d342956b29d846f6dc4ef5"
+    },
+    {
+      "file": "radar-sans-sc-400-u5c00-5dff.woff2",
+      "bytes": 76452,
+      "sha256": "d70d7d962cb40f0dd90c3841ae99c5965ee25657ad036cc431a360779ae08fae"
+    },
+    {
+      "file": "radar-sans-sc-400-u5e00-5fff.woff2",
+      "bytes": 78776,
+      "sha256": "5320fdb0f8af424b7cc01b979052a2fbd40f59513cba4823745923b2e8fc00a3"
+    },
+    {
+      "file": "radar-sans-sc-400-u6000-61ff.woff2",
+      "bytes": 89772,
+      "sha256": "6a9d3d8827634e4673e411430259742d40566789d8d1790470a7dac88063eed9"
+    },
+    {
+      "file": "radar-sans-sc-400-u6200-63ff.woff2",
+      "bytes": 74236,
+      "sha256": "f0924a89e2bf359af5cd175629a8b3adf88b781066c4beb6e0f65ae4db4519d3"
+    },
+    {
+      "file": "radar-sans-sc-400-u6400-65ff.woff2",
+      "bytes": 97936,
+      "sha256": "91ed4a7f840a3bd646f4f7594f9b7844e3ba7017101153c95937d18423dce33a"
+    },
+    {
+      "file": "radar-sans-sc-400-u6600-67ff.woff2",
+      "bytes": 70668,
+      "sha256": "2e86df40f09b9864ef3c9cf988eec4e4d584bb116f8f570d1b0fcc638f5c5678"
+    },
+    {
+      "file": "radar-sans-sc-400-u6800-69ff.woff2",
+      "bytes": 83640,
+      "sha256": "0414f2fb1764e53dc4162cf2874707ee45441d1b9781df458d01950ce9421cc7"
+    },
+    {
+      "file": "radar-sans-sc-400-u6a00-6bff.woff2",
+      "bytes": 103752,
+      "sha256": "c406a6596289152c60116e47b6d12e0cb331a6492c53270a4d068faccc6cfdab"
+    },
+    {
+      "file": "radar-sans-sc-400-u6c00-6dff.woff2",
+      "bytes": 73432,
+      "sha256": "26795a38f865f28dd3639a64de8e8d78760bdcf3765bb458697e5f1d1d986d08"
+    },
+    {
+      "file": "radar-sans-sc-400-u6e00-6fff.woff2",
+      "bytes": 95592,
+      "sha256": "2eab8cb479a4a29b2da80c3d6452e11ee776bf8f5d33a053379acd4f61e5bdcb"
+    },
+    {
+      "file": "radar-sans-sc-400-u7000-71ff.woff2",
+      "bytes": 99624,
+      "sha256": "c032385f113193abebce4e9c8d23b657cbc25fdd2fbc2d91d340c6015a4dc602"
+    },
+    {
+      "file": "radar-sans-sc-400-u7200-73ff.woff2",
+      "bytes": 87644,
+      "sha256": "bf17e3e90f1e4850a96afc94cc651b156262c4e3d0e274ac32db87dd8f05af9d"
+    },
+    {
+      "file": "radar-sans-sc-400-u7400-75ff.woff2",
+      "bytes": 86448,
+      "sha256": "3d8c729b83c1bf97fa2d6dd48ee72546aa07f6cf531b916983f32a6b63ded01c"
+    },
+    {
+      "file": "radar-sans-sc-400-u7600-77ff.woff2",
+      "bytes": 84612,
+      "sha256": "f2fbabca952807e4e0cf7e80baf35cff5f22ad252fa5efd8dd7752937a9a5898"
+    },
+    {
+      "file": "radar-sans-sc-400-u7800-79ff.woff2",
+      "bytes": 80716,
+      "sha256": "8789c1a31161422927af852f24be1fe46cc481f04ba2ef0e0e4917dc16258ea3"
+    },
+    {
+      "file": "radar-sans-sc-400-u7a00-7bff.woff2",
+      "bytes": 94196,
+      "sha256": "554d4ea444e9bba946a79e32f049c225d7c5b6176daf0f72be797bd510007355"
+    },
+    {
+      "file": "radar-sans-sc-400-u7c00-7dff.woff2",
+      "bytes": 106212,
+      "sha256": "180465e90f9608d33a6a30ad43c9ef7f678299b599523f422c9987c50bd606ab"
+    },
+    {
+      "file": "radar-sans-sc-400-u7e00-7fff.woff2",
+      "bytes": 109104,
+      "sha256": "1a2d58182204483555b7d962222f77fc47cfd93e1fc44808fc01a128fcba738e"
+    },
+    {
+      "file": "radar-sans-sc-400-u8000-81ff.woff2",
+      "bytes": 85216,
+      "sha256": "d635943b18c3212f0e92ac872af9e3d42e6ccdae2da4960fd7673a06ce359125"
+    },
+    {
+      "file": "radar-sans-sc-400-u8200-83ff.woff2",
+      "bytes": 71376,
+      "sha256": "a59f99de710a6bb3c441284689e2af895cda6f403132ce47935862d40d208524"
+    },
+    {
+      "file": "radar-sans-sc-400-u8400-85ff.woff2",
+      "bytes": 90344,
+      "sha256": "5c40e44dee51a7a7badca83679797e0107c6fa92b19e06a5035d74cac4ac9731"
+    },
+    {
+      "file": "radar-sans-sc-400-u8600-87ff.woff2",
+      "bytes": 95168,
+      "sha256": "78ca3b0915d862ee63b67fc37fefeda7f7f0fdcc320a14d57a1878f92cc24ea4"
+    },
+    {
+      "file": "radar-sans-sc-400-u8800-89ff.woff2",
+      "bytes": 100100,
+      "sha256": "59b3afc94211fe36e926bad77823c366af312ae501d32e0e48ad531aebfacd6d"
+    },
+    {
+      "file": "radar-sans-sc-400-u8a00-8bff.woff2",
+      "bytes": 78812,
+      "sha256": "396a7f20711c700058517b286b0f019f5fbb730087a5c95a0e2fd517622c2df0"
+    },
+    {
+      "file": "radar-sans-sc-400-u8c00-8dff.woff2",
+      "bytes": 87976,
+      "sha256": "21569a2fad0ce89461289b46da7e8e86591c7f823a2ccd88aa104583c60eae69"
+    },
+    {
+      "file": "radar-sans-sc-400-u8e00-8fff.woff2",
+      "bytes": 83620,
+      "sha256": "67c4a8b1f53024c8d974f56b298ce2d13d0b44cd9d01579c8b6b1be36371e146"
+    },
+    {
+      "file": "radar-sans-sc-400-u9000-91ff.woff2",
+      "bytes": 89132,
+      "sha256": "45a1cc4560fce24fc895b727140df0e9a95dde9243cdfcf53affb045f185a021"
+    },
+    {
+      "file": "radar-sans-sc-400-u9200-93ff.woff2",
+      "bytes": 87520,
+      "sha256": "d4112d973d20c2c1a4eb93509abe27c0b7ade34fa0993854e3bd1f8a35fa59ec"
+    },
+    {
+      "file": "radar-sans-sc-400-u9400-95ff.woff2",
+      "bytes": 92064,
+      "sha256": "3e2823cfa2718222d1face5f1a127a128b6f552561c94fe022df211c124317e3"
+    },
+    {
+      "file": "radar-sans-sc-400-u9600-97ff.woff2",
+      "bytes": 85976,
+      "sha256": "208ff3e6c07bc6587785eba4ba384d5980514bf2d7119f0fa4e1e7150670f5ac"
+    },
+    {
+      "file": "radar-sans-sc-400-u9800-99ff.woff2",
+      "bytes": 96652,
+      "sha256": "0ff4d89756f050106de4591af400387246f21a9ec41fbbb38076381caf0de151"
+    },
+    {
+      "file": "radar-sans-sc-400-u9a00-9bff.woff2",
+      "bytes": 104252,
+      "sha256": "eba9c5c4eb5e4b83aa040c06509fd425e652f08c30f20935cb8c405d4ca370d0"
+    },
+    {
+      "file": "radar-sans-sc-400-u9c00-9dff.woff2",
+      "bytes": 103980,
+      "sha256": "06f996db9a1e5cb7cf56332e983d3259aff65d3c3f11e1e149b8f4ecac1aad88"
+    },
+    {
+      "file": "radar-sans-sc-400-u9e00-9fff.woff2",
+      "bytes": 108264,
+      "sha256": "df88d614609309e74b075d20296c1958cbed533d35e01b51757dcc085db8095f"
+    },
+    {
+      "file": "radar-sans-sc-600-compat.woff2",
+      "bytes": 54872,
+      "sha256": "77a191d6f9d33a28a07a2448782ab334f871f0cfa6d7a84145edf11c414f018a"
+    },
+    {
+      "file": "radar-sans-sc-600-supplement.woff2",
+      "bytes": 41968,
+      "sha256": "bdee06d5819c2118b48a33c37a623d7f7681011ab1eb22c34cc4a5bcf6f3077a"
+    },
+    {
+      "file": "radar-sans-sc-600-symbols.woff2",
+      "bytes": 215656,
+      "sha256": "c4faeb72bee8d5e397c117e87bcf55bf920ef54db633e46339eefb4738e9e15c"
+    },
+    {
+      "file": "radar-sans-sc-600-u3400-35ff.woff2",
+      "bytes": 81592,
+      "sha256": "0e6193454a13ab9ea38de3f1c38ad70b010a2e1e16d5382a445057f33ccaa68e"
+    },
+    {
+      "file": "radar-sans-sc-600-u3600-37ff.woff2",
+      "bytes": 89516,
+      "sha256": "85d8099b289e353b60a31cb56454f5692e0a491c3c9e4358940cfe42c0a87a22"
+    },
+    {
+      "file": "radar-sans-sc-600-u3800-39ff.woff2",
+      "bytes": 90496,
+      "sha256": "9ad586eeded996753eff7800a751c8354224ab262b3567e08f14503fc02f6a08"
+    },
+    {
+      "file": "radar-sans-sc-600-u3a00-3bff.woff2",
+      "bytes": 93904,
+      "sha256": "3818fe62c4307aefc94887c5b84bb27c38a715e08c3af333c559b84b9b6ef50f"
+    },
+    {
+      "file": "radar-sans-sc-600-u3c00-3dff.woff2",
+      "bytes": 103592,
+      "sha256": "9ac36e8b3594473624e65e77a483269ada253101b5b6336312bc0195ba3fa2d6"
+    },
+    {
+      "file": "radar-sans-sc-600-u3e00-3fff.woff2",
+      "bytes": 95244,
+      "sha256": "5ab9439b02c69eb9a5a44962622fc1ee40f858c65b7c8b8522a5296502b7955a"
+    },
+    {
+      "file": "radar-sans-sc-600-u4000-41ff.woff2",
+      "bytes": 89184,
+      "sha256": "8c9a331fd079eb1774ba261add052b7ec616797d48b46657b60fc667c941cc21"
+    },
+    {
+      "file": "radar-sans-sc-600-u4200-43ff.woff2",
+      "bytes": 108024,
+      "sha256": "f94b5132078e46442664e310472344473bbc1be2050b811e1ac1e243da7d9f82"
+    },
+    {
+      "file": "radar-sans-sc-600-u4400-45ff.woff2",
+      "bytes": 95736,
+      "sha256": "f82759baa5cb3233c89822883d9e7e28008ca86455906d483f862f787758738e"
+    },
+    {
+      "file": "radar-sans-sc-600-u4600-47ff.woff2",
+      "bytes": 96948,
+      "sha256": "cced893cd39e41c2a029656bc5d0acfbc8f7308c7ef04864d7ac0ccab3e09b59"
+    },
+    {
+      "file": "radar-sans-sc-600-u4800-49ff.woff2",
+      "bytes": 95620,
+      "sha256": "902a79ad847ae7dc00019f735622f136cf7db0eb674f214e07830dabab6dac93"
+    },
+    {
+      "file": "radar-sans-sc-600-u4a00-4bff.woff2",
+      "bytes": 102360,
+      "sha256": "70060334412afa14bf45e5de72d60948409b8114a7c1186ccd4c5fa95557d111"
+    },
+    {
+      "file": "radar-sans-sc-600-u4c00-4dbf.woff2",
+      "bytes": 102608,
+      "sha256": "3739cccb3f7d2b0b84fad8a4832bce82e276594f4f83a440268b29f2c2843f06"
+    },
+    {
+      "file": "radar-sans-sc-600-u4e00-4fff.woff2",
+      "bytes": 59560,
+      "sha256": "cd51bf2470568a37e3804a801b8bd235460c284c0a0c09406e800fdecfac1cdd"
+    },
+    {
+      "file": "radar-sans-sc-600-u5000-51ff.woff2",
+      "bytes": 80608,
+      "sha256": "7c22e76c26d0a2d3b7988828eb5a106d5a64b62b1d91d9c06ce6d6431e4becde"
+    },
+    {
+      "file": "radar-sans-sc-600-u5200-53ff.woff2",
+      "bytes": 77240,
+      "sha256": "b54d25540a2979c7536a5560d373e7e466961f1727fb80f48f24376eb35236ca"
+    },
+    {
+      "file": "radar-sans-sc-600-u5400-55ff.woff2",
+      "bytes": 66660,
+      "sha256": "ed3d445c20ab00731512cbdb4efa42d551ebc671e89b8e3da97818d8647b3748"
+    },
+    {
+      "file": "radar-sans-sc-600-u5600-57ff.woff2",
+      "bytes": 79168,
+      "sha256": "a7446def1b9f5a50b561e0a9d7487b4604cdac48fc8f9cd9bec431a26079a323"
+    },
+    {
+      "file": "radar-sans-sc-600-u5800-59ff.woff2",
+      "bytes": 82732,
+      "sha256": "e7cf82ba4b74fa195d6f1593222569ef6fde49660857d24c53eda58a61b700ca"
+    },
+    {
+      "file": "radar-sans-sc-600-u5a00-5bff.woff2",
+      "bytes": 94320,
+      "sha256": "582f3259e7633f1cf94c4e2026f72745b6767b130c9362faa1cc4dd6278c62be"
+    },
+    {
+      "file": "radar-sans-sc-600-u5c00-5dff.woff2",
+      "bytes": 77828,
+      "sha256": "1b9c78302e95487b31181074e24cf079b6acb725c9af9532cb7f03d5c55b8153"
+    },
+    {
+      "file": "radar-sans-sc-600-u5e00-5fff.woff2",
+      "bytes": 79928,
+      "sha256": "3dd79f948ba9765e2e07c69c9b16399c97506ce450f473511282d7213ab7b01c"
+    },
+    {
+      "file": "radar-sans-sc-600-u6000-61ff.woff2",
+      "bytes": 91916,
+      "sha256": "a13a59848ef2a02a35e8b04f7de599186a194d7ad595589c8398bc966b6d22b5"
+    },
+    {
+      "file": "radar-sans-sc-600-u6200-63ff.woff2",
+      "bytes": 75296,
+      "sha256": "6b35536adaa4b29d7457471200df4ba04578e724a0a09b0cdbbe7d6bd1818b34"
+    },
+    {
+      "file": "radar-sans-sc-600-u6400-65ff.woff2",
+      "bytes": 99508,
+      "sha256": "d286dd83358ae4a1054e0963e299e80940167bfe68ea34d3b20fb09a33d490f8"
+    },
+    {
+      "file": "radar-sans-sc-600-u6600-67ff.woff2",
+      "bytes": 71816,
+      "sha256": "d4e33c7e18b977484d612910c3cd98753aaef04ce3902e7da013596ae5a7f683"
+    },
+    {
+      "file": "radar-sans-sc-600-u6800-69ff.woff2",
+      "bytes": 85060,
+      "sha256": "4ad28de52567952a9715d0cd058721ed2dadd148652a399026932c3fa6d922ef"
+    },
+    {
+      "file": "radar-sans-sc-600-u6a00-6bff.woff2",
+      "bytes": 105880,
+      "sha256": "9add37a0e197b9121d801fb4b9c5619d625bfefeadb425f9013407417cc0ffdb"
+    },
+    {
+      "file": "radar-sans-sc-600-u6c00-6dff.woff2",
+      "bytes": 75188,
+      "sha256": "a955467570e5b1b03a7e896111f88832dff6c028db205ea962a529fc9c305805"
+    },
+    {
+      "file": "radar-sans-sc-600-u6e00-6fff.woff2",
+      "bytes": 98344,
+      "sha256": "42c7e35d1f2709de0c6dbd9acaa9c283538c622f060bdc5854a0d2d255693a0f"
+    },
+    {
+      "file": "radar-sans-sc-600-u7000-71ff.woff2",
+      "bytes": 101628,
+      "sha256": "4151dfbac4d52bdfd1bce7b38abba659ee6bc5011ede4fd9e2786eadb2daa1a7"
+    },
+    {
+      "file": "radar-sans-sc-600-u7200-73ff.woff2",
+      "bytes": 89508,
+      "sha256": "458b5c91e4c10c5d7ad1c55de59fced42532f0353fc0ae895961cf629acc0a47"
+    },
+    {
+      "file": "radar-sans-sc-600-u7400-75ff.woff2",
+      "bytes": 88276,
+      "sha256": "c470457f279d0e60df549ad927bd72f4b0ab9736520682384daf003dc441cfb2"
+    },
+    {
+      "file": "radar-sans-sc-600-u7600-77ff.woff2",
+      "bytes": 86172,
+      "sha256": "a311ee3b35f7e80052dd1370b94f2cafaf3aa1d5893d4ec6c3d03e26b3c3f393"
+    },
+    {
+      "file": "radar-sans-sc-600-u7800-79ff.woff2",
+      "bytes": 82492,
+      "sha256": "8bd08c5d79e38fa130fe7069abb762673ef49c6e575987b2fa1e5de57721c942"
+    },
+    {
+      "file": "radar-sans-sc-600-u7a00-7bff.woff2",
+      "bytes": 95868,
+      "sha256": "5701e7e377ee1439574b1b8b8710f4fd0e2cf91f57c729aa65fef73f98e014e9"
+    },
+    {
+      "file": "radar-sans-sc-600-u7c00-7dff.woff2",
+      "bytes": 109496,
+      "sha256": "b0dc2cfc30bef99f0e1b4cbbb2123f537374c2cdefe889501706266685d66894"
+    },
+    {
+      "file": "radar-sans-sc-600-u7e00-7fff.woff2",
+      "bytes": 112628,
+      "sha256": "22f9ff0b6cb8479001f670c5a746ffd036c40de9d0d82bebd018b2ff8c9d37da"
+    },
+    {
+      "file": "radar-sans-sc-600-u8000-81ff.woff2",
+      "bytes": 86788,
+      "sha256": "35c3b91a6b651f1416cb9ba1443353002fba01ed8c06de4a8ee2a7ab69910a5c"
+    },
+    {
+      "file": "radar-sans-sc-600-u8200-83ff.woff2",
+      "bytes": 72828,
+      "sha256": "1037ee01d47c37ce2187dee8ac2627129718b39532f6d364f7c024b5d2b20018"
+    },
+    {
+      "file": "radar-sans-sc-600-u8400-85ff.woff2",
+      "bytes": 91980,
+      "sha256": "5d151d217ef5bf60aebfd208ef70412a878ff108776bd0b896a868d2ae682e32"
+    },
+    {
+      "file": "radar-sans-sc-600-u8600-87ff.woff2",
+      "bytes": 97056,
+      "sha256": "5288fa5bcc00524de8e212ec82c1da72887397c880d19e4847f706100eaed49c"
+    },
+    {
+      "file": "radar-sans-sc-600-u8800-89ff.woff2",
+      "bytes": 101900,
+      "sha256": "23ca0273962db5d215a926222081b10a381657d4dcb3e8f28d2f75efc8625177"
+    },
+    {
+      "file": "radar-sans-sc-600-u8a00-8bff.woff2",
+      "bytes": 79916,
+      "sha256": "fe622d7e4f11328a5e40f6d339d64905576410ec9a13ec71f0e2a9a4e09243eb"
+    },
+    {
+      "file": "radar-sans-sc-600-u8c00-8dff.woff2",
+      "bytes": 89556,
+      "sha256": "1a5f22182bd58b1604551a57e0cc08b971edb9b6e17123ad745aa40587a11b4b"
+    },
+    {
+      "file": "radar-sans-sc-600-u8e00-8fff.woff2",
+      "bytes": 85408,
+      "sha256": "ed932ca5749c4654f59db959a3357281cc1318ca76668b4b3e2bc1acd40901f9"
+    },
+    {
+      "file": "radar-sans-sc-600-u9000-91ff.woff2",
+      "bytes": 90988,
+      "sha256": "36ae18bed9ebe140ec8b148e053c22093da87f1fcd5f7a2159d78fae31deb234"
+    },
+    {
+      "file": "radar-sans-sc-600-u9200-93ff.woff2",
+      "bytes": 89140,
+      "sha256": "f43c711e7a5927d9e193846b911a57bda48cd965baa914ccd5d737094cd2d1f3"
+    },
+    {
+      "file": "radar-sans-sc-600-u9400-95ff.woff2",
+      "bytes": 94124,
+      "sha256": "8dfd17489d3123076ea40cdf51ab7b91e495a9e4e3ebfa62817b17933947df26"
+    },
+    {
+      "file": "radar-sans-sc-600-u9600-97ff.woff2",
+      "bytes": 87676,
+      "sha256": "829b821db87ce6c6df22068980c854626353ee7d7b56b410c098e8f35dff8634"
+    },
+    {
+      "file": "radar-sans-sc-600-u9800-99ff.woff2",
+      "bytes": 98568,
+      "sha256": "160d76d9b111af38a8d785b5fb28e1b051892a41104869d51052ecdffbe1e4c0"
+    },
+    {
+      "file": "radar-sans-sc-600-u9a00-9bff.woff2",
+      "bytes": 106096,
+      "sha256": "a84b655ab277ac11c0b3ea23cda01d0cbafbbbaecda3742604a66611c6837adb"
+    },
+    {
+      "file": "radar-sans-sc-600-u9c00-9dff.woff2",
+      "bytes": 105936,
+      "sha256": "7e30a6e2ff858bf5bd294a47361b6e86141c3d7d1390aa57d960f5affecff519"
+    },
+    {
+      "file": "radar-sans-sc-600-u9e00-9fff.woff2",
+      "bytes": 110032,
+      "sha256": "670695d5a6723fcfdaff9518bad03a86a6a71176904abf27cfd6d177cc6cf2f9"
+    },
+    {
+      "file": "radar-serif-sc-600-compat.woff2",
+      "bytes": 85828,
+      "sha256": "5966c004f53e5f6893ac6e901744888389dd329c4de763cde799304f0bcd5a0d"
+    },
+    {
+      "file": "radar-serif-sc-600-supplement.woff2",
+      "bytes": 54776,
+      "sha256": "c6fec0819366b404b9cf3cfb815a3a1b49db62bc546afbc19711900e198c968c"
+    },
+    {
+      "file": "radar-serif-sc-600-symbols.woff2",
+      "bytes": 300180,
+      "sha256": "14b418bcfe06eeb6998e5e3004aef32248306b67826e355f8384c50e061f7057"
+    },
+    {
+      "file": "radar-serif-sc-600-u3400-35ff.woff2",
+      "bytes": 106452,
+      "sha256": "545265779f10dc7291dea8d7a4082c83ee3f3bc49ff5584229706a4ec2ce48df"
+    },
+    {
+      "file": "radar-serif-sc-600-u3600-37ff.woff2",
+      "bytes": 113092,
+      "sha256": "1682870431817fbb4ceca083b21dfcdd58d09663b2955fbd7890196af3082a67"
+    },
+    {
+      "file": "radar-serif-sc-600-u3800-39ff.woff2",
+      "bytes": 111384,
+      "sha256": "c538117a2bc4e59aae103c2d6e390285f3a1831d852005fe6d59d60109bb0dfc"
+    },
+    {
+      "file": "radar-serif-sc-600-u3a00-3bff.woff2",
+      "bytes": 117672,
+      "sha256": "8360420c6b26d72887cfc77e7d7eecd42c637ecafecc62da20abc0aeddcfb6b3"
+    },
+    {
+      "file": "radar-serif-sc-600-u3c00-3dff.woff2",
+      "bytes": 135228,
+      "sha256": "aa2d69277e1de072f5ebac1607be5638601df8a6dc5a21ce6807b5fa634a8c03"
+    },
+    {
+      "file": "radar-serif-sc-600-u3e00-3fff.woff2",
+      "bytes": 115340,
+      "sha256": "3fe29e4fb11b156e35f04270b2c6ed3022590e0e8af918ddf16554415061266e"
+    },
+    {
+      "file": "radar-serif-sc-600-u4000-41ff.woff2",
+      "bytes": 111436,
+      "sha256": "5a952e10d7e6c86acb1034b3130700f40c645e14ff394f239bda482d730d94a8"
+    },
+    {
+      "file": "radar-serif-sc-600-u4200-43ff.woff2",
+      "bytes": 127272,
+      "sha256": "40a3c0159ce8b6f4b6618dc4a4f02bae1cdf2d132c53100b6d7a4ea95f177815"
+    },
+    {
+      "file": "radar-serif-sc-600-u4400-45ff.woff2",
+      "bytes": 122192,
+      "sha256": "65b0ee81bb5aad8c9879a80b1cdff6e33747ef961db6546c00c695cc2ea21751"
+    },
+    {
+      "file": "radar-serif-sc-600-u4600-47ff.woff2",
+      "bytes": 120252,
+      "sha256": "783d1680c4193f70c40486e0f9d74e1347b4d52b0ddbae4463ec4bc1b2dc1f8b"
+    },
+    {
+      "file": "radar-serif-sc-600-u4800-49ff.woff2",
+      "bytes": 122840,
+      "sha256": "0c01017db881eef404ac0bf8ed5c3189ae5fe8ad927f6db79fb3dee37d16a41a"
+    },
+    {
+      "file": "radar-serif-sc-600-u4a00-4bff.woff2",
+      "bytes": 128716,
+      "sha256": "cf18c864e3a918c34147de39aa5865ae33418f2b64c4db47b19f5e9d0d2f5e7a"
+    },
+    {
+      "file": "radar-serif-sc-600-u4c00-4dbf.woff2",
+      "bytes": 127516,
+      "sha256": "63a73f9ee2b71684ddd75acdbbf2386e7d76b682bececf0ee1e953df9b67f383"
+    },
+    {
+      "file": "radar-serif-sc-600-u4e00-4fff.woff2",
+      "bytes": 75372,
+      "sha256": "be76a8474542e7901f29e868df41c38e614e84ca73e28aba96fe01ceae04cb51"
+    },
+    {
+      "file": "radar-serif-sc-600-u5000-51ff.woff2",
+      "bytes": 109452,
+      "sha256": "ea5b5cb3c81648f15b6c02d5dd1db434c31480f804455b9708f232fcf089214e"
+    },
+    {
+      "file": "radar-serif-sc-600-u5200-53ff.woff2",
+      "bytes": 97668,
+      "sha256": "e6f3aed00ff5c18665c9d368ff0848398e115f2ba6459b4c12c696a49c509ab9"
+    },
+    {
+      "file": "radar-serif-sc-600-u5400-55ff.woff2",
+      "bytes": 92560,
+      "sha256": "4227743810c7289daf986fb7e760c365a6928d5da736e98cb92783ac902b104b"
+    },
+    {
+      "file": "radar-serif-sc-600-u5600-57ff.woff2",
+      "bytes": 110564,
+      "sha256": "1f3303b4d265bde507d76adae48857b1fc98917b56e011b58500472481af01c4"
+    },
+    {
+      "file": "radar-serif-sc-600-u5800-59ff.woff2",
+      "bytes": 110632,
+      "sha256": "c4e6caa65299bd36f54e5b3219e21d9d1823526bf96126954336a2f63fdde18f"
+    },
+    {
+      "file": "radar-serif-sc-600-u5a00-5bff.woff2",
+      "bytes": 124524,
+      "sha256": "fbc628106db58238810bc615d2945fbbed0c21ddd54358d4b6448179037fa142"
+    },
+    {
+      "file": "radar-serif-sc-600-u5c00-5dff.woff2",
+      "bytes": 109404,
+      "sha256": "dbdd38476de7179eba1b38c12e04ac4f83ea9007562b09a371ab6bf8b9a06b93"
+    },
+    {
+      "file": "radar-serif-sc-600-u5e00-5fff.woff2",
+      "bytes": 105368,
+      "sha256": "51fc2a5cfbda6e642f2ac5ebfef639fd6a337f3a7df5888fbaf0c1900a6e78aa"
+    },
+    {
+      "file": "radar-serif-sc-600-u6000-61ff.woff2",
+      "bytes": 116424,
+      "sha256": "1aad60c5bbcec0a91bfd128494bebccf9bdf918355579055eabe74e87feb293a"
+    },
+    {
+      "file": "radar-serif-sc-600-u6200-63ff.woff2",
+      "bytes": 98304,
+      "sha256": "613d45aeead2556111ea100f79bffca6428e37a9445e02fbb8badb92eaa3a460"
+    },
+    {
+      "file": "radar-serif-sc-600-u6400-65ff.woff2",
+      "bytes": 131888,
+      "sha256": "ec5c95e30e95f5b5ab5aabd32d176f79ae6a3a2b480591ee4eb11da3b1a1a339"
+    },
+    {
+      "file": "radar-serif-sc-600-u6600-67ff.woff2",
+      "bytes": 94652,
+      "sha256": "95a3511fcc35f4e901799994a3f0fe02d55068eeb8c7ab064993c44408d1ef39"
+    },
+    {
+      "file": "radar-serif-sc-600-u6800-69ff.woff2",
+      "bytes": 108568,
+      "sha256": "5f9583ceeff9bcf036e2ef34ecb989141b2b49a6b1a110426048563c13fcdbb4"
+    },
+    {
+      "file": "radar-serif-sc-600-u6a00-6bff.woff2",
+      "bytes": 138848,
+      "sha256": "c0698a7698c2b2b99a81ac7abaf855817b5a44f449604a93241230e9859f1981"
+    },
+    {
+      "file": "radar-serif-sc-600-u6c00-6dff.woff2",
+      "bytes": 103940,
+      "sha256": "10dfb4fde1226fc71a28d0a774b0aee25da5e5a086260c74bda33fab0f37abcb"
+    },
+    {
+      "file": "radar-serif-sc-600-u6e00-6fff.woff2",
+      "bytes": 137744,
+      "sha256": "27bd135531c123d5a71a16c5fca479cb6162dfa3aaa374ee87612e1f85a8da46"
+    },
+    {
+      "file": "radar-serif-sc-600-u7000-71ff.woff2",
+      "bytes": 133956,
+      "sha256": "eabc0f1325b589bc8fbf725440635fe2b2beb397e8452ddb733748b9eff871ab"
+    },
+    {
+      "file": "radar-serif-sc-600-u7200-73ff.woff2",
+      "bytes": 113516,
+      "sha256": "208a94e3e91cadd76b5dc5349a64f4f31ad4f8b8239fdc2203df002874805677"
+    },
+    {
+      "file": "radar-serif-sc-600-u7400-75ff.woff2",
+      "bytes": 112888,
+      "sha256": "592a62c8c8f0a79e8cbf354e91eb7966ebce101602b00ac6b20a3f3882f2ee45"
+    },
+    {
+      "file": "radar-serif-sc-600-u7600-77ff.woff2",
+      "bytes": 115484,
+      "sha256": "5c414d6538d9e9e3d707c67984d9a60348a1777bac53c98d6d4d01b531fab267"
+    },
+    {
+      "file": "radar-serif-sc-600-u7800-79ff.woff2",
+      "bytes": 111596,
+      "sha256": "5d331508c36e0cb40804f7f2651e5e8cac5966429f1ed4a72bfa7256d03ab6d6"
+    },
+    {
+      "file": "radar-serif-sc-600-u7a00-7bff.woff2",
+      "bytes": 123556,
+      "sha256": "fe4132d2c83e57f0e648c1f6fd813d9674f453ea6943327d8f1cd66a19ce886e"
+    },
+    {
+      "file": "radar-serif-sc-600-u7c00-7dff.woff2",
+      "bytes": 141412,
+      "sha256": "1a213ff34f786312ea68eda212840779258a386735c74e651a98d3b3ac2d0317"
+    },
+    {
+      "file": "radar-serif-sc-600-u7e00-7fff.woff2",
+      "bytes": 147072,
+      "sha256": "4db110080b84abfa6089c942de54947cfb39d3c545c680d820dd3e0df6fa6ec4"
+    },
+    {
+      "file": "radar-serif-sc-600-u8000-81ff.woff2",
+      "bytes": 110552,
+      "sha256": "b7678e9acf64b1073346d47064ce429c56eb5e225d5b537daa10876b2578144d"
+    },
+    {
+      "file": "radar-serif-sc-600-u8200-83ff.woff2",
+      "bytes": 98288,
+      "sha256": "ee31106e8e47600d16f84edd975a8c1faf76d6d26cc1265313cffd1558fd1cbd"
+    },
+    {
+      "file": "radar-serif-sc-600-u8400-85ff.woff2",
+      "bytes": 125760,
+      "sha256": "cc9b9536972d289b1e312e25bf7dded50dda9d1ffe1c2e0676c2092eb2b039af"
+    },
+    {
+      "file": "radar-serif-sc-600-u8600-87ff.woff2",
+      "bytes": 129948,
+      "sha256": "4fe4342f227e14e9b89c702723bfcda723b0742084875caf24004497d732f5d3"
+    },
+    {
+      "file": "radar-serif-sc-600-u8800-89ff.woff2",
+      "bytes": 132428,
+      "sha256": "c1c0f5bf25ad02401386a91354a745e6d15c6b6e8dd88d946d9c8f252d740fae"
+    },
+    {
+      "file": "radar-serif-sc-600-u8a00-8bff.woff2",
+      "bytes": 106592,
+      "sha256": "04d857ba7678b7f23c233fb79f0d4b092f2ba22dac153fa394ec969ba4ca302c"
+    },
+    {
+      "file": "radar-serif-sc-600-u8c00-8dff.woff2",
+      "bytes": 117120,
+      "sha256": "3dde05d2abb25593dad2594ac03ecc9631ddf76efea58bb957687518783415e6"
+    },
+    {
+      "file": "radar-serif-sc-600-u8e00-8fff.woff2",
+      "bytes": 116004,
+      "sha256": "b1ede074bf46601f2899964919e253e4e530eb015f1bd164b3e644d56e504bc1"
+    },
+    {
+      "file": "radar-serif-sc-600-u9000-91ff.woff2",
+      "bytes": 120628,
+      "sha256": "6439e8ef1f49c5dee67ba95f12313ea2d4385a0ac31a4087e795b840a6d4262e"
+    },
+    {
+      "file": "radar-serif-sc-600-u9200-93ff.woff2",
+      "bytes": 122388,
+      "sha256": "6fdd56d32a9fd92edaaedd82f519b17f7702216a2131508077292b319c69794d"
+    },
+    {
+      "file": "radar-serif-sc-600-u9400-95ff.woff2",
+      "bytes": 127956,
+      "sha256": "169303515a830c48b2c69264668339b61091d7152f055f90aca559d443e30a38"
+    },
+    {
+      "file": "radar-serif-sc-600-u9600-97ff.woff2",
+      "bytes": 121968,
+      "sha256": "3254c7e562c98de48bb7b8490960a6a337c9c54b45085cb34f6b9bf8ae772450"
+    },
+    {
+      "file": "radar-serif-sc-600-u9800-99ff.woff2",
+      "bytes": 131708,
+      "sha256": "61b6082d06a6aaff63765eea373850bf072ad4fc689f349666dd64d9913ab44a"
+    },
+    {
+      "file": "radar-serif-sc-600-u9a00-9bff.woff2",
+      "bytes": 145480,
+      "sha256": "f0255f4c5e3706bc26592e865849bc43d0d50b149a2224b14ba71ab01724f3cf"
+    },
+    {
+      "file": "radar-serif-sc-600-u9c00-9dff.woff2",
+      "bytes": 139680,
+      "sha256": "a38d377c0e617083a12506eaf1fba3224ef80667a31215ff656379e8a0adbcdc"
+    },
+    {
+      "file": "radar-serif-sc-600-u9e00-9fff.woff2",
+      "bytes": 153828,
+      "sha256": "f62db4b72955bd87c06fad37c4137bc3da0ac94f46d4157db9e98f2e25c34689"
+    },
+    {
+      "file": "radar-source-serif.woff2",
+      "bytes": 423148,
+      "sha256": "36b9a43f13dd120a5e68ee20160168aa3b62e2644623230cd466960480c669e7"
+    }
+  ]
+}
