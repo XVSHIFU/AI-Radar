@@ -13,6 +13,37 @@ class MergeRejected(ValueError):
     pass
 
 
+async def canonical_counts(
+    session: AsyncSession, canonical_id: UUID
+) -> tuple[int, int]:
+    member_ids = select(EventRow.id).where(
+        or_(
+            EventRow.id == canonical_id,
+            EventRow.merged_into_event_id == canonical_id,
+        )
+    )
+    source_count = int(
+        (
+            await session.scalar(
+                select(func.count(func.distinct(ArticleRow.source_id)))
+                .select_from(EventArticleRow)
+                .join(ArticleRow, ArticleRow.id == EventArticleRow.article_id)
+                .where(EventArticleRow.event_id.in_(member_ids))
+            )
+        )
+        or 0
+    )
+    evidence_count = int(
+        (
+            await session.scalar(
+                select(func.count(EvidenceRow.id)).where(EvidenceRow.event_id.in_(member_ids))
+            )
+        )
+        or 0
+    )
+    return source_count, evidence_count
+
+
 class EventMergeService:
     """Reversible, operator-attributed canonicalization.
 
@@ -84,7 +115,7 @@ class EventMergeService:
             source.status = "merged"
             source.merged_into_event_id = target_id
             await session.flush()
-            target.source_count, target.evidence_count = await self._canonical_counts(
+            target.source_count, target.evidence_count = await canonical_counts(
                 session, target_id
             )
             target.content_version += 1
@@ -109,42 +140,10 @@ class EventMergeService:
             source.status = str(log.before_state["source_status"])
             source.merged_into_event_id = None
             await session.flush()
-            target.source_count, target.evidence_count = await self._canonical_counts(
+            target.source_count, target.evidence_count = await canonical_counts(
                 session, target.id
             )
             target.content_version += 1
             target.updated_at = datetime.now(UTC)
             log.reverted_at = datetime.now(UTC)
             log.reverted_by = operator.strip()
-
-    async def _canonical_counts(
-        self, session: AsyncSession, canonical_id: UUID
-    ) -> tuple[int, int]:
-        member_ids = select(EventRow.id).where(
-            or_(
-                EventRow.id == canonical_id,
-                EventRow.merged_into_event_id == canonical_id,
-            )
-        )
-        source_count = int(
-            (
-                await session.scalar(
-                    select(func.count(func.distinct(ArticleRow.source_id)))
-                    .select_from(EventArticleRow)
-                    .join(ArticleRow, ArticleRow.id == EventArticleRow.article_id)
-                    .where(EventArticleRow.event_id.in_(member_ids))
-                )
-            )
-            or 0
-        )
-        evidence_count = int(
-            (
-                await session.scalar(
-                    select(func.count(EvidenceRow.id)).where(
-                        EvidenceRow.event_id.in_(member_ids)
-                    )
-                )
-            )
-            or 0
-        )
-        return source_count, evidence_count

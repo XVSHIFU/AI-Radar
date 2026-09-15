@@ -48,7 +48,15 @@ class PostgresRepository:
             .correlate(EventRow)
         )
         if filters.event_ids:
-            clauses.append(EventRow.id.in_(filters.event_ids))
+            clauses.append(
+                or_(
+                    EventRow.id.in_(filters.event_ids),
+                    exists().where(
+                        member.merged_into_event_id == EventRow.id,
+                        member.id.in_(filters.event_ids),
+                    ),
+                )
+            )
         if filters.category:
             clauses.append(EventRow.category == filters.category.value)
         if filters.date_from:
@@ -85,7 +93,7 @@ class PostgresRepository:
                 select(func.count(func.distinct(EventEntityRow.entity_id)))
                 .where(
                     and_(
-                    EventEntityRow.event_id.in_(member_event_ids),
+                        EventEntityRow.event_id.in_(member_event_ids),
                         EventEntityRow.entity_id.in_(entity_ids),
                         EventEntityRow.role.in_(("subject", "product")),
                     )

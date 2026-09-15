@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased
 
 from .deepseek_client import Completion, DeepSeekClient, DeepSeekError
+from .event_merge_service import canonical_counts
 from .extraction_schemas import ExtractionResult
 from .models import (
     ArticleCandidateRow,
@@ -377,6 +378,16 @@ class ExtractionService:
             await session.flush()
             if date_evidence_id is not None and not event.date_conflict:
                 event.date_evidence_id = date_evidence_id
+            if event.merged_into_event_id is not None:
+                canonical = await session.get(
+                    EventRow, event.merged_into_event_id, with_for_update=True
+                )
+                if canonical is not None:
+                    canonical.source_count, canonical.evidence_count = await canonical_counts(
+                        session, canonical.id
+                    )
+                    canonical.content_version += 1
+                    canonical.updated_at = datetime.now(UTC)
             for entity_item in extraction.entities:
                 entity_name = entity_item.canonical_name.strip()
                 await session.execute(
