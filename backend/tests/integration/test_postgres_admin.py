@@ -8,6 +8,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+import radar.admin_api as admin_api
 from radar.config import get_settings
 from radar.main import app
 
@@ -26,6 +27,12 @@ def _client(database: Any, monkeypatch: pytest.MonkeyPatch, config_path: Path):
         def handler(request: httpx.Request) -> httpx.Response:
             if request.url.path == "/models":
                 return httpx.Response(200, json={"data": [{"id": "deepseek-flash"}]})
+            if request.url.path in {"/feed", "/news/"}:
+                return httpx.Response(
+                    200,
+                    content=b"<rss><channel><item><title>One</title>"
+                    b"<link>https://example.com/one</link></item></channel></rss>",
+                )
             body = __import__("json").loads(request.content)
             assert body["model"] == "deepseek-flash"
             assert body["max_tokens"] <= 32
@@ -48,7 +55,9 @@ def _client(database: Any, monkeypatch: pytest.MonkeyPatch, config_path: Path):
                 },
             )
 
-        app.state.admin_model_transport = httpx.MockTransport(handler)
+        transport = httpx.MockTransport(handler)
+        app.state.admin_model_transport = transport
+        app.state.admin_http_transport = transport
         yield client
     get_settings.cache_clear()
 
@@ -89,6 +98,11 @@ def test_admin_sources_and_usage_live_postgres(
     postgres_database: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     builtin_id, custom_id = asyncio.run(_seed(postgres_database))
+
+    async def public_resolver(_host: str) -> list[str]:
+        return ["93.184.216.34"]
+
+    monkeypatch.setattr(admin_api, "configured_resolver", lambda _mode: public_resolver)
     with _client(postgres_database, monkeypatch, tmp_path / "model.json") as client:
         assert client.get("/api/v1/admin/sources").status_code == 401
         headers = {"Authorization": "Bearer admin-test-token"}
@@ -114,6 +128,16 @@ def test_admin_sources_and_usage_live_postgres(
             headers=headers,
         )
         assert changed.status_code == 200
+        probe = client.post(f"/api/v1/admin/sources/{custom_id}/probe", headers=headers)
+        assert probe.status_code == 200
+        assert probe.json()["items_found"] == 1
+        assert (
+            client.post(f"/api/v1/admin/sources/{custom_id}/probe", headers=headers).status_code
+            == 429
+        )
+        archive_probe = client.post(f"/api/v1/admin/sources/{builtin_id}/probe", headers=headers)
+        assert archive_probe.status_code == 200
+        assert archive_probe.json()["message"] == "Archive page is reachable"
         configured = client.put(
             "/api/v1/admin/model",
             json={"api_key": "test-only-key", "enabled": True, "max_tokens": 64},
