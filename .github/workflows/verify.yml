@@ -1,0 +1,40 @@
+name: Verify
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      db:
+        image: pgvector/pgvector:0.8.6-pg16-bookworm
+        env:
+          POSTGRES_USER: radar_ci
+          POSTGRES_PASSWORD: isolated_ci_only
+          POSTGRES_DB: radar_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U radar_ci -d radar_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: radar_ci
+      DB_USER: radar_ci
+      DB_PASSWORD: isolated_ci_only
+      LLM_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.1'
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: '0.11.16'
+          python-version: '3.12'
+      - run: npm install --global pnpm@11.22.0
+      - run: uv sync --frozen --project backend
+      - run: pnpm --dir frontend install --frozen-lockfile
+      - run: bash scripts/verify-linux.sh --postgres

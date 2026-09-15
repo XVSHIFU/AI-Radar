@@ -46,7 +46,7 @@
 @media (max-width:900px) { .assistant-workspace .assistant-icon-control { --control-size:44px; } .assistant-workspace .assistant-attachment .assistant-icon-control { --control-size:44px; } }
 
 
-/* The assistant is teleported outside .app-shell, so its history controls need
+/* The assistant is sibling outside .app-shell, so its history controls need
    their own scoped rules instead of inheriting the shell control treatment. */
 .assistant-workspace .history-panel { padding:16px 10px 12px; }
 .assistant-workspace .history-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 8px; color:var(--muted); font-size:12px; }

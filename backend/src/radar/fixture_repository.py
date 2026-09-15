@@ -39,7 +39,12 @@ class FixtureRepository:
                     "evidence_count": 1 if event.id == EVIDENCE_EVENT_ID else 0,
                 }
             )
-            for event in (Event.model_validate(item) for item in source_items)
+            for event in (
+                Event.model_validate(
+                    {"date_basis": "explicit_body" if item.get("event_date") else "unknown", **item}
+                )
+                for item in source_items
+            )
         ]
         self.cursor_secret = cursor_secret
         self.now = datetime(2026, 9, 12, 10, 0, tzinfo=UTC)
@@ -63,6 +68,13 @@ class FixtureRepository:
             events = [event for event in events if event.id in event_ids]
         if filters.category:
             events = [event for event in events if event.category == filters.category]
+        if filters.date_from or filters.date_to:
+            events = [
+                event
+                for event in events
+                if event.date_basis in ("explicit_body", "official_publication")
+                and not event.date_conflict
+            ]
         if filters.date_from:
             events = [
                 event

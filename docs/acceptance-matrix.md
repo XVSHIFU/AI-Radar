@@ -1,5 +1,7 @@
 # 验收状态
 
+> 本表保留早期验收快照；当前已有真实事件提取与问答。最新逐项状态、剩余目标和证据以 [完整实施审计](implementation-audit-2026-09-15.md) 为准，不再将下面的0事件/无模型计数作为现状。
+
 项目 P0 整体仍未验收通过。2026-09-14 已在 Ubuntu 运行真实 PostgreSQL 16 + pgvector，
 迁移到 0005、readiness、五源生产抓取样本和隔离备份恢复演练通过。持久采集运行中，
 标准事件发布及模型仍未实现。最新数据库证据见 db-live-validation.md，环境见 ubuntu-development.md。

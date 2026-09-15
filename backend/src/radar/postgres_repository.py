@@ -59,6 +59,13 @@ class PostgresRepository:
             )
         if filters.category:
             clauses.append(EventRow.category == filters.category.value)
+        if filters.date_from or filters.date_to:
+            clauses.extend(
+                (
+                    EventRow.date_basis.in_(("explicit_body", "official_publication")),
+                    EventRow.date_conflict.is_(False),
+                )
+            )
         if filters.date_from:
             clauses.extend(
                 (EventRow.date_precision == "day", EventRow.event_date >= filters.date_from)
@@ -197,9 +204,7 @@ class PostgresRepository:
             "postgres-live-no-cross-page-snapshot",
         )
 
-    def _event(
-        self, row: EventRow, *, merged_source_event_ids: list[UUID] | None = None
-    ) -> Event:
+    def _event(self, row: EventRow, *, merged_source_event_ids: list[UUID] | None = None) -> Event:
         return Event(
             id=row.id,
             title_zh=row.title_zh,
@@ -237,9 +242,7 @@ class PostgresRepository:
                     if row is None
                     else list(
                         await session.scalars(
-                            select(EventRow.id).where(
-                                EventRow.merged_into_event_id == canonical_id
-                            )
+                            select(EventRow.id).where(EventRow.merged_into_event_id == canonical_id)
                         )
                     )
                 )
@@ -381,6 +384,8 @@ class PostgresRepository:
                 EventRow.status == "published",
                 EventRow.date_precision == "day",
                 EventRow.event_date == today,
+                EventRow.date_basis.in_(("explicit_body", "official_publication")),
+                EventRow.date_conflict.is_(False),
             )
             .order_by(EventRow.importance.desc(), EventRow.id.desc())
             .limit(3)
@@ -441,8 +446,7 @@ class PostgresRepository:
                 daily={row[0]: int(row[1]) for row in daily_rows},
                 categories={Category(str(row[0])): int(row[1]) for row in category_rows},
                 daily_categories={
-                    (row[0], Category(str(row[1]))): int(row[2])
-                    for row in daily_category_rows
+                    (row[0], Category(str(row[1]))): int(row[2]) for row in daily_category_rows
                 },
                 as_of=datetime.now(UTC),
                 data_revision="postgres-live",

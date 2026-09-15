@@ -242,6 +242,7 @@ onBeforeUnmount(() => {
       <p v-else class="meta" aria-live="polite">
         {{ loading ? tx("正在更新匹配结果…", "Updating results…") : tx(`精确匹配 ${total} 条事件`, `${total} matching events`) }}
       </p>
+      <p v-if="(from || to) && !invalid" class="meta">{{ tx("日期范围只计入已核验的事件日期；未核验报道日期和冲突日期不计入。", "Date ranges include verified event dates only; unverified report dates and conflicts are excluded.") }}</p>
       <div v-if="loading" class="loading-state" aria-live="polite">
         {{ tx("正在读取事件流…", "Loading events…") }}
       </div>
@@ -311,6 +312,7 @@ onBeforeUnmount(() => {
                 <p class="meta tabular timeline-event__meta">
                   {{ tx("重要度", "Importance") }} {{ item.importance }}/5 · {{ item.source_count }} {{ tx("个来源", "sources") }} · {{ item.evidence_count }} {{ tx("条关联证据", "evidence excerpts") }}
                 </p>
+                <p v-if="item.date_conflict || item.date_basis === 'report_date_unverified'" class="meta">{{ item.date_conflict ? tx('日期有冲突 · 待核验', 'Conflicting dates · pending review') : tx('按报道日期展示 · 待核验事件日期', 'Shown by report date · event date unverified') }}</p>
                 <p v-if="item.entities.length" class="timeline-event__entities">
                   <span v-for="entity in item.entities" :key="entity" class="pill">{{ entity }}</span>
                 </p>

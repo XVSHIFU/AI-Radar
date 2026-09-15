@@ -52,3 +52,5 @@ input[type=checkbox], input[type=radio] { accent-color:var(--blue); }
 .assistant-workspace .assistant-composer:focus-within { border-color:var(--blue); box-shadow:none; }
 
 .assistant-workspace .assistant-send[aria-disabled='true'], .assistant-workspace .assistant-send[aria-disabled='true']:hover { color:var(--blue); background:var(--blue-soft); border-color:transparent; opacity:.6; filter:none; }
+
+.assistant-workspace .history-panel::before { content:none; display:none; }

@@ -92,8 +92,9 @@ async def _seed_retrieval(database: Any) -> dict[str, UUID]:
             await connection.execute(
                 "INSERT INTO events "
                 "(id, title_zh, summary_zh, category, importance, event_date, "
-                "date_precision, status, source_count, evidence_count, content_version) "
-                "VALUES ($1, $2, $3, 'research', 5, $4::date, 'day', $5, 1, 1, 1)",
+                "date_precision, date_basis, status, source_count, "
+                "evidence_count, content_version) "
+                "VALUES ($1, $2, $3, 'research', 5, $4::date, 'day', 'explicit_body', $5, 1, 1, 1)",
                 event_id,
                 f"Event {event_id}",
                 "Database-backed evidence",

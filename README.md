@@ -1,5 +1,7 @@
 # AI 革新雷达
 
+> 最新全方案进度以 [2026-09-15逐项审计](docs/implementation-audit-2026-09-15.md) 为准。下文旧阶段的无模型/无事件描述是历史记录，不代表当前状态。
+
 本仓库正在按实施规格 v1.0 落地。当前工作区是 `E:\AI-AGENT\AI-Radar-Implementation-Spec\codex`，覆盖旧方案中的 C 盘示例路径。
 
 首页候选已实际运行比较，采用 Terra 研究工作台。两候选共用浏览器DOM回归 **14/14通过**，保留在 `prototypes/sol` 和 `prototypes/terra`。四页、确定性查询计划与持久采集工程已集成，最终状态以 [验收矩阵](docs/acceptance-matrix.md) 为准，不能把原型通过算成 P0 完成。

@@ -15,6 +15,10 @@ export type Event = {
   importance: number;
   event_date: string | null;
   date_precision: string;
+  date_basis?: "explicit_body" | "official_publication" | "report_date_unverified" | "unknown";
+  date_conflict?: boolean;
+  canonical_id?: string | null;
+  merged_source_event_ids?: string[];
   source_count: number;
   evidence_count: number;
   entities: string[];
@@ -242,4 +246,4 @@ export const admin = {
   testModel: (csrf: string, kind: "connectivity" | "completion") => api<ModelTest>("/api/v1/admin/model/test", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify({ kind }) }),
   usage: () => api<Usage>("/api/v1/admin/model/usage"),
 };
-export { err };
+export { err, api };

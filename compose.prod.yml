@@ -1,0 +1,23 @@
+# Private release gateway for the existing Ubuntu API/worker/database services.
+# Loopback binding is deliberate; public exposure requires a separate deployment decision.
+services:
+  gateway:
+    image: caddy:2.10.2-alpine
+    network_mode: host
+    environment:
+      RADAR_SITE: https://localhost:18443
+      RADAR_BIND: 127.0.0.1
+      RADAR_API_UPSTREAM: 127.0.0.1:8000
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./frontend/dist:/srv:ro
+      - radar_caddy_data:/data
+      - radar_caddy_config:/config
+    restart: unless-stopped
+    mem_limit: 128m
+    read_only: true
+    tmpfs:
+      - /tmp
+volumes:
+  radar_caddy_data:
+  radar_caddy_config:

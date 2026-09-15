@@ -1,0 +1,23 @@
+{
+    admin off
+    auto_https disable_redirects
+}
+
+{$RADAR_SITE:https://localhost:18443} {
+    bind {$RADAR_BIND:127.0.0.1}
+    tls internal
+    header X-Content-Type-Options nosniff
+    header Referrer-Policy same-origin
+    header X-Frame-Options DENY
+    @backend path /api /api/* /health/*
+    handle @backend {
+        reverse_proxy {$RADAR_API_UPSTREAM:127.0.0.1:8000} {
+            flush_interval -1
+        }
+    }
+    handle {
+        root * /srv
+        try_files {path} /index.html
+        file_server
+    }
+}

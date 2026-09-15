@@ -204,6 +204,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
       {{ overviewLoading ? tr("正在计算总览…", "Calculating overview…") : overview ? tr("精确匹配 {count} 条事件 · {range}", "{count} exact-match events · {range}", { count: overview.total_events, range: rangeLabel }) : tr("尚未取得总览", "Overview unavailable") }}
       <span v-if="filterLabel"> · {{ filterLabel }}</span>
     </p>
+    <p v-if="!missingDates && !invalid" class="meta">{{ tr("按已核验的事件日期统计，不含未核验报道日期和冲突日期。", "Counts use verified event dates and exclude unverified report dates or date conflicts.") }}</p>
     <div v-if="overviewError" class="card error" data-testid="insights-error" role="alert">{{ overviewError }} <button @click="loadOverview()">{{ tr("重试", "Retry") }}</button></div>
     <template v-else-if="overview">
       <p v-if="!overview.total_events" class="ask-empty">{{ tr("当前范围暂无已收录事件。", "No recorded events in this scope.") }}<button v-if="rangeMode === 'today'" @click="setRange('week')">{{ tr("查看近7天", "View last 7 days") }}</button></p>

@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
               >
             </p>
             <p class="meta tabular">
-              {{ item.event_date ? formatDate(item.event_date) : tr("日期未知", "Date unknown") }} · {{ countLabel(item.source_count, "个来源", "source") }} · {{ countLabel(item.evidence_count, "条关联证据", "linked evidence item", "linked evidence items") }}
+              {{ item.event_date ? formatDate(item.event_date) : tr("日期未知", "Date unknown") }}<span v-if="item.date_conflict"> · {{ tr("日期有冲突，待核验", "Conflicting dates, pending review") }}</span><span v-else-if="item.date_basis === 'report_date_unverified'"> · {{ tr("报道日期，事件日期待核验", "Report date; event date unverified") }}</span> · {{ countLabel(item.source_count, "个来源", "source") }} · {{ countLabel(item.evidence_count, "条关联证据", "linked evidence item", "linked evidence items") }}
             </p>
             <h3>{{ tr("来源与保存证据", "Sources & saved evidence") }}</h3>
             <p v-if="evidenceError" class="drawer-error" role="alert">

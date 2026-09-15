@@ -25,4 +25,7 @@ docker compose -p ai-radar exec -T db sh -c \
            (SELECT count(*) FROM article_candidates) AS candidates,
            (SELECT count(*) FROM events) AS events;
     SELECT extversion FROM pg_extension WHERE extname = '\''vector'\'';"' sh "$database"
+docker compose -p ai-radar exec -T db sh -c \
+  'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$1"' sh "$database" \
+  < scripts/restore-invariants.sql
 printf 'Restore check passed; temporary database %s will be removed.\n' "$database"
