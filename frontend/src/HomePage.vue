@@ -171,7 +171,7 @@ function openEvent(event: MouseEvent, id: string) {
   delete drawerQuery.source;
   delete drawerQuery.evidence;
   drawerQuery.event = id;
-  void router.push({ path: "/", query: drawerQuery });
+  void router.push({ path: route.path, query: drawerQuery });
 }
 watch(() => route.query, sync, { immediate: true });
 watch(timeline, (value) => {
@@ -180,8 +180,8 @@ watch(timeline, (value) => {
 watch([q, category, from, to], schedule);
 watch([q, category, from, to], () => {
   const filters = { q: q.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined };
-  const parts = [q.value ? "关键词「" + q.value + "」" : "", category.value ? "分类：" + (categories.value.find((item) => item.v === category.value)?.l || category.value) : "", from.value || to.value ? "日期：" + (from.value || "不限") + " 至 " + (to.value || "不限") : ""].filter(Boolean);
-  setAssistantScope({ label: "当前动态列表范围", filters, snapshot: parts.length ? parts.join(" · ") : "当前列表范围：未限定单个事件" });
+  const parts = [q.value ? tx("关键词：", "Keyword: ") + q.value : "", category.value ? tx("分类：", "Category: ") + (categories.value.find((item) => item.v === category.value)?.l || category.value) : "", from.value || to.value ? tx("日期：", "Date: ") + (from.value || tx("不限", "Any")) + tx(" 至 ", " to ") + (to.value || tx("不限", "Any")) : ""].filter(Boolean);
+  setAssistantScope({ label: tx("当前动态列表范围", "Current event feed"), filters, snapshot: parts.length ? parts.join(" · ") : tx("当前列表范围：未限定单个事件", "Current feed: no single event selected") });
 }, { immediate: true });
 const onAssistantPlan = (event: globalThis.Event) => { const plan = (event as unknown as globalThis.CustomEvent<{ category?: string; date_from?: string; date_to?: string }>).detail; if (plan.category && categories.value.some((item) => item.v === plan.category)) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; };
 onMounted(async () => { window.addEventListener("assistant-apply-plan", onAssistantPlan as EventListener);
