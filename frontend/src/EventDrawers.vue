@@ -19,6 +19,7 @@ import {
   type Evidence,
 } from "./api";
 import { preferredReadingUrl } from "./source-links";
+import { motionDuration, syncMotionVariables } from "./motion";
 
 type SourceChoice = {
   key: string;
@@ -202,7 +203,7 @@ function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   }
   if (!dialog.open || pending) return;
   dialog.classList.add("drawer-surface--leaving");
-  dialogTimers.set(dialog, window.setTimeout(() => { dialog.close(); dialog.classList.remove("drawer-surface--leaving"); dialogTimers.delete(dialog); }, 260));
+  syncMotionVariables(); dialogTimers.set(dialog, window.setTimeout(() => { dialog.close(); dialog.classList.remove("drawer-surface--leaving"); dialogTimers.delete(dialog); }, motionDuration("exit")));
 }
 function syncDialogs() {
   void nextTick(() => {
@@ -290,19 +291,19 @@ watch(
         await nextTick();
         eventOpener?.focus();
         outerExitTimer = undefined;
-      }, 260);
+      }, motionDuration("exit"));
     }
   },
   { immediate: true },
 );
 watch(sourceKey, async (next, previous) => {
   if (!next && previous && !evidenceId.value) {
-    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus(); }, 260);
+    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus(); }, motionDuration("exit"));
   }
 });
 watch(evidenceId, async (next, previous) => {
   if (!next && previous) {
-    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus(); }, 260);
+    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus(); }, motionDuration("exit"));
   }
 });
 const onEscape = (event: KeyboardEvent) => {
@@ -323,7 +324,7 @@ function backgroundInert(drawerOpen: boolean) {
   const assistantModal = document.documentElement.classList.contains("global-assistant-open") && matchMedia("(max-width: 900px)").matches;
   for (const node of document.querySelectorAll(".app-content main,.app-rail")) node.toggleAttribute("inert", drawerOpen || assistantModal);
 }
-onMounted(() => { document.addEventListener("keydown", onEscape); if(eventLayer.value) { shieldVisible.value = true; backgroundInert(true); } });
+onMounted(() => { syncMotionVariables(); document.addEventListener("keydown", onEscape); if(eventLayer.value) { shieldVisible.value = true; backgroundInert(true); } });
 
 onBeforeUnmount(() => {
   generation++;
