@@ -223,23 +223,30 @@ async def patch_source(
             raise admin_error("SOURCE_URL_UNSAFE", str(exc), 422) from exc
         host = urlsplit(cast(str, values["feed_url"])).hostname
         assert host is not None
-        values["canonical_host"] = host.casefold()
-        values["health"] = "unknown"
-        values["last_checked_at"] = None
-        values["etag"] = None
-        values["last_modified"] = None
-        values["consecutive_failures"] = 0
-        values["cooldown_until"] = None
-    async with _sessions(request)() as session, session.begin():
-        row = await session.get(SourceRow, source_id, with_for_update=True)
-        if row is None:
-            raise admin_error("SOURCE_NOT_FOUND", "Source was not found", 404)
-        if row.name in BUILTIN_SOURCES and any(key in values for key in ("name", "feed_url")):
-            raise admin_error(
-                "SOURCE_IMMUTABLE", "Built-in archive source metadata is read-only", 422
-            )
-        for key, value in values.items():
-            setattr(row, key, value)
+        values.update(
+            canonical_host=host.casefold(),
+            health="unknown",
+            last_checked_at=None,
+            etag=None,
+            last_modified=None,
+            consecutive_failures=0,
+            cooldown_until=None,
+        )
+    try:
+        async with _sessions(request)() as session, session.begin():
+            row = await session.get(SourceRow, source_id, with_for_update=True)
+            if row is None:
+                raise admin_error("SOURCE_NOT_FOUND", "Source was not found", 404)
+            if row.name in BUILTIN_SOURCES and any(key in values for key in ("name", "feed_url")):
+                raise admin_error(
+                    "SOURCE_IMMUTABLE",
+                    "Built-in archive source metadata is read-only",
+                    422,
+                )
+            for key, value in values.items():
+                setattr(row, key, value)
+    except IntegrityError as exc:
+        raise admin_error("SOURCE_ALREADY_EXISTS", "Source name already exists", 409) from exc
     return _source(row)
 
 
@@ -297,7 +304,10 @@ async def probe_source(source_id: UUID, request: Request) -> dict[str, object]:
 
 
 def _model_body(store: ModelConfigStore) -> dict[str, object]:
-    config = store.read()
+    try:
+        config = store.read()
+    except ModelConfigUnavailable as exc:
+        raise admin_error("MODEL_CONFIG_UNAVAILABLE", str(exc), 503) from exc
     return {
         "provider": PROVIDER,
         "base_url": BASE_URL,
@@ -321,6 +331,8 @@ async def put_model(payload: ModelUpdate, request: Request) -> dict[str, object]
             api_key=payload.api_key, enabled=payload.enabled, max_tokens=payload.max_tokens
         )
     except ModelConfigUnavailable as exc:
+        if "API key is required" in str(exc):
+            raise admin_error("MODEL_UNAVAILABLE", str(exc), 422) from exc
         raise admin_error("MODEL_CONFIG_UNAVAILABLE", str(exc), 503) from exc
     return _model_body(store)
 
@@ -432,7 +444,7 @@ async def test_model(payload: ModelTestRequest, request: Request) -> dict[str, o
         await _record_admin_test(
             sessions,
             call_id,
-            status="failed",
+            status=("unknown" if exc.code == "unknown_transport_failure" else "failed"),
             usage=exc.completion.usage if exc.completion else None,
             error_code=exc.code,
         )

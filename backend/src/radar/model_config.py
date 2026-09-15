@@ -64,6 +64,8 @@ class ModelConfigStore:
             )
         except ValueError as exc:
             raise ModelConfigUnavailable("Stored credential timestamp is invalid") from exc
+        if credential_changed_at is not None and credential_changed_at.tzinfo is None:
+            raise ModelConfigUnavailable("Stored credential timestamp must include timezone")
         return EffectiveModelConfig(api_key, enabled, max_tokens, credential_changed_at)
 
     def update(
@@ -74,6 +76,8 @@ class ModelConfigStore:
         key_changed = bool(
             api_key is not None and api_key.strip() and api_key.strip() != current.api_key
         )
+        if enabled and not key:
+            raise ModelConfigUnavailable("An API key is required when enabled")
         changed_at = datetime.now(UTC) if key_changed else current.credential_changed_at
         payload = {
             "api_key": key,
