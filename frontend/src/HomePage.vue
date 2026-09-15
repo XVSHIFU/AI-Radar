@@ -19,6 +19,8 @@ import {
   setTimelineGranularity,
   type TimelineState,
 } from "./timeline";
+import { locale, formatDate } from "./locale";
+import { tx } from "./reading-locale";
 import { latestRequest } from "./latest";
 import { setAssistantScope } from "./assistant-scope";
 
@@ -40,15 +42,15 @@ const route = useRoute(),
   overview = ref<Stats>(),
   statsError = ref(false),
   timelineState = ref<TimelineState>({});
-const categories: { v: Category; l: string }[] = [
-  { v: "model_release", l: "模型发布" },
-  { v: "agent_tool", l: "智能体工具" },
-  { v: "framework_sdk", l: "框架与 SDK" },
-  { v: "research", l: "研究" },
-  { v: "product", l: "产品" },
-  { v: "industry", l: "产业" },
-];
-const timeline = computed(() => buildTimeline(items.value));
+const categories = computed<{ v: Category; l: string }[]>(() => [
+  { v: "model_release", l: tx("模型发布", "Model releases") },
+  { v: "agent_tool", l: tx("智能体工具", "Agent tools") },
+  { v: "framework_sdk", l: tx("框架与 SDK", "Frameworks & SDKs") },
+  { v: "research", l: tx("研究", "Research") },
+  { v: "product", l: tx("产品", "Products") },
+  { v: "industry", l: tx("产业", "Industry") },
+]);
+const timeline = computed(() => buildTimeline(items.value).map(year => ({ ...year, label: year.unknown ? tx("日期未知", "Date unknown") : locale.value === "en" ? year.key : year.label, months: year.months.map(month => ({ ...month, label: year.unknown ? tx("未提供日期", "No date supplied") : locale.value === "en" ? new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(new Date(month.key+"-01T00:00:00Z")) : month.label, days: month.days.map(day => ({ ...day, label: year.unknown ? tx("日期未知", "Unknown") : locale.value === "en" ? String(Number(day.key.slice(-2))) : day.label })) })) })));
 const hasFilters = computed(() =>
   Boolean(q.value || category.value || from.value || to.value),
 );
@@ -178,10 +180,10 @@ watch(timeline, (value) => {
 watch([q, category, from, to], schedule);
 watch([q, category, from, to], () => {
   const filters = { q: q.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined };
-  const parts = [q.value ? "关键词「" + q.value + "」" : "", category.value ? "分类：" + (categories.find((item) => item.v === category.value)?.l || category.value) : "", from.value || to.value ? "日期：" + (from.value || "不限") + " 至 " + (to.value || "不限") : ""].filter(Boolean);
+  const parts = [q.value ? "关键词「" + q.value + "」" : "", category.value ? "分类：" + (categories.value.find((item) => item.v === category.value)?.l || category.value) : "", from.value || to.value ? "日期：" + (from.value || "不限") + " 至 " + (to.value || "不限") : ""].filter(Boolean);
   setAssistantScope({ label: "当前动态列表范围", filters, snapshot: parts.length ? parts.join(" · ") : "当前列表范围：未限定单个事件" });
 }, { immediate: true });
-const onAssistantPlan = (event: globalThis.Event) => { const plan = (event as unknown as globalThis.CustomEvent<{ category?: string; date_from?: string; date_to?: string }>).detail; if (plan.category && categories.some((item) => item.v === plan.category)) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; };
+const onAssistantPlan = (event: globalThis.Event) => { const plan = (event as unknown as globalThis.CustomEvent<{ category?: string; date_from?: string; date_to?: string }>).detail; if (plan.category && categories.value.some((item) => item.v === plan.category)) category.value = plan.category as Category; if (plan.date_from) from.value = plan.date_from; if (plan.date_to) to.value = plan.date_to; };
 onMounted(async () => { window.addEventListener("assistant-apply-plan", onAssistantPlan as EventListener);
   load();
   try {
@@ -202,14 +204,14 @@ onBeforeUnmount(() => {
 <template>
   <section class="home-layout">
     <div class="home-stream">
-      <h1 class="page-title">AI 动态</h1>
-      <p class="page-subtitle">从事件流开始，再回查来源与证据。</p>
+      <h1 class="page-title">{{ tx("AI 动态", "AI updates") }}</h1>
+      <p class="page-subtitle">{{ tx("从事件流开始，再回查来源与证据。", "Follow events. Explore their sources and evidence.") }}</p>
       <div class="filter-strip">
         <label class="search-field"
-          >关键词<input
+          >{{ tx("关键词", "Keyword") }}<input
             v-model="q"
             class="control"
-            placeholder="标题、摘要、实体"
+            :placeholder='tx("标题、摘要、实体", "Title, summary, entity")'
         /></label>
         <button
           v-if="compact && route.path !== '/timeline-preview'"
@@ -218,12 +220,12 @@ onBeforeUnmount(() => {
           aria-controls="advanced"
           @click="advanced = !advanced"
         >
-          分类与日期 {{ advanced ? "−" : "+" }}
+          {{ tx("分类与日期", "Category and date") }} {{ advanced ? "−" : "+" }}
         </button>
         <div id="advanced" v-show="!compact || advanced || route.path === '/timeline-preview'" class="filter-details">
           <fieldset class="category-list">
-            <legend>分类</legend>
-            <label class="category-list__all"><input v-model="category" type="radio" value="" />全部</label>
+            <legend>{{ tx("分类", "Category") }}</legend>
+            <label class="category-list__all"><input v-model="category" type="radio" value="" />{{ tx("全部", "All") }}</label>
             <label v-for="entry in categories" :key="entry.v"
               ><input v-model="category" type="radio" :value="entry.v" />{{
                 entry.l
@@ -232,22 +234,22 @@ onBeforeUnmount(() => {
           </fieldset>
           <div class="date-controls"><DateRangePicker :from="from" :to="to" :allow-unbounded="true" @change="applyDates" /></div>
         </div>
-        <div v-if="hasFilters" class="filter-actions"><button class="filter-clear" @click="clear">清除条件</button></div>
+        <div v-if="hasFilters" class="filter-actions"><button class="filter-clear" @click="clear">{{ tx("清除条件", "Clear filters") }}</button></div>
       </div>
       <p v-if="invalid" class="status danger">
-        日期范围无效：起始日期不能晚于截止日期。
+        {{ tx("日期范围无效：起始日期不能晚于截止日期。", "Invalid range: the start date must precede the end date.") }}
       </p>
       <p v-else class="meta" aria-live="polite">
-        {{ loading ? "正在更新匹配结果…" : `精确匹配 ${total} 条事件` }}
+        {{ loading ? tx("正在更新匹配结果…", "Updating results…") : tx(`精确匹配 ${total} 条事件`, `${total} matching events`) }}
       </p>
       <div v-if="loading" class="loading-state" aria-live="polite">
-        正在读取事件流…
+        {{ tx("正在读取事件流…", "Loading events…") }}
       </div>
       <div v-if="error" class="card error" role="alert">
-        {{ error.message }}<button @click="load()">重试</button>
+        {{ error.message }}<button @click="load()">{{ tx("重试", "Retry") }}</button>
       </div>
       <div v-else-if="!loading && !items.length" class="empty">
-        这个范围内没有事件。
+        {{ tx("这个范围内没有事件。", "No events in this range.") }}
       </div>
       <div class="timeline-spine">
       <section
@@ -259,7 +261,7 @@ onBeforeUnmount(() => {
         <div class="timeline-year__heading">
           <h2 class="timeline-year__label">{{ year.label }}</h2>
           <span class="timeline-year__count"
-            >已加载
+            >{{ tx("已加载", "Loaded") }}
             {{
               year.months.reduce(
                 (sum, month) =>
@@ -271,7 +273,7 @@ onBeforeUnmount(() => {
                 0,
               )
             }}
-            条</span
+            {{ tx("条", "events") }}</span
           >
         </div>
         <section
@@ -288,16 +290,16 @@ onBeforeUnmount(() => {
           >
             <span>{{ month.label }}</span>
             <span class="timeline-month__count"
-              >已加载
+              >{{ tx("已加载", "Loaded") }}
               {{ month.days.reduce((sum, day) => sum + day.events.length, 0) }}
-              条</span
+              {{ tx("条", "events") }}</span
             >
           </button>
           <div v-if="timelineState[month.key]">
             <section v-for="day in month.days" :key="day.key" class="timeline-day">
               <button class="timeline-day__toggle" data-testid="timeline-day-toggle" :aria-label="day.key" :aria-expanded="timelineState[day.key]" :aria-controls="'day-'+day.key" @click="toggle(day.key)">
                 <span>{{ day.label }}</span>
-                <span class="timeline-day__loaded">已加载 {{ day.events.length }} 条</span>
+                <span class="timeline-day__loaded">{{ tx("已加载", "Loaded") }} {{ day.events.length }} {{ tx("条", "events") }}</span>
               </button>
               <div v-if="timelineState[day.key]" :id="'day-'+day.key">
               <article v-for="item in day.events" :key="item.id" class="timeline-event" :class="{ 'timeline-event--important': item.importance >= 4 }">
@@ -307,7 +309,7 @@ onBeforeUnmount(() => {
                 </h2>
                 <p class="muted">{{ item.summary_zh }}</p>
                 <p class="meta tabular timeline-event__meta">
-                  重要度 {{ item.importance }}/5 · {{ item.source_count }} 个来源 · {{ item.evidence_count }} 条关联证据
+                  {{ tx("重要度", "Importance") }} {{ item.importance }}/5 · {{ item.source_count }} {{ tx("个来源", "sources") }} · {{ item.evidence_count }} {{ tx("条关联证据", "evidence excerpts") }}
                 </p>
                 <p v-if="item.entities.length" class="timeline-event__entities">
                   <span v-for="entity in item.entities" :key="entity" class="pill">{{ entity }}</span>
@@ -320,17 +322,17 @@ onBeforeUnmount(() => {
       </section>
       </div>
       <button v-if="next && !loading" @click="load(next, true)">
-        加载更多
+        {{ tx("加载更多", "Load more") }}
       </button>
     </div>
     <aside class="context-panel">
-      <h2>全库范围</h2>
+      <h2>{{ tx("全库范围", "Entire collection") }}</h2>
       <p v-if="overview" class="tabular">
-        {{ overview.scope === "global" ? "全库" : overview.scope }} ·
-        {{ overview.total_events }} 条事件
+        {{ overview.scope === "global" ? tx("全库", "All") : overview.scope }} ·
+        {{ overview.total_events }} {{ tx("条事件", "events") }}
       </p>
       <div v-if="overview" class="meta">
-        <p>更新时间：{{ new Date(overview.as_of).toLocaleString("zh-CN") }}</p>
+        <p>{{ tx("更新时间：", "Updated: ") }}{{ formatDate(overview.as_of) }}</p>
         <ul>
           <li v-for="(count, name) in overview.categories" :key="name">
             {{ categories.find((entry) => entry.v === name)?.l || name }}
@@ -339,7 +341,7 @@ onBeforeUnmount(() => {
         </ul>
       </div>
       <p v-else class="meta">
-        {{ statsError ? "全库态势暂时无法读取" : "正在读取全库态势…" }}
+        {{ statsError ? tx("全库态势暂时无法读取", "Collection overview unavailable") : tx("正在读取全库态势…", "Loading overview…") }}
       </p>
     </aside>
   </section>

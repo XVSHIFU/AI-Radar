@@ -88,3 +88,24 @@
  .brand-studies .brand-study { gap:20px; }
 }
 @media(prefers-reduced-motion:reduce) { .brand-study-art > svg { transition:none; } }
+
+/* The date sits beside the continuous rail, instead of repeating in the story column. */
+.fusion-preview .timeline-spine { margin-left:84px; }
+.fusion-preview .timeline-day { position:relative; margin-top:18px; min-height:64px; }
+.fusion-preview .timeline-day__toggle { position:absolute; left:-118px; top:0; width:82px; display:flex; flex-wrap:wrap; justify-content:flex-start; gap:6px; padding:15px 0; margin:0; }
+.fusion-preview .timeline-day__loaded { flex-basis:100%; font-size:12px; }
+.fusion-preview .timeline-day__toggle::before { flex:none; }
+.fusion-preview .timeline-event__title { max-width:36em; }
+.app-shell .brand-study .brand-study-art > svg { width:64px; height:64px; }
+.app-shell .brand-study .brand-study-lockup svg { width:28px; height:28px; }
+.app-shell .brand-study .brand-study-tab svg { width:16px; height:16px; }
+.app-shell .brand-study svg circle { fill:currentColor; }
+@media(max-width:900px) {
+ .app-shell .brand-study .brand-study-art > svg { width:48px; height:48px; }
+}
+@media(max-width:600px) {
+ .fusion-preview .timeline-spine { margin-left:36px; }
+ .fusion-preview .timeline-day__toggle { left:-62px; width:38px; gap:2px; font-size:13px; }
+ .fusion-preview .timeline-day__loaded { display:none; }
+ .fusion-preview .timeline-day__toggle::before { width:5px; height:5px; margin-right:3px; }
+}
