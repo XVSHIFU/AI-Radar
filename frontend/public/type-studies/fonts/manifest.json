@@ -1,0 +1,60 @@
+{
+  "scope": "Fixed /type-preview specimen only; ASCII and common CJK punctuation included.",
+  "generated_with": "fontTools.subset (WOFF2/Brotli)",
+  "fonts": [
+    {
+      "family": "Noto Sans SC",
+      "asset": "noto-sans-sc.woff2",
+      "bytes": 110672,
+      "sha256": "bcc517139d099cc2b34973a1650e70395a89caa714c1ae680f9539c8ecd0fed9",
+      "weight": "100 900",
+      "source_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+      "source_sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da"
+    },
+    {
+      "family": "Noto Serif SC",
+      "asset": "noto-serif-sc.woff2",
+      "bytes": 148992,
+      "sha256": "a1d902035dadba6882a0a0c517929c61b297cb00f42090933b5d3efb867176a9",
+      "weight": "200 900",
+      "source_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf",
+      "source_sha256": "050080d9255a86808f2945bffac582b31ef32bc36411ce29563b4961670c66f9"
+    },
+    {
+      "family": "LXGW WenKai",
+      "asset": "lxgw-wenkai.woff2",
+      "bytes": 71748,
+      "sha256": "881cc9dc794981e7afcde713977148369964ead6416e032d39aae4e490ee450c",
+      "weight": "400",
+      "source_url": "https://github.com/lxgw/LxgwWenKai/releases/download/v1.522/LXGWWenKai-Regular.ttf",
+      "source_sha256": "39ad71264b588165b469e35e6afb162a378dacd1f95348160240ba9038ac3009"
+    },
+    {
+      "family": "ZCOOL XiaoWei",
+      "asset": "zcool-xiaowei.woff2",
+      "bytes": 84600,
+      "sha256": "34c4f22fc3a3a7e53d35d299ce6b85773f399f4cfe2e5beb15403e68a4884306",
+      "weight": "400",
+      "source_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/zcoolxiaowei/ZCOOLXiaoWei-Regular.ttf",
+      "source_sha256": "a42b620140f493db42f741351dfbf343c0936d58588ee8004b8b2a218d997ff1"
+    },
+    {
+      "family": "Inter",
+      "asset": "inter.woff2",
+      "bytes": 76016,
+      "sha256": "fc5f97afaaef372811aedfcb8f73fa97813ef0643f2eb66123e1e2ff79e86c75",
+      "weight": "100 900",
+      "source_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+      "source_sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "family": "Source Serif 4",
+      "asset": "source-serif-4.woff2",
+      "bytes": 148892,
+      "sha256": "3d4ef59e5c44151be1473e910f9229278aaf21235e5fa78897048a44aaacea0c",
+      "weight": "200 900",
+      "source_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/sourceserif4/SourceSerif4%5Bopsz%2Cwght%5D.ttf",
+      "source_sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+    }
+  ]
+}
