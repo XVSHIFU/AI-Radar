@@ -186,6 +186,9 @@ class QaService:
                     "paragraph_id": e.paragraph_id,
                 }
             )
+        cited_event_count = len({evidence[i - 1][0].id for i in result.citation_indices})
+        if cited_event_count != page.total:
+            base["coverage"] = "partial"
         return {
             "answer": result.answer,
             "citations": citations,

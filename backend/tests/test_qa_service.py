@@ -140,6 +140,16 @@ async def test_partial_reports_real_scope_and_retrieval_count():
 
 
 @pytest.mark.asyncio
+async def test_coverage_is_partial_when_answer_cites_only_one_event_in_scope():
+    repo = Repo([event(), event(1)], ev=[evidence()])
+    svc = service(Client())
+    result = await svc.answer(request(), plan(), repo)  # type: ignore[arg-type]
+    assert result["scope_total"] == 2
+    assert result["summarized_count"] == 1
+    assert result["coverage"] == "partial"
+
+
+@pytest.mark.asyncio
 async def test_no_evidence_does_not_call_model_or_claim():
     client = Client()
     svc = service(client)
