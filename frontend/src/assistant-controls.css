@@ -44,3 +44,33 @@
 .assistant-workspace .assistant-composer { border:1px solid transparent; border-top-color:var(--line); padding-inline:8px; }
 .assistant-workspace .assistant-composer:focus-within { border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft); }
 @media (max-width:900px) { .assistant-workspace .assistant-icon-control { --control-size:44px; } .assistant-workspace .assistant-attachment .assistant-icon-control { --control-size:44px; } }
+
+
+/* The assistant is teleported outside .app-shell, so its history controls need
+   their own scoped rules instead of inheriting the shell control treatment. */
+.assistant-workspace .history-panel { padding:16px 10px 12px; }
+.assistant-workspace .history-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 8px; color:var(--muted); font-size:12px; }
+.assistant-workspace .history-heading > span { color:var(--ink); font-weight:600; }
+.assistant-workspace .history-panel .history-collapse,
+.assistant-workspace .history-panel .history-more { display:inline-grid; place-items:center; flex:0 0 auto; width:28px; min-width:28px; min-height:28px; height:28px; padding:0; border:0; border-radius:50%; color:var(--muted); background:transparent; }
+.assistant-workspace .history-panel .history-collapse svg,
+.assistant-workspace .history-panel .history-more svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.assistant-workspace .history-panel .history-more svg { fill:currentColor; stroke:none; }
+.assistant-workspace .history-panel .history-row { display:flex; align-items:center; min-width:0; min-height:36px; margin:0 0 3px; border-radius:5px; }
+.assistant-workspace .history-panel .history-row.active { background:var(--blue-soft); color:var(--blue); }
+.assistant-workspace .history-panel .history-title { flex:1 1 auto; min-width:0; min-height:36px; overflow:hidden; padding:7px 8px; border:0; border-radius:5px; background:transparent; color:inherit; font-size:13px; line-height:1.5; text-align:left; text-overflow:ellipsis; white-space:nowrap; }
+.assistant-workspace .history-panel .history-title:hover { color:var(--blue); background:transparent; }
+.assistant-workspace .history-panel .history-collapse:hover,
+.assistant-workspace .history-panel .history-more:hover { color:var(--blue); background:var(--blue-soft); }
+.assistant-workspace .history-panel .history-local-note { margin:16px 8px 0; font-size:11px; }
+@media (max-width:900px) {
+  .assistant-workspace .history-panel { padding:16px; }
+  .assistant-workspace .history-heading { margin-bottom:10px; }
+  .assistant-workspace .history-panel .history-collapse,
+  .assistant-workspace .history-panel .history-more { width:44px; min-width:44px; min-height:44px; height:44px; }
+  .assistant-workspace .history-panel .history-collapse svg,
+  .assistant-workspace .history-panel .history-more svg { width:18px; height:18px; }
+  .assistant-workspace .history-panel .history-row,
+  .assistant-workspace .history-panel .history-title { min-height:44px; }
+  .assistant-workspace .history-panel .history-title { padding:10px 12px; }
+}
