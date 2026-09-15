@@ -212,3 +212,6 @@
 .app-shell .assistant-composer textarea:focus,
 .app-shell .assistant-composer textarea:focus-visible{outline:1px solid var(--composer-focus) !important;outline-offset:2px;box-shadow:none;border-radius:4px}
 @media(forced-colors:active){.app-shell .assistant-composer textarea:focus-visible{outline:2px solid Highlight !important}}
+/* Distilled conversation chrome: details preserve diagnostics without competing with answers. */
+.turn-details{margin:6px 0;color:var(--muted);font-size:12px;line-height:1.6}.turn-details>summary{display:inline-flex;align-items:center;min-height:28px;cursor:pointer;color:var(--muted)}.turn-details>summary:hover{color:var(--blue)}.turn-details>p{margin:6px 0}.turn-details.error summary{color:var(--danger)}.assistant-close.icon-button svg,.composer-heading .icon-button svg,.assistant-composer .icon-button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.assistant-close.icon-button,.composer-heading .icon-button,.assistant-composer .icon-button{display:inline-grid;place-items:center;min-width:28px;padding:4px}
+@media(max-width:900px){.assistant-close.icon-button,.composer-heading .icon-button,.assistant-composer .icon-button{min-width:44px;min-height:44px}}

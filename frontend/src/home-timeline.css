@@ -538,3 +538,6 @@
   html.global-assistant-open .drawer-surface--source { right: calc(var(--assistant-width, 460px) + 32px); width: min(708px, calc(100vw - var(--assistant-width, 460px) - 32px)); }
   html.global-assistant-open .drawer-surface--evidence { right: calc(var(--assistant-width, 460px) + 64px); width: min(676px, calc(100vw - var(--assistant-width, 460px) - 64px)); }
 }
+/* Every desktop drawer layer owns the same rounded, clipped reading plane. */
+@media(min-width:901px){.drawer-surface,.drawer-surface--source,.drawer-surface--evidence,html.global-assistant-open .drawer-surface,html.global-assistant-open .drawer-surface--source,html.global-assistant-open .drawer-surface--evidence{border-radius:16px;overflow:hidden}.drawer-shell{border-radius:inherit;overflow:hidden}}
+@media(max-width:900px){.drawer-surface,.drawer-surface--source,.drawer-surface--evidence{inset:8px;width:calc(100vw - 16px);height:calc(100dvh - 16px);border:1px solid var(--line);border-radius:16px;overflow:hidden}.drawer-shell{border-radius:inherit;overflow:hidden}}
