@@ -28,7 +28,7 @@
 
 导航RadarMark使用03「时间脉络」原创路径并继承主题currentColor；favicon使用同一几何的白色小尺寸标记与固定底色。来源说明见[SVG provenance](../frontend/public/icons/README.md)。既有Lucide原始素材与许可保留，但不再把生产导航标记描述为Lucide radar。
 
-## 字体比较：正式字体未选
+## 字体比较与正式方案 B
 
 `/type-preview`提供同一份中文、英文和混排文案及数字、控件样本，保持可比字号与内容；控制区保留易读黑体。页面文案是排版样本，不是新收录事件。
 
@@ -40,7 +40,7 @@
 | D · 温润楷体 | LXGW WenKai / Source Serif 4 | LXGW WenKai / Source Serif 4 |
 | E · 小薇标题 | ZCOOL XiaoWei / Source Serif 4 | Noto Sans SC / Inter |
 
-六款字体通过本地WOFF2自托管，只覆盖固定样本文字、可打印ASCII与常见中文标点。样本文字变化需要重新生成子集；不能据此声称支持任意新闻全文，也不能将预览字体直接作为正式全站字体。正式字体选择仍待用户决定。
+六款字体通过本地WOFF2自托管，只覆盖固定样本文字、可打印ASCII与常见中文标点。样本文字变化需要重新生成子集；不能据此声称支持任意新闻全文，也不能将预览字体直接作为正式全站字体。用户已选定 B：正式页面使用独立的完整字库资源（frontend/public/fonts/editorial），标题为 Noto Serif SC / Source Serif 4，正文与操作控件为 Noto Sans SC / Inter；生产字库按 Unicode 范围分片按需加载，不使用固定样本子集。
 
 来源为Google Fonts官方仓库与LXGW WenKai官方发行，使用fontTools本地裁剪，没有把项目文本发到字体服务。具体版本、许可及输入/输出SHA-256见[字体来源清单](../frontend/public/type-studies/fonts/README.md)及同目录manifest.json；固定字符来源为type-specimen.txt。实现见[TypePreview.vue](../frontend/src/TypePreview.vue)与[type-preview.css](../frontend/src/type-preview.css)。
 
@@ -86,3 +86,8 @@
 用户此次已明确选定舒展布局和03「时间脉络」，因此二者是正式首页与品牌实现决策，不再受上一轮「只限预览、尚未选定」说明约束。A至E字体搭配仍属于独立比较，未提升为全站字体规范。
 
 本次文档提交限定于本记录与SVG来源说明；不修改DESIGN.md或.impeccable/design.json，也不借此重写产品范围。既有全局设计文档中与本轮布局、品牌及动效不一致的描述，应以本记录明确登记的用户决定和当前实现为依据，在相应授权范围内另行同步。
+
+2026-09-15 补充修复：助手悬停显式使用深色主题背景与白色图标，避免全局 button:hover 的浅色背景覆盖；主题轮盘说明区的透明空白不再拦截色块点击，语言和收起按钮仍可点击。
+
+
+本轮验收：1440px 与 390px 实际鼠标 hover 均为深色 primary-hover / 白色图标 / filter:none；可见色块每片9个命中点无拦截，右下偏移点实际点击均改变 data-theme。中英文切换仍工作。CSS.getPlatformFontsForNode 确认标题使用自托管 Noto Serif SC + Source Serif 4、正文使用 Noto Sans SC + Inter。摘要4行且无横向溢出，build 与42项测试通过。冷缓存首页字体请求约9.2MB（84片），字库文件总约18MB；后续可继续优化常用字分组，当前不依赖网络字体服务。

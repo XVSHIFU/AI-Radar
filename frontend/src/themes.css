@@ -22,7 +22,8 @@
 .theme-swatch:hover .theme-swatch-chip{transform:scale(1.10)}
 .theme-swatch[aria-pressed=true] .theme-swatch-chip{outline:2px solid var(--swatch);outline-offset:3px}
 .theme-swatch-chip svg{width:22px;height:22px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.theme-wheel-controls{position:absolute;left:22px;bottom:17px;width:230px;cursor:default}
+.theme-wheel-controls{position:absolute;left:22px;bottom:17px;width:230px;cursor:default;pointer-events:none}
+.theme-wheel-controls button{pointer-events:auto}
 .theme-wheel-count{margin:0 0 4px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .theme-wheel-controls strong{font-size:20px;font-weight:600}
 .theme-wheel-note{font-size:13px;color:var(--muted);margin:2px 0 12px}

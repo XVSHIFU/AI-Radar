@@ -5,7 +5,7 @@ import { tx } from './reading-locale';
 import DateRangePicker from './DateRangePicker.vue';
 import './type-preview.css';
 const route = useRoute();
-const selected = ref('clear');
+const selected = ref('editorial');
 const range = ref({ from: '', to: '' });
 const studies = [
   { id:'clear', name:'A · 清晰黑体', en:'A · Clear sans', pair:'Noto Sans SC × Inter', note:'标题与正文都用黑体。利落、清楚，适合长时间扫描事件。', enNote:'Sans serif throughout. Clear and direct for scanning a long event feed.' },

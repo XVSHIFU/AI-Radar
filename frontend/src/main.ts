@@ -6,6 +6,8 @@ import "./home-timeline.css";
 import "./compact-controls.css";
 import "./themes.css";
 import "./timeline-preview.css";
+import "./editorial-fonts.css";
+import "./reading-typography.css";
 import { initTheme } from "./themes";
 initTheme();
 const router = createRouter({

@@ -1,0 +1,12 @@
+/* Selected B: editorial headings, clear sans serif reading and controls. */
+:root {
+  --font-reading: RadarInter, RadarSansSC, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-heading: RadarSourceSerif, RadarSerifSC, "Noto Serif SC", "Songti SC", serif;
+}
+html[lang="zh-CN"], html[lang="en"] { font-family:var(--font-reading); }
+h1, h2, h3, .drawer-event-title { font-family:var(--font-heading); font-synthesis:none; }
+.fusion-preview .home-stream .page-title,
+.fusion-preview .timeline-event__title,
+.drawer-event-title { letter-spacing:0; }
+.timeline-year__label, .brand, .assistant-panel__header,
+.range-popover, .theme-wheel, .theme-trigger { font-family:var(--font-reading); }
