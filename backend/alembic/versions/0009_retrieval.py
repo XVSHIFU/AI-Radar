@@ -104,6 +104,16 @@ def upgrade() -> None:
           (status = 'ready' AND embedding IS NOT NULL AND indexed_at IS NOT NULL)
           OR (status IN ('pending','failed','stale') AND embedding IS NULL))
     )""")
+    op.execute("""
++    CREATE FUNCTION invalidate_event_embedding() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      UPDATE event_embeddings_v1 SET status='stale', embedding=NULL, indexed_at=NULL
+      WHERE event_id=NEW.id AND status='ready' AND event_content_version<>NEW.content_version;
+      RETURN NEW;
+    END $$""")
+    op.execute("""CREATE TRIGGER trg_event_embedding_stale AFTER UPDATE OF content_version ON events
+      FOR EACH ROW WHEN (OLD.content_version IS DISTINCT FROM NEW.content_version)
+      EXECUTE FUNCTION invalidate_event_embedding()""")
     op.create_index(
         "ix_event_embeddings_profile_status", "event_embeddings_v1", ["profile_id", "status"]
     )
@@ -151,6 +161,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.execute("DROP TRIGGER trg_event_embedding_stale ON events")
+    op.execute("DROP FUNCTION invalidate_event_embedding()")
     for table in ("events", "event_entities", "entities", "entity_aliases"):
         op.execute(f"DROP TRIGGER trg_{table}_retrieval_revision ON {table}")
     op.execute("DROP FUNCTION bump_retrieval_data_revision()")
