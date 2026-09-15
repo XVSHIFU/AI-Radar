@@ -45,8 +45,20 @@ from .research_service import (
     runtime_events,
 )
 from .research_stream import ResearchModelStream
-from .research_tools import research_scope
+from .research_tools import ResearchTools, research_scope
 from .schemas import AskRequest, Filters, QueryPlan
+
+
+class VerificationExecutor:
+    """This operator probe releases category totals only, never event text."""
+
+    def __init__(self, tools: ResearchTools):
+        self.tools = tools
+
+    async def execute(self, name: str, arguments: dict[str, Any]) -> object:
+        if name != "aggregate_events" or arguments.get("dimension") != "category":
+            raise ResearchRejected("TOOL_UNAVAILABLE")
+        return await self.tools.execute(name, arguments)
 
 
 class VerificationLedger:
@@ -232,7 +244,7 @@ async def verify(config_root: Path, run_id: UUID) -> dict[str, Any]:
                         system=policy.system + "\n\n" + ANSWER_CONTRACT,
                         prompt=prompt,
                         provider=provider,
-                        executor=tools,
+                        executor=VerificationExecutor(tools),
                         ledger=ledger,
                     )
                     terminal = None
