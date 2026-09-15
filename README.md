@@ -4,6 +4,8 @@
 
 首页候选已实际运行比较，采用 Terra 研究工作台。两候选共用浏览器DOM回归 **14/14通过**，保留在 `prototypes/sol` 和 `prototypes/terra`。四页、确定性查询计划与持久采集工程已集成，最终状态以 [验收矩阵](docs/acceptance-matrix.md) 为准，不能把原型通过算成 P0 完成。
 
+最新实施顺序与管理员后台扩展见 [实施方案续篇](docs/implementation-roadmap.md)。
+
 ## 工程结构
 
 - `frontend/`：Vue3、TypeScript、Vite、Tailwind4 四页与API适配。
