@@ -18,7 +18,10 @@ from .admin_auth import AdminSessionStore, require_admin
 from .config import get_settings
 from .fixture_repository import FixtureRepository
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
+from .model_config import ModelConfigUnavailable, effective_model_settings
 from .postgres_repository import PostgresRepository
+from .qa_limits import AskAdmission, AskLimitReached
+from .qa_service import QaError, answer_question
 from .queryplanner import InvalidTimezone, QueryPlanner
 from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
 from .schemas import (
@@ -66,6 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.ingest_repository = None
     app.state.sessions = None
     app.state.admin_sessions = AdminSessionStore()
+    app.state.ask_admission = AskAdmission()
     if settings.radar_data_mode == "fixture":
         path = Path(__file__).resolve().parents[3] / "contracts" / "prototype-events.json"
         app.state.repository = FixtureRepository(path, settings.cursor_secret)
@@ -527,6 +531,22 @@ async def ask(
 ) -> dict[str, object]:
     plan = await create_query_plan(payload, request, repository, clock)
     public_plan = plan.model_dump(mode="json")
+    if request.app.state.sessions is not None:
+        try:
+            settings = effective_model_settings(request.app.state.settings)
+            client = request.client.host if request.client else "unknown"
+            with request.app.state.ask_admission.slot(client):
+                return await answer_question(
+                    payload, plan, repository, request.app.state.sessions, settings
+                )
+        except ModelConfigUnavailable as exc:
+            raise api_error(
+                "MODEL_CONFIG_UNAVAILABLE", "模型配置暂不可用，请联系管理员。", 503
+            ) from exc
+        except AskLimitReached as exc:
+            raise api_error("RATE_LIMITED", str(exc), 429, True) from exc
+        except QaError as exc:
+            raise api_error(exc.code, exc.message, exc.status, exc.retryable, exc.details) from exc
     if plan.requires_clarification:
         raise api_error(
             "CLARIFICATION_REQUIRED",
@@ -568,16 +588,9 @@ async def ask(
             "request_id": str(uuid4()),
             "data_mode": data_mode(request),
         }
-    if not request.app.state.settings.llm_api_key:
-        raise api_error(
-            "MODEL_UNAVAILABLE",
-            "Answer model is not configured",
-            503,
-            details={"query_plan_public": public_plan},
-        )
     raise api_error(
-        "ASK_NOT_IMPLEMENTED",
-        "Answer generation is not implemented",
+        "MODEL_UNAVAILABLE",
+        "真实回答仅在已配置模型的数据库模式下可用。",
         503,
         details={"query_plan_public": public_plan},
     )

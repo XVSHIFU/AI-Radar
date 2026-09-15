@@ -1,4 +1,5 @@
 """Small, bounded admission control for the single-process public answer API."""
+
 from collections import deque
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager

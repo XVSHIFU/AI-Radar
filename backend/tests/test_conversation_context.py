@@ -339,7 +339,7 @@ def test_event_attachment_conflict_is_public_and_blocks_ask(
     assert answer.json()["details"]["query_plan_public"]["event_targets"][0]["status"] == status
 
 
-def test_configured_model_still_reports_generation_not_implemented(
+def test_fixture_mode_never_calls_configured_real_model(
     client: TestClient,
 ) -> None:
     client.app.state.settings.llm_api_key = "configured-for-contract-test"
@@ -352,4 +352,4 @@ def test_configured_model_still_reports_generation_not_implemented(
         },
     )
     assert response.status_code == 503
-    assert response.json()["code"] == "ASK_NOT_IMPLEMENTED"
+    assert response.json()["code"] == "MODEL_UNAVAILABLE"

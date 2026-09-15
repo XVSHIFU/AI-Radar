@@ -18,7 +18,8 @@
 
 已将工程迁移到 Ubuntu，真实 PostgreSQL、API、采集 worker 和每小时调度已启动。
 页面：http://192.168.194.129:5173/ 。详细环境、备份恢复与服务命令见 [Ubuntu 开发记录](docs/ubuntu-development.md)。
-前端已由用户接受；本阶段先完成数据库与采集，模型服务暂缓确定。
+前端已由用户接受；数据库、脚本采集、Flash 事件提取与真实 JSON 问答已接通。
+管理员入口为 /ingest，支持来源、探测、采集记录、模型配置与用量。使用与最新验收见 [后台与真实问答](docs/admin-backoffice-and-qa.md)。
 
 ## 本地安装与启动
 
