@@ -1091,4 +1091,5 @@ select:focus {
 @keyframes admin-pulse { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0 0; } }
 @media (max-width: 720px) { .admin-heading, .admin-login, .source-row, .admin-model { display: grid; grid-template-columns: 1fr; }.admin-form, .admin-model .admin-form { grid-template-columns: 1fr; }.admin-lock { grid-template-columns: 36px minmax(0, 1fr); }.admin-login { grid-column: 1 / -1; }.source-actions { justify-content: start; }.runs-table article, .usage-table article { grid-template-columns: 1fr; gap: var(--s1); }.model-tests { grid-template-columns: 1fr; }.model-tests p { min-height: 0; } }.source-picker { border: 0; padding: var(--s4) 0 0; margin: 0; display: grid; gap: var(--s2); }
 .source-picker legend { font-weight: 650; }
-.source-picker label { display: flex; align-items: center; gap: var(--s2); min-height: 36px; }
+.source-picker label { display: flex; align-items: center; gap: var(--s2); min-height: 36px; }.admin-page button { width: fit-content; justify-self: start; }
+.admin-form > button, .admin-logout { width: fit-content; justify-self: start; }
