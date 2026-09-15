@@ -29,3 +29,19 @@ Ubuntu 已有 Docker，但目前无 runsc，当前账号没有免交互 sudo。�
 5. 接入受限工具/SSE/图表来源并执行安全用例，全部通过才允许启用 Python。若运行时不可用，明确返回能力未开放，不退回宿主解释器或普通 Docker 运行。
 
 P3 尚未完成；P4 研究质量与 P5 容器迁移/独立恢复同样保持待验收。
+
+
+## Ubuntu 准备结果
+
+- 候选补丁 `691b97f`、`dbc3f21` 已同步；沙箱 40 项及验证边界 2 项共 42 项在 Ubuntu 全部通过，全部使用替身 Docker/进程，不触发收费模型。
+- gVisor `20260907.0` x86_64 官方完整包下载、SHA-512 和六个文件结构校验通过，保存在 `.run/gvisor-20260907.0/`，只下载未安装。
+- 基础镜像固定 `python:3.12-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254`。Ubuntu 沙箱构建成功，Python 依赖全部通过哈希校验；镜像配置摘要 `sha256:b31ef8f03b4715f362586e3227b56d61093ff2da86badbe54e90972122ac3c73`。未在普通 runc 容器内执行模型代码。
+- 新增运维脚本 `scripts/install-gvisor-runtime.sh`：要求管理员在 Ubuntu 执行，重新校验写入 root 私有目录的固定包，保留原 Docker 配置备份，只添加具名 runsc 运行时、校验配置后 reload；不改变默认运行时。失败时恢复原配置；不自动开放 Python。脚本尚未以 root 执行。
+
+需要 Ubuntu 管理员完成的操作（当前 SSH 账号没有免交互 sudo）：
+
+```bash
+sudo bash /home/xvsf/ai-radar/.run/research-validation/scripts/install-gvisor-runtime.sh
+```
+
+该操作只准备隔离运行时。安装完成后仍需真实隔离、安全、资源限制和退出清理测试，不能直接打开 Python 开关。

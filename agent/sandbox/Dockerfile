@@ -1,5 +1,5 @@
-# Supply a reviewed python:3.12-slim-bookworm@sha256:... reference at build time.
-ARG PYTHON_BASE
+# Official base resolved and pinned on 2026-09-16.
+ARG PYTHON_BASE=python:3.12-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254
 FROM ${PYTHON_BASE} AS build
 WORKDIR /build
 COPY requirements.lock ./requirements.lock
