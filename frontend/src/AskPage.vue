@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate as tr } from "./locale";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { events, type Category, type Event } from "./api";
@@ -180,21 +181,21 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
 
 <template>
   <section class="ask-overview">
-    <h1 class="page-title">统计与问答</h1>
-    <p class="ask-overview__intro">统计由库内事件计算，无需 AI。</p>
+    <h1 class="page-title">{{ tr("统计与问答", "Insights & Q&A") }}</h1>
+    <p class="ask-overview__intro">{{ tr("统计由库内事件计算，无需 AI。", "Statistics are calculated from events in the library; no AI is required.") }}</p>
     <section class="ask-controls" aria-label="统计范围">
       <div class="ask-range-toolbar"><DateRangePicker :from="from" :to="to" @change="applyDates" />
       <div class="ask-range-buttons">
-        <button :aria-pressed="rangeMode === 'today'" @click="setRange('today')">今天</button>
-        <button :aria-pressed="rangeMode === 'week'" @click="setRange('week')">近7天</button>
-        <button :aria-pressed="rangeMode === 'month30'" @click="setRange('month30')">近30天</button>
-        <button :aria-pressed="rangeMode === 'month'" @click="setRange('month')">本月</button>
+        <button :aria-pressed="rangeMode === 'today'" @click="setRange('today')">{{ tr("今天", "Today") }}</button>
+        <button :aria-pressed="rangeMode === 'week'" @click="setRange('week')">{{ tr("近7天", "Last 7 days") }}</button>
+        <button :aria-pressed="rangeMode === 'month30'" @click="setRange('month30')">{{ tr("近30天", "Last 30 days") }}</button>
+        <button :aria-pressed="rangeMode === 'month'" @click="setRange('month')">{{ tr("本月", "This month") }}</button>
       </div></div>
       <details class="ask-more">
-        <summary>更多筛选</summary>
+        <summary>{{ tr("更多筛选", "More filters") }}</summary>
         <div>
-          <label>分类<select v-model="category" class="control"><option value="">全部</option><option v-for="(label, key) in categoryName" :key="key" :value="key">{{ label }}</option></select></label>
-          <label>关键词<input v-model="keyword" class="control" placeholder="标题、摘要或实体" /></label>
+          <label>{{ tr("分类", "Category") }}<select v-model="category" class="control"><option value="">{{ tr("全部", "All") }}</option><option v-for="(label, key) in categoryName" :key="key" :value="key">{{ label }}</option></select></label>
+          <label>{{ tr("关键词", "Keywords") }}<input v-model="keyword" class="control" placeholder="标题、摘要或实体" /></label>
           <label class="ask-importance"><input v-model="minImportance" type="checkbox" />重要度 4 及以上</label>
         </div>
       </details>
@@ -206,12 +207,12 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
       {{ overviewLoading ? "正在计算总览…" : overview ? `精确匹配 ${overview.total_events} 条事件 · ${rangeLabel}` : "尚未取得总览" }}
       <span v-if="filterLabel"> · {{ filterLabel }}</span>
     </p>
-    <div v-if="overviewError" class="card error" data-testid="insights-error" role="alert">{{ overviewError }} <button @click="loadOverview()">重试</button></div>
+    <div v-if="overviewError" class="card error" data-testid="insights-error" role="alert">{{ overviewError }} <button @click="loadOverview()">{{ tr("重试", "Retry") }}</button></div>
     <template v-else-if="overview">
       <p v-if="!overview.total_events" class="ask-empty">当前范围暂无已收录事件。<button v-if="rangeMode === 'today'" @click="setRange('week')">查看近7天</button></p>
       <div v-else class="ask-charts">
         <section class="ask-chart" data-testid="insights-visual" :data-view="chartView">
-          <h2>统计视图</h2>
+          <h2>{{ tr("统计视图", "Statistics view") }}</h2>
           <p class="meta">{{ factSummary }}</p>
           <div class="chart-tabs" role="group" aria-label="统计图表类型">
             <button data-view="A" :aria-pressed="chartView === 'A'" @click="chartView = 'A'">A 分类排行</button>
@@ -226,14 +227,14 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
             <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName[categoryKey] }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :aria-label="bucket.label + ' · ' + categoryName[categoryKey] + ' · ' + bucket.counts[categoryKey] + ' 条事件'" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
           </div>
           <p v-if="chartView === 'C'" class="meta">横向看日期，纵向看分类。点击色块查看对应事件。</p><p v-if="chartView === 'C'" class="meta heat-legend">色标：0 浅灰 · {{ heatMax }} 深红</p>
-          <details class="ask-data-table"><summary>查看数据表</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
+          <details class="ask-data-table"><summary>{{ tr("查看数据表", "View data table") }}</summary><table><thead><tr><th>日期</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName[categoryKey] }}</th><th>合计</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? bucket.from : bucket.from + " 至 " + bucket.to }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
         </section>
       </div>
     </template>
     <section class="ask-events" data-testid="insights-events">
-      <h2>匹配事件</h2><p v-if="listLoading" class="meta">正在读取事件…</p><p v-else-if="listError" class="error">{{ listError }}</p><p v-else-if="!listItems.length" class="meta">当前范围没有可列出的事件。</p>
+      <h2>匹配事件</h2><p v-if="listLoading" class="meta">{{ tr("正在读取事件…", "Loading events…") }}</p><p v-else-if="listError" class="error">{{ listError }}</p><p v-else-if="!listItems.length" class="meta">当前范围没有可列出的事件。</p>
       <article v-for="item in listItems" :key="item.id"><span class="pill">{{ categoryName[item.category] || item.category }}</span><h3><a :href="eventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a></h3><p class="muted">{{ item.summary_zh }}</p></article>
-      <button v-if="listNext && !listLoading" @click="loadOverview(listNext, true)">加载更多</button>
+      <button v-if="listNext && !listLoading" @click="loadOverview(listNext, true)">{{ tr("加载更多", "Load more") }}</button>
     </section>
   </section>
   <EventDrawers :base-path="route.path" />

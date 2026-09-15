@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate as tr } from "./locale";
 import {computed,nextTick,onBeforeUnmount,onMounted,ref,useId} from "vue";
 import {addDays,datePreset,shanghaiToday,validateRange,type DatePreset,type DateRange} from "./date-range";
 const props=withDefaults(defineProps<{from:string;to:string;allowUnbounded?:boolean;maxDays?:number}>(),{allowUnbounded:false,maxDays:366});
@@ -25,12 +26,12 @@ onBeforeUnmount(()=>{document.removeEventListener("pointerdown",outside);documen
  <div class="range-picker">
   <button ref="trigger" type="button" class="range-trigger" data-testid="date-range-trigger" :aria-expanded="open" :aria-controls="id" @click="open?close():show()"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg><span>{{label}}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
   <Teleport to="body"><section v-if="open" :id="id" ref="panel" class="range-popover" data-testid="date-range-popover" :style="position" aria-label="选择日期范围">
-   <div class="range-fields"><label>开始日期<input ref="startInput" v-model="draftFrom" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off" name="date_from" @focus="choosingEnd=false" @change="error=''" /></label><span>至</span><label>结束日期<input v-model="draftTo" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off" name="date_to" @focus="choosingEnd=true" @change="error=''" /></label></div>
+   <div class="range-fields"><label>{{ tr("开始日期", "Start date") }}<input ref="startInput" v-model="draftFrom" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off" name="date_from" @focus="choosingEnd=false" @change="error=''" /></label><span>至</span><label>{{ tr("结束日期", "End date") }}<input v-model="draftTo" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off" name="date_to" @focus="choosingEnd=true" @change="error=''" /></label></div>
    <div class="range-body"><div class="range-presets"><button v-for="p in presets" :key="p.value" :data-preset="p.value" :aria-pressed="datePreset(p.value).from===draftFrom&&datePreset(p.value).to===draftTo" @click="choosePreset(p.value)">{{p.label}}</button></div>
    <div class="range-calendar"><div class="range-calendar-heading"><button class="icon-button" aria-label="上个月" @click="moveMonth(-1)"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></button><strong>{{monthLabel}}</strong><button class="icon-button" aria-label="下个月" @click="moveMonth(1)"><svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"/></svg></button></div>
    <div class="range-weekdays"><span v-for="d in ['一','二','三','四','五','六','日']" :key="d">{{d}}</span></div>
    <div class="range-days"><button v-for="day in days" :key="day" :data-day="day" :aria-label="day" :aria-pressed="day===draftFrom||day===draftTo" :class="{outside:!day.startsWith(month),between:day>=draftFrom&&day<=draftTo,endpoint:day===draftFrom||day===draftTo}" @click="chooseDay(day)">{{Number(day.slice(-2))}}</button></div></div></div>
-   <div class="range-footer"><span>{{choosingEnd?'请选择结束日期':'先选开始日期，再选结束日期'}}</span><button v-if="allowUnbounded" class="quiet-button" @click="clear">不限日期</button><button class="quiet-button" @click="close()">取消</button><button class="primary" data-testid="apply-date-range" @click="apply">应用</button></div><p v-if="error" class="error" role="alert">{{error}}</p>
+   <div class="range-footer"><span>{{choosingEnd?'请选择结束日期':'先选开始日期，再选结束日期'}}</span><button v-if="allowUnbounded" class="quiet-button" @click="clear">{{ tr("不限日期", "Any date") }}</button><button class="quiet-button" @click="close()">{{ tr("取消", "Cancel") }}</button><button class="primary" data-testid="apply-date-range" @click="apply">{{ tr("应用", "Apply") }}</button></div><p v-if="error" class="error" role="alert">{{error}}</p>
   </section></Teleport>
  </div>
 </template>

@@ -9,6 +9,7 @@ import TimelinePreviewBar from "./TimelinePreviewBar.vue";
 import { previewBrand, previewDensity } from "./brand-preview";
 import ThemeWheel from "./ThemeWheel.vue";
 import "./preview/preview.css";
+import { t } from "./locale";
 const route = useRoute();
 const demoEnabled = computed(() => route.query.demo === "1");
 const previewEnabled = computed(() => route.path.startsWith("/preview"));
@@ -26,14 +27,14 @@ const viewKey = computed(
       <RouterLink :to="link('/preview')" class="preview-shell-brand"><RadarMark /> AI 革新雷达 <span>预览版</span></RouterLink>
       <nav class="preview-shell-nav" aria-label="预览导航">
         <RouterLink :to="link('/preview')">AI 动态</RouterLink>
-        <RouterLink :to="link('/preview/ask')">统计与问答</RouterLink>
+        <RouterLink :to="link('/preview/ask')">{{ t("ask") }}</RouterLink>
       </nav>
       <RouterLink :to="link('/')" class="preview-shell-return">返回原版</RouterLink>
     </header>
-    <p v-if="demoEnabled && !adminEnabled" class="demo" role="note">前端模拟：仅用于交互演示，不代表真实服务结果。</p>
-    <p v-else-if="dataMode === 'fixture' && !adminEnabled" class="demo" role="note">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
+    <p v-if="demoEnabled && !adminEnabled" class="demo" role="note">{{ t("simulation") }}</p>
+    <p v-else-if="dataMode === 'fixture' && !adminEnabled" class="demo" role="note">{{ t("fixture") }}</p>
     <main class="preview-shell-main"><RouterView :key="viewKey" /></main>
-    <footer class="preview-shell-footer"><RouterLink :to="'/ingest'">维护入口</RouterLink></footer>
+    <footer class="preview-shell-footer"><RouterLink :to="'/ingest'">{{ t("maintenance") }}</RouterLink></footer>
   </div>
   <div v-else class="app-shell" :class="{ 'fusion-preview': fusionEnabled }" :data-density="previewDensity">
     <header class="app-rail">
@@ -44,17 +45,17 @@ const viewKey = computed(
         <RouterLink :to="link('/')"
           ><svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 5h14v14H5zM8 9h8M8 13h5" /></svg
-          >事件</RouterLink
+          >{{ t("events") }}</RouterLink
         >
         <RouterLink :to="link('/ask')"
           ><svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 5h14v10H9l-4 4z" /></svg
-          >统计与问答</RouterLink
+          >{{ t("ask") }}</RouterLink
         >
         <RouterLink :to="'/ingest'"
           ><svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="6" y="10" width="12" height="10" rx="1" /><path d="M9 10V7a3 3 0 0 1 6 0v3M12 14v2" /></svg
-          >管理员后台</RouterLink
+          >{{ t("admin") }}</RouterLink
         >
       </nav>
       <div class="rail-footer">
@@ -63,9 +64,9 @@ const viewKey = computed(
         v-if="!demoEnabled && !adminEnabled"
         :to="route.path + '?demo=1'"
         class="switch"
-        >演示模式</RouterLink
+        >{{ t("demo") }}</RouterLink
       >
-      <RouterLink v-else-if="!adminEnabled" :to="route.path" class="switch">连接服务</RouterLink>
+      <RouterLink v-else-if="!adminEnabled" :to="route.path" class="switch">{{ t("service") }}</RouterLink>
       <div id="assistant-mobile-slot" aria-label="研究助手入口"></div>
       </div>
 
@@ -73,10 +74,10 @@ const viewKey = computed(
 
     <div class="app-content">
       <p v-if="demoEnabled && !adminEnabled" class="demo" role="note">
-        前端模拟：仅用于交互演示，不代表真实服务结果。
+        {{ t("simulation") }}
       </p>
       <p v-else-if="dataMode === 'fixture' && !adminEnabled" class="demo" role="note">
-        后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
+        {{ t("fixture") }}
       </p>
       <main><TimelinePreviewBar v-if="fusionEnabled" /><RouterView :key="viewKey" /></main>
     </div>

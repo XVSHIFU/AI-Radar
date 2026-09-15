@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate as tr } from "./locale";
 import {
   computed,
   nextTick,
@@ -356,8 +357,8 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回时间线" @click="closeAll"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
-          <h2 id="drawer-event-title">事件</h2>
+          <button data-testid="drawer-back" aria-label="返回时间线" @click="closeAll"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>{{ tr("返回", "Back") }}</button>
+          <h2 id="drawer-event-title">{{ tr("事件", "Event") }}</h2>
         </div>        <div class="drawer-body">
           <p v-if="isDemo()" class="drawer-fixture">前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
           <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
@@ -366,10 +367,10 @@ onBeforeUnmount(() => {
           </p>
           <div v-else-if="error" class="drawer-error" role="alert">
             <p>{{ error.status === 404 ? "未找到该事件。" : error.message }}</p>
-            <button @click="loadEvent">重试</button>
+            <button @click="loadEvent">{{ tr("重试", "Retry") }}</button>
           </div>
           <template v-else-if="item">
-            <h3 class="drawer-event-title">{{ item.title_zh }}</h3><button data-testid="attach-event" @click="attachToConversation(item)">加入当前对话</button>
+            <h3 class="drawer-event-title">{{ item.title_zh }}</h3><button data-testid="attach-event" @click="attachToConversation(item)">{{ tr("加入当前对话", "Add to current conversation") }}</button>
             <p class="muted">{{ item.summary_zh }}</p>
             <p class="drawer-event-facts">
               <span class="pill">{{ categoryLabels[item.category] }}</span>
@@ -388,10 +389,10 @@ onBeforeUnmount(() => {
               {{ item.source_count }} 个来源 ·
               {{ item.evidence_count }} 条关联证据
             </p>
-            <h3>来源与保存证据</h3>
+            <h3>{{ tr("来源与保存证据", "Sources & saved evidence") }}</h3>
             <p v-if="evidenceError" class="drawer-error" role="alert">
               证据暂时无法读取：{{ evidenceError.message }}
-              <button @click="loadEvent">重试</button>
+              <button @click="loadEvent">{{ tr("重试", "Retry") }}</button>
             </p>
             <p v-else-if="!sources.length" class="drawer-status">
               此事件没有可打开的来源或关联证据。
@@ -405,7 +406,7 @@ onBeforeUnmount(() => {
                 <blockquote class="drawer-quote">{{ row.quote_text || "未保存段落摘录。" }}</blockquote>
 
               </section>
-              <button data-testid="source-open" @click="openSource(source)">来源详情</button>
+              <button data-testid="source-open" @click="openSource(source)">{{ tr("来源详情", "Source details") }}</button>
             </section>          </template>
           <div v-else class="drawer-error" role="alert">
             <p>缺少事件标识，无法打开来源层。</p>
@@ -430,8 +431,8 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
-          <h2 id="drawer-source-title">来源</h2>
+          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>{{ tr("返回", "Back") }}</button>
+          <h2 id="drawer-source-title">{{ tr("来源", "Source") }}</h2>
         </div>        <div class="drawer-body">
           <p v-if="isDemo()" class="drawer-fixture">前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
           <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
@@ -458,12 +459,12 @@ onBeforeUnmount(() => {
             </p>
             <p v-if="safeUrl(selectedSource.sourceUrl)" class="row"><a :href="preferredReadingUrl(selectedSource.sourceUrl)" target="_blank" rel="noopener">{{ preferredReadingUrl(selectedSource.sourceUrl) === selectedSource.sourceUrl ? "打开原始来源" : "打开中文页面" }}</a><a v-if="preferredReadingUrl(selectedSource.sourceUrl) !== selectedSource.sourceUrl" :href="selectedSource.sourceUrl" target="_blank" rel="noopener">查看采集原文（英文摘录核验）</a></p>
             <p v-else class="drawer-status">该来源未提供可安全打开的链接。</p>
-            <h3>保存版本与核验</h3>
+            <h3>{{ tr("保存版本与核验", "Saved version & verification") }}</h3>
             <p v-if="!selectedSource.evidence.length" class="drawer-status">该来源没有已保存的段落证据。</p>
             <section v-for="(row, index) in selectedSource.evidence" :key="row.id" class="drawer-evidence">
               <p class="drawer-source__name">引用段落 {{ index + 1 }}</p><p>不可变版本：{{ row.article_version_id || "未提供" }}</p><p>段落：{{ row.paragraph_id || "未提供" }}</p><p>核验状态：{{ verificationLabel(row.verification_status) }}</p>
             </section>          </template>
-          <p v-else class="drawer-status">正在读取来源…</p>
+          <p v-else class="drawer-status">{{ tr("正在读取来源…", "Loading source…") }}</p>
         </div>
       </div>
     </dialog>
@@ -478,8 +479,8 @@ onBeforeUnmount(() => {
     >
       <div class="drawer-shell">
         <div class="drawer-header">
-          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>返回</button>
-          <h2 id="drawer-evidence-title">证据</h2>
+          <button data-testid="drawer-back" aria-label="返回事件" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>{{ tr("返回", "Back") }}</button>
+          <h2 id="drawer-evidence-title">{{ tr("证据", "Evidence") }}</h2>
         </div>        <div class="drawer-body">
           <p v-if="isDemo()" class="drawer-fixture">前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
           <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。</p>
@@ -527,14 +528,14 @@ onBeforeUnmount(() => {
                 :href="selectedEvidence.source_url"
                 target="_blank"
                 rel="noopener"
-                >打开原始来源</a
+                >{{ tr("打开原始来源", "Open original source") }}</a
               >
             </p>
             <p v-else class="drawer-status">
               该证据未提供可安全打开的来源链接。
             </p>
           </template>
-          <p v-else class="drawer-status">正在读取证据…</p>
+          <p v-else class="drawer-status">{{ tr("正在读取证据…", "Loading evidence…") }}</p>
         </div>
       </div>
     </dialog>

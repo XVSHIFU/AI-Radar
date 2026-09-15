@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import { activeTheme, changeTheme, themes, themeStorageFailed } from "./themes";
+import { locale, setLocale, t } from "./locale";
 const open=ref(false),closing=ref(false),trigger=ref<HTMLButtonElement>(),panel=ref<HTMLElement>();
 const step=360/themes.length,rotation=ref(-45),dragging=ref(false);
 let pointer:number|null=null,startX=0,startY=0,lastAngle=0,moved=false,wheelDelta=0,hadInert=false;
@@ -79,7 +80,7 @@ onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!h
 </script>
 <template>
 <button ref="trigger" class="theme-trigger" data-testid="theme-toggle" :aria-expanded="open" aria-haspopup="dialog" aria-controls="theme-wheel" @click="show">
-<span class="theme-trigger-dot" aria-hidden="true"></span><span>主题<span class="theme-trigger-name">{{activeTheme.name}}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+<span class="theme-trigger-dot" aria-hidden="true"></span><span>{{ t("theme") }}<span class="theme-trigger-name">{{activeTheme.name}}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
 </button>
 <Teleport to="body">
 <div v-if="open" class="theme-wheel-dismiss" aria-hidden="true" @pointerdown.prevent="close" @wheel.prevent></div>
@@ -89,9 +90,9 @@ onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!h
 <span class="theme-swatch-chip"><svg v-if="item.theme.id===activeTheme.id" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-8"/></svg></span><span class="theme-swatch-name">{{item.theme.name}}</span>
 </button>
 <div class="theme-wheel-controls">
-<p class="theme-wheel-count">{{centerIndex+1}} / {{themes.length}} 套配色</p><strong aria-live="polite">{{browsed.name}}</strong><p class="theme-wheel-note">{{browsed.note}}</p>
-<p id="theme-wheel-help">拖动或滚轮转动 · 点击色块应用</p>
-<div class="theme-wheel-actions"><button aria-label="上一套主题" @click="rotate(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button aria-label="下一套主题" @click="rotate(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button><button @click="close">收起</button></div>
+<p class="theme-wheel-count">{{ t("themeCount", { current: centerIndex + 1, total: themes.length }) }}</p><strong aria-live="polite">{{browsed.name}}</strong><p class="theme-wheel-note">{{browsed.note}}</p>
+<p id="theme-wheel-help">{{ t("themeHelp") }}</p>
+<div class="locale-switch" aria-label="Language"><button type="button" :aria-pressed="locale === 'zh'" @click="setLocale('zh')">{{ t("localeZh") }}</button><button type="button" :aria-pressed="locale === 'en'" @click="setLocale('en')">{{ t("localeEn") }}</button></div><div class="theme-wheel-actions"><button  :aria-label="t('previousTheme')" @click="rotate(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button  :aria-label="t('nextTheme')" @click="rotate(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button><button @click="close">{{ t("close") }}</button></div>
 <p class="theme-wheel-status" role="status">{{themeStorageFailed?'已应用，本次未能保存偏好':'已应用 · '+activeTheme.name}}</p>
 </div>
 </section>

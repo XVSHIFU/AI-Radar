@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { translate as tr } from "./locale";
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { events, err, isDemo, type Event, type Evidence } from "./api";
 import { useRoute } from "vue-router";
@@ -45,16 +46,16 @@ onBeforeUnmount(() => {
   <section class="stream">
     <p>
       <RouterLink :to="{ path: '/', query: { demo: $route.query.demo } }"
-        >返回事件</RouterLink
+        >{{ tr("返回事件", "Back to events") }}</RouterLink
       >
     </p>
     <div v-if="error" class="card error" role="alert">
       {{ error.status === 404 ? "事件不存在" : error.message }}
-      <button v-if="error.status !== 404" @click="load">重试</button
+      <button v-if="error.status !== 404" @click="load">{{ tr("重试", "Retry") }}</button
       ><RouterLink
         v-else
         :to="{ path: '/', query: { demo: $route.query.demo } }"
-        >返回事件库</RouterLink
+        >{{ tr("返回事件库", "Back to event library") }}</RouterLink
       >
     </div>
     <article v-else-if="item">
@@ -63,14 +64,14 @@ onBeforeUnmount(() => {
       </p>
       <h1 class="page-title">{{ item.title_zh }}</h1>
       <p class="answer-body">{{ item.summary_zh }}</p>
-      <h2>相关实体</h2>
+      <h2>{{ tr("相关实体", "Related entities") }}</h2>
       <p class="row">
         <span v-for="entity in item.entities" :key="entity" class="pill">{{
           entity
         }}</span>
       </p>
       <section class="evidence-layer">
-        <h2>来源与摘录</h2>
+        <h2>{{ tr("来源与摘录", "Sources & excerpts") }}</h2>
         <p v-if="isDemo()" class="demo">以下摘录为合成演示。</p>
         <p v-if="!item.evidence_count" class="meta">此事件没有关联证据。</p>
         <div
@@ -96,11 +97,11 @@ onBeforeUnmount(() => {
             :href="x.source_url"
             target="_blank"
             rel="noopener"
-            >打开来源</a
+            >{{ tr("打开来源", "Open source") }}</a
           >
         </div>
       </section>
     </article>
-    <p v-else>正在加载详情…</p>
+    <p v-else>{{ tr("正在加载详情…", "Loading details…") }}</p>
   </section>
 </template>
