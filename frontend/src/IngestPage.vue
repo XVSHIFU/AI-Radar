@@ -1,153 +1,53 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { err, ingest, type Run, type Source } from "./api";
+import { computed, onMounted, ref } from "vue";
+import { admin, err, type ModelSettings, type ProbeResult, type Run, type Source, type Usage } from "./api";
 import { idempotentSubmission } from "./submission";
-const token = ref(""),
-  sources = ref<Source[]>([]),
-  runs = ref<Run[]>([]),
-  sourcesLoading = ref(false),
-  runsLoading = ref(false),
-  submitting = ref(false),
-  sourcesError = ref<ReturnType<typeof err>>(),
-  runsError = ref<ReturnType<typeof err>>(),
-  submitError = ref<ReturnType<typeof err>>(),
-  notice = ref(""),
-  submission = idempotentSubmission();
-async function loadSources() {
-  sourcesLoading.value = true;
-  sourcesError.value = undefined;
-  try {
-    sources.value = (await ingest.sources(token.value)).items;
-  } catch (e) {
-    sourcesError.value = err(e);
-  } finally {
-    sourcesLoading.value = false;
-  }
-}
-async function loadRuns() {
-  runsLoading.value = true;
-  runsError.value = undefined;
-  try {
-    runs.value = (await ingest.runs(token.value)).items;
-  } catch (e) {
-    runsError.value = err(e);
-  } finally {
-    runsLoading.value = false;
-  }
-}
-function load() {
-  void loadSources();
-  void loadRuns();
-}
-async function start() {
-  const key = submission.begin();
-  if (!key) return;
-  submitting.value = true;
-  submitError.value = undefined;
-  try {
-    const response = await ingest.start(
-      token.value,
-      sources.value.filter((s) => s.enabled).map((s) => s.id),
-      key,
-    );
-    submission.finish(true);
-    notice.value = `已接受采集请求：${response.run_id}`;
-    void loadRuns();
-  } catch (e) {
-    submission.finish(false);
-    submitError.value = err(e);
-  } finally {
-    submitting.value = false;
-  }
-}
+
+const authenticated = ref(false), csrf = ref(""), expiresAt = ref(""), password = ref(""), activeTab = ref<"sources" | "runs" | "model">("sources");
+const loginLoading = ref(false), loginError = ref<ReturnType<typeof err>>(), notice = ref("");
+const sources = ref<Source[]>([]), runs = ref<Run[]>([]), model = ref<ModelSettings>(), usage = ref<Usage>();
+const loading = ref(false), actionId = ref(""), pageError = ref<ReturnType<typeof err>>(), modelError = ref<ReturnType<typeof err>>();
+const sourceDraft = ref({ name: "", feed_url: "", channel_type: "rss" }), editingId = ref<string | null>(null), editDraft = ref({ name: "", feed_url: "" });
+const apiKey = ref(""), maxTokens = ref(1024), modelEnabled = ref(false), testResult = ref(""), submission = idempotentSubmission();
+const enabledSources = computed(() => sources.value.filter((source) => source.enabled).map((source) => source.id));
+const formatTime = (value?: string | null) => value ? new Intl.DateTimeFormat("zh-CN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)) : "—";
+function lock(message?: string) { authenticated.value = false; csrf.value = ""; sources.value = []; runs.value = []; model.value = undefined; if (message) loginError.value = { code: "UNAUTHORIZED", message, status: 401 }; }
+function handle(e: unknown, target = pageError) { const problem = err(e); if (problem.status === 401) lock("会话已过期，请重新输入管理口令。"); else target.value = problem; }
+async function restore() { loginLoading.value = true; try { const session = await admin.session(); authenticated.value = session.authenticated; csrf.value = session.csrf_token ?? ""; expiresAt.value = session.expires_at ?? ""; if (session.authenticated && csrf.value) await loadAll(); } catch (e) { handle(e, loginError); } finally { loginLoading.value = false; } }
+async function login() { if (!password.value) return; loginLoading.value = true; loginError.value = undefined; try { const session = await admin.session(password.value); password.value = ""; if (!session.authenticated || !session.csrf_token) { lock("管理口令无效。"); return; } authenticated.value = true; csrf.value = session.csrf_token; expiresAt.value = session.expires_at ?? ""; await loadAll(); } catch (e) { password.value = ""; handle(e, loginError); } finally { loginLoading.value = false; } }
+async function loadAll() { loading.value = true; pageError.value = undefined; modelError.value = undefined; try { const [sourceResult, runResult, settings, usageResult] = await Promise.all([admin.sources(), admin.runs(), admin.model(), admin.usage()]); sources.value = sourceResult.items; runs.value = runResult.items; model.value = settings; usage.value = usageResult; maxTokens.value = settings.max_tokens; modelEnabled.value = settings.enabled; } catch (e) { handle(e); } finally { loading.value = false; } }
+async function createSource() { if (!sourceDraft.value.name.trim() || !sourceDraft.value.feed_url.trim()) return; actionId.value = "create"; pageError.value = undefined; try { await admin.createSource(csrf.value, { ...sourceDraft.value, name: sourceDraft.value.name.trim(), feed_url: sourceDraft.value.feed_url.trim() }); sourceDraft.value = { name: "", feed_url: "", channel_type: "rss" }; notice.value = "来源已添加，默认处于停用状态。"; await loadAll(); } catch (e) { handle(e); } finally { actionId.value = ""; } }
+function beginEdit(source: Source) { editingId.value = source.id; editDraft.value = { name: source.name, feed_url: source.feed_url }; }
+async function saveSource(source: Source) { actionId.value = `save-${source.id}`; try { await admin.updateSource(csrf.value, source.id, editDraft.value); editingId.value = null; notice.value = "来源已保存。"; await loadAll(); } catch (e) { handle(e); } finally { actionId.value = ""; } }
+async function toggleSource(source: Source) { actionId.value = `toggle-${source.id}`; try { await admin.updateSource(csrf.value, source.id, { enabled: !source.enabled }); notice.value = source.enabled ? "来源已停用。" : "来源已启用。"; await loadAll(); } catch (e) { handle(e); } finally { actionId.value = ""; } }
+async function probe(source: Source) { actionId.value = `probe-${source.id}`; try { const result: ProbeResult = await admin.probe(csrf.value, source.id); notice.value = `${source.name}：${result.message}${result.items_found === undefined ? "" : `（发现 ${result.items_found} 项）`}`; await loadAll(); } catch (e) { handle(e); } finally { actionId.value = ""; } }
+async function startIngest() { const key = submission.begin(); if (!key) return; actionId.value = "ingest"; try { const result = await admin.start(csrf.value, enabledSources.value, key); submission.finish(true); notice.value = `已接受采集请求：${result.run_id}`; const response = await admin.runs(); runs.value = response.items; } catch (e) { submission.finish(false); handle(e); } finally { actionId.value = ""; } }
+async function saveModel() { actionId.value = "model-save"; modelError.value = undefined; try { const payload: { api_key?: string; enabled: boolean; max_tokens: number } = { enabled: modelEnabled.value, max_tokens: maxTokens.value }; if (apiKey.value) payload.api_key = apiKey.value; const saved = await admin.saveModel(csrf.value, payload); apiKey.value = ""; model.value = saved; notice.value = "模型设置已保存。"; } catch (e) { handle(e, modelError); } finally { actionId.value = ""; } }
+async function testModel(kind: "connectivity" | "completion") { actionId.value = `test-${kind}`; testResult.value = ""; try { const result = await admin.testModel(csrf.value, kind); testResult.value = `${result.ok ? "通过" : "未通过"}：${result.message}${result.usage ? ` · ${result.usage.total_tokens} tokens` : ""}`; usage.value = await admin.usage(); } catch (e) { handle(e, modelError); } finally { actionId.value = ""; } }
+async function logout() { try { await admin.logout(csrf.value); } catch (e) { handle(e, loginError); } finally { lock(); notice.value = "已退出管理员后台。"; } }
+onMounted(() => { void restore(); });
 </script>
 <template>
-  <section>
-    <h1 class="page-title">采集管理</h1>
-    <p class="page-subtitle">管理令牌仅保留在当前页面内存中。</p><p class="meta">候选来源用于人工核验和后续采集；默认来源仍为禁用状态，未验证前不会自动采集或发布。</p>
-    <div class="admin-grid">
-      <section class="card">
-        <label
-          >管理令牌<input
-            v-model="token"
-            type="password"
-            class="control"
-            autocomplete="off"
-        /></label>
-        <div class="row">
-          <button
-            :disabled="sourcesLoading || runsLoading || !token"
-            @click="load"
-          >
-            {{ sourcesLoading || runsLoading ? "读取中…" : "读取状态" }}</button
-          ><button
-            :disabled="submitting || !sources.some((s) => s.enabled)"
-            @click="start"
-          >
-            {{ submitting ? "正在提交…" : "开始采集" }}
-          </button>
-        </div>
-        <p aria-live="polite">{{ notice }}</p>
-        <div v-if="submitError" class="error" role="alert">
-          <strong>{{
-            submitError.status === 401
-              ? "未授权"
-              : submitError.status === 503
-                ? "服务未配置或不可用"
-                : submitError.code
-          }}</strong
-          >：{{ submitError.message }} <button @click="start">重试采集</button>
-        </div>
+  <section class="admin-page">
+    <div class="admin-heading"><div><h1 class="page-title">管理员后台</h1><p class="page-subtitle">来源、采集与模型服务只在受保护会话中可用。</p></div><button v-if="authenticated" type="button" class="admin-logout" title="退出管理员后台" aria-label="退出管理员后台" @click="logout">退出</button></div>
+    <p v-if="notice" class="admin-notice" aria-live="polite">{{ notice }}</p>
+    <section v-if="!authenticated" class="admin-lock card" aria-labelledby="admin-lock-title">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2"/></svg>
+      <div><h2 id="admin-lock-title">需要管理员会话</h2><p class="meta">输入管理口令以开启当前浏览器会话。口令不会保存在浏览器存储中。</p></div>
+      <form class="admin-login" @submit.prevent="login"><label>管理口令<input v-model="password" class="control" type="password" autocomplete="current-password" :disabled="loginLoading" /></label><button type="submit" :disabled="loginLoading || !password">{{ loginLoading ? "验证中…" : "进入后台" }}</button></form>
+      <div v-if="loginError" class="error admin-feedback" role="alert">{{ loginError.message }}</div>
+    </section>
+    <template v-else>
+      <p class="meta admin-session">会话有效至 {{ formatTime(expiresAt) }}。关闭或退出后需重新验证。</p>
+      <div class="admin-tabs" role="tablist" aria-label="后台管理区"><button :class="{ active: activeTab === 'sources' }" role="tab" :aria-selected="activeTab === 'sources'" @click="activeTab = 'sources'">来源</button><button :class="{ active: activeTab === 'runs' }" role="tab" :aria-selected="activeTab === 'runs'" @click="activeTab = 'runs'">采集记录</button><button :class="{ active: activeTab === 'model' }" role="tab" :aria-selected="activeTab === 'model'" @click="activeTab = 'model'">模型设置</button></div>
+      <div v-if="pageError" class="error admin-feedback" role="alert">{{ pageError.message }} <button type="button" @click="loadAll">重试</button></div>
+      <p v-if="loading" class="admin-skeleton" aria-live="polite">正在同步管理数据…</p>
+      <section v-if="activeTab === 'sources' && !loading" class="admin-stack" aria-label="来源管理">
+        <form class="card admin-form" @submit.prevent="createSource"><div><h2>添加 RSS 来源</h2><p class="meta">新来源默认停用；探测成功后再开启采集。</p></div><label>名称<input v-model="sourceDraft.name" class="control" maxlength="160" /></label><label>订阅地址<input v-model="sourceDraft.feed_url" class="control" type="url" maxlength="2048" placeholder="https://…/feed.xml" /></label><button type="submit" :disabled="actionId === 'create' || !sourceDraft.name || !sourceDraft.feed_url">{{ actionId === 'create' ? "添加中…" : "添加来源" }}</button></form>
+        <section class="card"><div class="admin-section-title"><div><h2>来源健康</h2><p class="meta">{{ sources.length }} 个来源；已启用 {{ enabledSources.length }} 个。</p></div><button type="button" title="刷新来源状态" aria-label="刷新来源状态" @click="loadAll">刷新</button></div><p v-if="!sources.length" class="empty meta">暂无来源。添加一个 RSS 地址后可在此探测和启用。</p><article v-for="source in sources" :key="source.id" class="source-row"><div class="source-main"><template v-if="editingId === source.id"><label>名称<input v-model="editDraft.name" class="control" maxlength="160" /></label><label>订阅地址<input v-model="editDraft.feed_url" class="control" type="url" maxlength="2048" /></label></template><template v-else><strong>{{ source.name }}</strong><a :href="source.feed_url" target="_blank" rel="noreferrer">{{ source.feed_url }}</a></template><p class="meta"><span class="health" :class="source.health">{{ source.health }}</span> · 连续失败 {{ source.consecutive_failures }} · 最近探测 {{ formatTime(source.last_checked_at) }} · 最近成功 {{ formatTime(source.last_success_at) }}<span v-if="source.cooldown_until"> · 冷却至 {{ formatTime(source.cooldown_until) }}</span></p><p v-if="!source.editable" class="meta">内置采集适配：名称和订阅地址由系统维护。</p></div><div class="source-actions"><template v-if="editingId === source.id"><button type="button" :disabled="actionId === `save-${source.id}`" @click="saveSource(source)">{{ actionId === `save-${source.id}` ? "保存中…" : "保存" }}</button><button type="button" @click="editingId = null">取消</button></template><template v-else><button v-if="source.editable" type="button" title="编辑来源" :aria-label="`编辑 ${source.name}`" @click="beginEdit(source)">编辑</button><button type="button" :disabled="actionId === `probe-${source.id}`" :title="`探测 ${source.name}`" @click="probe(source)">{{ actionId === `probe-${source.id}` ? "探测中…" : "探测" }}</button><button type="button" :disabled="actionId === `toggle-${source.id}`" @click="toggleSource(source)">{{ source.enabled ? "停用" : "启用" }}</button></template></div></article></section>
       </section>
-      <section class="card">
-        <h2>来源健康</h2>
-        <p v-if="sourcesLoading">正在读取来源…</p>
-        <div v-else-if="sourcesError" class="error" role="alert">
-          {{
-            sourcesError.status === 401
-              ? "令牌无效"
-              : sourcesError.status === 503
-                ? "来源服务未配置"
-                : sourcesError.message
-          }}
-          <button @click="loadSources">重试来源</button>
-        </div>
-        <p v-else-if="!sources.length" class="meta">尚未读取来源。</p>
-        <div v-for="s in sources" :key="s.id" class="evidence-item">
-          <strong>{{ s.name }}</strong>
-          <p class="meta">
-            {{ s.health }} · 连续失败 {{ s.consecutive_failures }}
-          </p>
-        </div>
-      </section>
-      <section class="card">
-        <h2>近期运行</h2>
-        <p v-if="runsLoading">正在读取运行记录…</p>
-        <div v-else-if="runsError" class="error" role="alert">
-          {{
-            runsError.status === 401
-              ? "令牌无效"
-              : runsError.status === 503
-                ? "运行服务未配置"
-                : runsError.message
-          }}
-          <button @click="loadRuns">重试运行记录</button>
-        </div>
-        <p v-else-if="!runs.length" class="meta">尚未读取运行记录。</p>
-        <p v-for="r in runs" :key="r.id" class="evidence-item tabular">
-          {{ r.status }} · 发现URL {{ r.found }} · 候选报道 {{ r.candidates }} ·
-          正文版本 {{ r.versions }} · 已发布事件 {{ r.kept }} · 解析失败
-          {{ r.parser_failures }} / 任务失败 {{ r.failed_jobs }} · 成本
-          {{
-            r.cost_status === "actual"
-              ? "实际"
-              : r.cost_status === "estimated"
-                ? "估算"
-                : "未知"
-          }}{{ r.cost_status === "unknown" ? "" : ` ${r.cost ?? "未提供"}` }}
-          <span v-if="r.error_summary">· {{ r.error_summary }}</span>
-        </p>
-      </section>
-    </div>
+      <section v-if="activeTab === 'runs' && !loading" class="admin-stack"><section class="card"><div class="admin-section-title"><div><h2>采集记录</h2><p class="meta">只会向当前启用的来源提交采集。</p></div><button type="button" :disabled="actionId === 'ingest' || !enabledSources.length" @click="startIngest">{{ actionId === 'ingest' ? "提交中…" : "开始采集" }}</button></div><p v-if="!runs.length" class="empty meta">尚无采集记录。启用来源后可发起一次采集。</p><div v-else class="runs-table"><article v-for="run in runs" :key="run.id"><strong>{{ run.status }}</strong><span>{{ formatTime(run.started_at) }}</span><span class="tabular">发现 {{ run.found }} · 候选 {{ run.candidates }} · 版本 {{ run.versions }} · 发布 {{ run.kept }}</span><span class="tabular">解析失败 {{ run.parser_failures }} · 任务失败 {{ run.failed_jobs }}</span><span v-if="run.error_summary" class="run-error">{{ run.error_summary }}</span></article></div></section></section>
+      <section v-if="activeTab === 'model' && !loading && model" class="admin-stack"><section class="card admin-model"><div><h2>DeepSeek / Flash</h2><p class="meta">{{ model.provider }} · {{ model.model }} · {{ model.base_url }}</p></div><form class="admin-form" @submit.prevent="saveModel"><label>新 API 密钥 <input v-model="apiKey" class="control" type="password" autocomplete="new-password" placeholder="留空以保留当前密钥" /></label><label>最大输出 tokens<input v-model.number="maxTokens" class="control" type="number" min="1" max="32768" /></label><label class="toggle"><input v-model="modelEnabled" type="checkbox" />启用模型服务</label><p class="meta">当前密钥{{ model.configured ? "已配置" : "未配置" }}，系统不会回显密钥。</p><button type="submit" :disabled="actionId === 'model-save'">{{ actionId === 'model-save' ? "保存中…" : "保存设置" }}</button></form><div class="model-tests"><div><h3>连接检查</h3><p class="meta">验证服务连通与鉴权，不会生成回答。</p><button type="button" :disabled="actionId === 'test-connectivity'" @click="testModel('connectivity')">{{ actionId === 'test-connectivity' ? "检查中…" : "检查连接" }}</button></div><div><h3>回答测试</h3><p class="meta">请求 Flash 生成一条简短回答，并记录 token 用量。</p><button type="button" :disabled="actionId === 'test-completion'" @click="testModel('completion')">{{ actionId === 'test-completion' ? "测试中…" : "测试回答" }}</button></div></div><p v-if="testResult" class="admin-notice" aria-live="polite">{{ testResult }}</p><div v-if="modelError" class="error admin-feedback" role="alert">{{ modelError.message }}</div></section><section class="card"><h2>模型用量</h2><p class="meta">截至 {{ formatTime(usage?.as_of) }}</p><p v-if="!usage?.items.length" class="empty meta">暂无可记录的模型调用。</p><div v-else class="usage-table"><article v-for="item in usage.items" :key="item.purpose"><strong>{{ item.purpose }}</strong><span>{{ item.status }} · {{ item.calls }} 次</span><span class="tabular">输入 {{ item.input_tokens }} · 输出 {{ item.output_tokens }} · 合计 {{ item.total_tokens }}</span><span>{{ item.usage_recorded ? "已记录" : "未记录" }}</span></article></div></section></section>
+    </template>
   </section>
 </template>

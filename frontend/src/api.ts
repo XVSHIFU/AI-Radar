@@ -91,7 +91,7 @@ function err(e: unknown): ApiError {
       };
 }
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, init);
+  const response = await fetch(path, { credentials: "same-origin", ...init });
   if (!response.ok) {
     let body: ApiError = {
       code: `HTTP_${response.status}`,
@@ -217,48 +217,26 @@ export type AskResult = {
   filters_applied: unknown;
   request_id: string;
 };
-export const ingest = {
-  sources: (token: string) =>
-    api<{ items: Source[] }>("/api/v1/sources", {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
-  runs: (token: string) =>
-    api<{ items: Run[] }>("/api/v1/ingest/runs", {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
-  start: (token: string, source_ids: string[], idempotencyKey: string) =>
-    api<{ run_id: string; status: string }>("/api/v1/ingest/runs", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": idempotencyKey,
-      },
-      body: JSON.stringify({ source_ids }),
-    }),
-};
-export type Source = {
-  id: string;
-  name: string;
-  feed_url: string;
-  enabled: boolean;
-  health: string;
-  last_success_at: string | null;
-  consecutive_failures: number;
-};
-export type Run = {
-  id: string;
-  status: string;
-  started_at: string;
-  finished_at: string | null;
-  found: number;
-  candidates: number;
-  versions: number;
-  kept: number;
-  parser_failures: number;
-  failed_jobs: number;
-  cost: string | number | null;
-  cost_status: "actual" | "estimated" | "unknown";
-  error_summary: string | null;
+export type AdminSession = { authenticated: boolean; csrf_token?: string; expires_at?: string };
+export type Source = { id: string; name: string; feed_url: string; channel_type: string; editable: boolean; enabled: boolean; health: string; last_success_at: string | null; consecutive_failures: number; last_checked_at: string | null; cooldown_until: string | null };
+export type ProbeResult = { ok: boolean; checked_at: string; http_status?: number; message: string; items_found?: number };
+export type Run = { id: string; status: string; started_at: string; finished_at: string | null; found: number; candidates: number; versions: number; kept: number; parser_failures: number; failed_jobs: number; cost: string | number | null; cost_status: "actual" | "estimated" | "unknown"; error_summary: string | null };
+export type ModelSettings = { provider: string; base_url: string; model: string; configured: boolean; enabled: boolean; max_tokens: number };
+export type ModelTest = { ok: boolean; message: string; model: string; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number } };
+export type Usage = { items: Array<{ purpose: string; status: string; calls: number; usage_recorded: boolean; input_tokens: number; output_tokens: number; total_tokens: number }>; as_of: string };
+const csrfHeaders = (csrf: string, extra: HeadersInit = {}) => ({ ...extra, "X-CSRF-Token": csrf });
+export const admin = {
+  session: (token?: string) => token === undefined ? api<AdminSession>("/api/v1/admin/session") : api<AdminSession>("/api/v1/admin/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) }),
+  logout: (csrf: string) => fetch("/api/v1/admin/session", { method: "DELETE", credentials: "same-origin", headers: csrfHeaders(csrf) }).then((response) => { if (!response.ok) throw { code: `HTTP_${response.status}`, status: response.status, message: "退出管理后台失败" }; }),
+  sources: () => api<{ items: Source[] }>("/api/v1/admin/sources"),
+  createSource: (csrf: string, payload: Pick<Source, "name" | "feed_url" | "channel_type">) => api<Source>("/api/v1/admin/sources", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
+  updateSource: (csrf: string, id: string, payload: Partial<Pick<Source, "name" | "feed_url" | "enabled">>) => api<Source>(`/api/v1/admin/sources/${id}`, { method: "PATCH", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
+  probe: (csrf: string, id: string) => api<ProbeResult>(`/api/v1/admin/sources/${id}/probe`, { method: "POST", headers: csrfHeaders(csrf) }),
+  runs: () => api<{ items: Run[] }>("/api/v1/ingest/runs"),
+  start: (csrf: string, source_ids: string[], idempotencyKey: string) => api<{ run_id: string; status: string }>("/api/v1/ingest/runs", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ source_ids }) }),
+  model: () => api<ModelSettings>("/api/v1/admin/model"),
+  saveModel: (csrf: string, payload: { api_key?: string; enabled: boolean; max_tokens: number }) => api<ModelSettings>("/api/v1/admin/model", { method: "PUT", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
+  testModel: (csrf: string, kind: "connectivity" | "completion") => api<ModelTest>("/api/v1/admin/model/test", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify({ kind }) }),
+  usage: () => api<Usage>("/api/v1/admin/model/usage"),
 };
 export { err };
