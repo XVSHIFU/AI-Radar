@@ -52,6 +52,13 @@ class EventRow(Base):
     importance: Mapped[int] = mapped_column(Integer)
     event_date: Mapped[date | None] = mapped_column(Date)
     date_precision: Mapped[str] = mapped_column(String(12))
+    date_basis: Mapped[str] = mapped_column(String(32), default="unknown")
+    date_evidence_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("evidence.id", use_alter=True, name="fk_events_date_evidence")
+    )
+    merged_into_event_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("events.id", name="fk_events_merged_into")
+    )
     status: Mapped[str] = mapped_column(String(16), default="published")
     source_count: Mapped[int] = mapped_column(Integer, default=0)
     evidence_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -147,9 +154,13 @@ class EvidenceRow(Base):
     article_version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("article_versions.id"))
     paragraph_id: Mapped[str] = mapped_column(String(100))
     quote_text: Mapped[str] = mapped_column(Text)
+    claim_key: Mapped[str | None] = mapped_column(String(100))
+    claim_text: Mapped[str | None] = mapped_column(Text)
+    quote_hash: Mapped[str | None] = mapped_column(String(64))
+    support_type: Mapped[str] = mapped_column(String(24), default="direct")
     verification_status: Mapped[str] = mapped_column(String(32), default="unverified")
     article_version: Mapped[ArticleVersionRow] = relationship()
-    event: Mapped[EventRow] = relationship()
+    event: Mapped[EventRow] = relationship(foreign_keys=[event_id])
 
 
 class IngestRunRow(Base):
@@ -269,3 +280,32 @@ class BudgetReservationRow(Base):
     state: Mapped[str] = mapped_column(String(16), default="reserved")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     settled_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+
+
+class EventMergeLogRow(Base):
+    __tablename__ = "event_merge_log"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    source_event_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.id"), index=True)
+    target_event_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.id"))
+    reason: Mapped[str] = mapped_column(Text)
+    evidence: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    operator: Mapped[str] = mapped_column(String(200))
+    before_state: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    reverted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reverted_by: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class EventDateAuditLogRow(Base):
+    __tablename__ = "event_date_audit_log"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    event_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.id"))
+    evidence_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("evidence.id"))
+    before_date: Mapped[date | None] = mapped_column(Date)
+    before_precision: Mapped[str] = mapped_column(String(12))
+    before_basis: Mapped[str] = mapped_column(String(32))
+    after_date: Mapped[date] = mapped_column(Date)
+    after_precision: Mapped[str] = mapped_column(String(12))
+    after_basis: Mapped[str] = mapped_column(String(32))
+    operator: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

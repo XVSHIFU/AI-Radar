@@ -26,9 +26,10 @@ class StubClient:
         return Completion(content, f"response-{self.calls}", ProviderUsage(10, 5, 15))
 
 
-def _event_json(quote: str, *, title: str = "新模型发布") -> str:
-    return json.dumps(
-        {
+def _event_json(
+    quote: str, *, title: str = "新模型发布", event_date: str | None = None
+) -> str:
+    payload = {
             "relevant": True,
             "title_zh": title,
             "summary_zh": "一家机构发布了新的人工智能模型。",
@@ -42,9 +43,15 @@ def _event_json(quote: str, *, title: str = "新模型发布") -> str:
                 }
             ],
             "evidence": [{"paragraph_id": "p-0001", "quote_text": quote}],
-        },
-        ensure_ascii=False,
-    )
+        }
+    if event_date is not None:
+        payload.update(
+            event_date=event_date,
+            date_precision="day",
+            date_basis="explicit_body",
+            date_evidence_paragraph_id="p-0001",
+        )
+    return json.dumps(payload, ensure_ascii=False)
 
 
 async def _seed_version(
@@ -129,10 +136,15 @@ async def _seed_version(
 
 @pytest.mark.asyncio
 async def test_publish_idempotency_multisource_update_and_date_only(postgres_database: Any) -> None:
-    article_id, first_version = await _seed_version(postgres_database)
+    article_id, first_version = await _seed_version(
+        postgres_database,
+        paragraph="Example AI released a model on 2026-09-01 with verified benchmarks.",
+    )
     engine = create_async_engine(postgres_database.rendered_url, pool_pre_ping=True)
     sessions = async_sessionmaker(engine, expire_on_commit=False)
-    client = StubClient([_event_json("released a model")])
+    client = StubClient(
+        [_event_json("released a model on 2026-09-01", event_date="2026-09-01")]
+    )
     service = ExtractionService(sessions, cast(DeepSeekClient, client))
     try:
         first = await service.run(date(2026, 8, 1), date(2026, 9, 15), 10)
@@ -150,6 +162,7 @@ async def test_publish_idempotency_multisource_update_and_date_only(postgres_dat
             assert event is not None
             event_id = event["id"]
             assert event["event_date"] == date(2026, 9, 1)
+            assert event["date_basis"] == "explicit_body"
             assert event["source_count"] == 2
             assert (
                 await connection.fetchval(
@@ -169,6 +182,7 @@ async def test_publish_idempotency_multisource_update_and_date_only(postgres_dat
                 "SELECT * FROM evidence WHERE event_id=$1", event_id
             )
             assert evidence["verification_status"] == "unverified"
+            assert evidence["quote_hash"] is not None
         finally:
             await connection.close()
 
@@ -178,9 +192,15 @@ async def test_publish_idempotency_multisource_update_and_date_only(postgres_dat
             sources=1,
             published_at=None,
             published_text="2026-09-15",
-            paragraph="Example AI released version two with longer context.",
+            paragraph="Example AI released version two on 2026-09-15 with longer context.",
         )
-        client.contents.append(_event_json("released version two", title="模型更新"))
+        client.contents.append(
+            _event_json(
+                "released version two on 2026-09-15",
+                title="模型更新",
+                event_date="2026-09-15",
+            )
+        )
         second = await service.run(date(2026, 9, 15), date(2026, 9, 15), 10)
         assert (second.claimed, second.published, client.calls) == (1, 1, 2)
 

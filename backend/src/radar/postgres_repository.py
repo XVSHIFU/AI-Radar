@@ -179,10 +179,16 @@ class PostgresRepository:
     async def event(self, event_id: UUID) -> Event | None:
         try:
             async with self.sessions() as session:
+                requested = await session.get(EventRow, event_id)
+                canonical_id = (
+                    requested.merged_into_event_id
+                    if requested is not None and requested.merged_into_event_id is not None
+                    else event_id
+                )
                 row = await session.scalar(
                     select(EventRow)
                     .options(selectinload(EventRow.entities).selectinload(EventEntityRow.entity))
-                    .where(EventRow.id == event_id, EventRow.status == "published")
+                    .where(EventRow.id == canonical_id, EventRow.status == "published")
                 )
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
@@ -191,6 +197,18 @@ class PostgresRepository:
     async def evidence_for(self, event_id: UUID) -> list[Evidence]:
         try:
             async with self.sessions() as session:
+                requested = await session.get(EventRow, event_id)
+                canonical_id = (
+                    requested.merged_into_event_id
+                    if requested is not None and requested.merged_into_event_id is not None
+                    else event_id
+                )
+                member_ids = select(EventRow.id).where(
+                    or_(
+                        EventRow.id == canonical_id,
+                        EventRow.merged_into_event_id == canonical_id,
+                    )
+                )
                 rows = list(
                     (
                         await session.scalars(
@@ -201,8 +219,7 @@ class PostgresRepository:
                                 selectinload(EvidenceRow.event),
                             )
                             .where(
-                                EvidenceRow.event_id == event_id,
-                                EventRow.status == "published",
+                                EvidenceRow.event_id.in_(member_ids),
                             )
                         )
                     ).all()

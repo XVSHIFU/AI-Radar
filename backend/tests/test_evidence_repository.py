@@ -29,6 +29,9 @@ class FakeSession:
     async def scalars(self, statement: object) -> ScalarRows:
         return ScalarRows(self.rows)
 
+    async def get(self, model: object, identity: object) -> None:
+        return None
+
 
 class FakeSessions:
     def __init__(self, rows: list[object]) -> None:
