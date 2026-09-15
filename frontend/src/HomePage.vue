@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
             placeholder="标题、摘要、实体"
         /></label>
         <button
-          v-if="compact"
+          v-if="compact && route.path !== '/timeline-preview'"
           class="mobile"
           :aria-expanded="advanced"
           aria-controls="advanced"
@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
         >
           分类与日期 {{ advanced ? "−" : "+" }}
         </button>
-        <div id="advanced" v-show="!compact || advanced" class="filter-details">
+        <div id="advanced" v-show="!compact || advanced || route.path === '/timeline-preview'" class="filter-details">
           <fieldset class="category-list">
             <legend>分类</legend>
             <label class="category-list__all"><input v-model="category" type="radio" value="" />全部</label>
@@ -249,6 +249,7 @@ onBeforeUnmount(() => {
       <div v-else-if="!loading && !items.length" class="empty">
         这个范围内没有事件。
       </div>
+      <div class="timeline-spine">
       <section
         v-for="year in timeline"
         :key="year.key"
@@ -299,7 +300,7 @@ onBeforeUnmount(() => {
                 <span class="timeline-day__loaded">已加载 {{ day.events.length }} 条</span>
               </button>
               <div v-if="timelineState[day.key]" :id="'day-'+day.key">
-              <article v-for="item in day.events" :key="item.id" class="timeline-event">
+              <article v-for="item in day.events" :key="item.id" class="timeline-event" :class="{ 'timeline-event--important': item.importance >= 4 }">
                 <span class="pill">{{ categories.find((entry) => entry.v === item.category)?.l }}</span>
                 <h2 class="timeline-event__title">
                   <a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a>
@@ -316,7 +317,9 @@ onBeforeUnmount(() => {
             </section>
           </div>
         </section>
-      </section>      <button v-if="next && !loading" @click="load(next, true)">
+      </section>
+      </div>
+      <button v-if="next && !loading" @click="load(next, true)">
         加载更多
       </button>
     </div>
