@@ -81,6 +81,7 @@ class ExtractionService:
             result = BatchResult(
                 result.claimed + 1, result.published, result.filtered, result.failed, result.stopped
             )
+            completion: Completion | None = None
             try:
                 version = await self._version(version_id)
                 completion = await self._client.complete_json(
@@ -124,7 +125,10 @@ class ExtractionService:
                 if exc.stop_batch:
                     break
             except (ValidationError, ValueError, json.JSONDecodeError):
-                await self._invalid(call_id, version_id, completion)
+                if completion is None:
+                    await self._fail(call_id, version_id, "invalid_extraction")
+                else:
+                    await self._invalid(call_id, version_id, completion)
                 result = BatchResult(
                     result.claimed,
                     result.published,

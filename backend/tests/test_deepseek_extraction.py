@@ -1,10 +1,20 @@
 import json
+from datetime import date
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+from uuid import uuid4
 
 import httpx
 import pytest
 
-from radar.deepseek_client import DeepSeekClient, DeepSeekError
+from radar.deepseek_client import (
+    Completion,
+    DeepSeekClient,
+    DeepSeekError,
+    ProviderUsage,
+)
 from radar.extraction_schemas import ExtractionResult
+from radar.extraction_service import ExtractionService
 
 
 def _response(content: str = "{}", *, finish_reason: str = "stop") -> httpx.Response:
@@ -175,3 +185,55 @@ async def test_invalid_shape_retains_usage_when_response_is_parseable() -> None:
     assert captured.value.code == "invalid_response"
     assert captured.value.completion is not None
     assert captured.value.completion.usage.total_tokens == 18
+
+
+@pytest.mark.asyncio
+async def test_version_failure_cannot_reuse_previous_completion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first_version = uuid4()
+    second_version = uuid4()
+    first_call = uuid4()
+    second_call = uuid4()
+
+    class OneCompletionClient:
+        async def complete_json(self, *, system: str, user: str) -> Completion:
+            return Completion(
+                '{"relevant": false}',
+                "first-response",
+                ProviderUsage(101, 7, 108),
+            )
+
+    service = ExtractionService(None, OneCompletionClient())  # type: ignore[arg-type]
+    monkeypatch.setattr(service, "_provider_blocked", AsyncMock(return_value=False))
+    monkeypatch.setattr(
+        service,
+        "_eligible_versions",
+        AsyncMock(
+            return_value=[
+                (first_version, date(2026, 9, 1)),
+                (second_version, date(2026, 9, 2)),
+            ]
+        ),
+    )
+    monkeypatch.setattr(service, "_claim", AsyncMock(side_effect=[first_call, second_call]))
+    monkeypatch.setattr(
+        service,
+        "_version",
+        AsyncMock(
+            side_effect=[
+                SimpleNamespace(title="first", paragraphs={"p-0001": "first"}),
+                ValueError("version disappeared"),
+            ]
+        ),
+    )
+    finish = AsyncMock()
+    fail = AsyncMock()
+    monkeypatch.setattr(service, "_finish_without_event", finish)
+    monkeypatch.setattr(service, "_fail", fail)
+
+    result = await service.run(date(2026, 9, 1), date(2026, 9, 2), 2)
+
+    assert (result.filtered, result.failed) == (1, 1)
+    assert finish.await_args.args[3].usage.total_tokens == 108
+    fail.assert_awaited_once_with(second_call, second_version, "invalid_extraction")
