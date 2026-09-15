@@ -70,6 +70,10 @@ async def merge_history(
         "items": [
             {
                 "id": str(log.id),
+                "source_event_id": str(log.source_event_id),
+                "target_event_id": str(log.target_event_id),
+                "operator": log.operator,
+                "reverted_by": log.reverted_by,
                 "source_title": source_title,
                 "target_title": target_title,
                 "reason": log.reason,

@@ -29,6 +29,7 @@ def upgrade() -> None:
         sa.Column("failure_count", sa.Integer(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
     )
+    op.create_index("ix_admin_login_failures_updated_at", "admin_login_failures", ["updated_at"])
     op.create_table(
         "admin_audit_log",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),

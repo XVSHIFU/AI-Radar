@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
 from .date_literals import explicit_dates
+from .event_write_lock import lock_event_writes
 from .models import EventDateAuditLogRow, EventRow, EvidenceRow
 
 
@@ -79,7 +80,14 @@ class DateQualityService:
         if not operator.strip():
             raise DateCorrectionRejected("operator is required")
         async with self.sessions() as session, session.begin():
+            await lock_event_writes(session)
             event = await session.get(EventRow, event_id, with_for_update=True)
+            if (
+                event is None
+                or event.status != "published"
+                or event.merged_into_event_id is not None
+            ):
+                raise DateCorrectionRejected("only published canonical events can be corrected")
             evidence = await session.scalar(
                 select(EvidenceRow)
                 .options(selectinload(EvidenceRow.article_version))

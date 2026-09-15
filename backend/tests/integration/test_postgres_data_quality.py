@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from radar.date_quality import DateQualityService
+from radar.date_quality import DateCorrectionRejected, DateQualityService
 from radar.event_merge_service import EventMergeService, MergeRejected
 from radar.models import EventRow
 
@@ -100,6 +100,8 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
             evidence={"ticket": "DQ-1"},
             operator="reviewer",
         )
+        with pytest.raises(DateCorrectionRejected, match="canonical"):
+            await dates.apply(first, evidence_id, date(2026, 8, 17), operator="reviewer")
         with pytest.raises(MergeRejected):
             await merges.merge(
                 first, second, reason="repeat", evidence={"ticket": "DQ-1"}, operator="reviewer"

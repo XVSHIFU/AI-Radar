@@ -15,6 +15,7 @@ from sqlalchemy.orm import aliased
 
 from .deepseek_client import Completion, DeepSeekClient, DeepSeekError
 from .event_merge_service import canonical_counts
+from .event_write_lock import lock_event_writes
 from .extraction_schemas import ExtractionResult
 from .models import (
     ArticleCandidateRow,
@@ -278,6 +279,7 @@ class ExtractionService:
         completion: Completion,
     ) -> bool:
         async with self._sessions() as session, session.begin():
+            await lock_event_writes(session)
             await session.execute(
                 text("SELECT pg_advisory_xact_lock(hashtextextended(:article_id, 0))"),
                 {"article_id": str(version.article_id)},
@@ -343,8 +345,7 @@ class ExtractionService:
                 event.importance = int(extraction.importance or 1)
                 if extraction.event_date is not None:
                     if (
-                        event.date_basis
-                        in {"explicit_body", "official_publication"}
+                        event.date_basis in {"explicit_body", "official_publication"}
                         and event.event_date != extraction.event_date
                     ):
                         event.date_conflict = True
@@ -361,17 +362,17 @@ class ExtractionService:
             date_evidence_id = None
             for evidence_item in extraction.evidence:
                 evidence_row = EvidenceRow(
-                        id=uuid4(),
-                        event_id=event.id,
-                        article_version_id=version.id,
-                        paragraph_id=evidence_item.paragraph_id,
-                        quote_text=evidence_item.quote_text,
-                        claim_key=evidence_item.claim_key,
-                        claim_text=evidence_item.claim_text,
-                        quote_hash=hashlib.sha256(evidence_item.quote_text.encode()).hexdigest(),
-                        support_type=evidence_item.support_type,
-                        verification_status="unverified",
-                    )
+                    id=uuid4(),
+                    event_id=event.id,
+                    article_version_id=version.id,
+                    paragraph_id=evidence_item.paragraph_id,
+                    quote_text=evidence_item.quote_text,
+                    claim_key=evidence_item.claim_key,
+                    claim_text=evidence_item.claim_text,
+                    quote_hash=hashlib.sha256(evidence_item.quote_text.encode()).hexdigest(),
+                    support_type=evidence_item.support_type,
+                    verification_status="unverified",
+                )
                 session.add(evidence_row)
                 if evidence_item.paragraph_id == extraction.date_evidence_paragraph_id:
                     date_evidence_id = evidence_row.id

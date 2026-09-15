@@ -39,6 +39,8 @@ class AdminLoginFailureRow(Base):
     failure_count: Mapped[int] = mapped_column(Integer)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
+    __table_args__ = (Index("ix_admin_login_failures_updated_at", "updated_at"),)
+
 
 class AdminAuditRow(Base):
     __tablename__ = "admin_audit_log"
@@ -150,6 +152,16 @@ class PostgresAdminSessionStore:
         value = AdminSession(secrets.token_urlsafe(32), now + SESSION_TTL)
         outcome: str
         async with self._sessions() as db, db.begin():
+            expired = (
+                select(AdminLoginFailureRow.client_hash)
+                .where(AdminLoginFailureRow.updated_at < now - LOGIN_WINDOW)
+                .order_by(AdminLoginFailureRow.updated_at)
+                .limit(1000)
+                .with_for_update(skip_locked=True)
+            )
+            await db.execute(
+                delete(AdminLoginFailureRow).where(AdminLoginFailureRow.client_hash.in_(expired))
+            )
             await db.execute(
                 insert(AdminLoginFailureRow)
                 .values(
@@ -176,7 +188,11 @@ class PostgresAdminSessionStore:
                 failures.updated_at = now
                 outcome = "invalid"
             else:
-                await db.delete(failures)
+                # Keep this row through concurrent successful logins; deleting it can
+                # race with another INSERT ... ON CONFLICT followed by SELECT FOR UPDATE.
+                failures.failure_count = 0
+                failures.window_started_at = now
+                failures.updated_at = now
                 await db.execute(delete(AdminSessionRow).where(AdminSessionRow.expires_at <= now))
                 db.add(
                     AdminSessionRow(

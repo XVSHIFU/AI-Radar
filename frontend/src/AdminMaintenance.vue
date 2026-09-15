@@ -23,6 +23,7 @@ function failure(error: unknown) {
   if (!alive) return;
   const value = err(error);
   if (value.status === 401) emit("unauthorized");
+  else if (value.status === 409) problem.value = tr("事件或证据状态已改变，请刷新后重新核对；已归并的事件可先撤销原归并。", "The event or evidence has changed. Refresh and review again; undo an existing merge before regrouping.");
   else problem.value = value.status === 403 ? tr("操作未通过验证，请重新登录。", "Verification failed. Sign in again.") : tr("操作未完成，请重试。", "Could not complete the operation. Try again.") + ` (${value.code})`;
 }
 async function refresh() {
