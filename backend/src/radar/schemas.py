@@ -65,6 +65,22 @@ class EventPage(BaseModel):
     data_mode: Literal["fixture", "postgres"]
 
 
+class SearchResponse(BaseModel):
+    items: list[Event]
+    scope_total: int = Field(ge=0)
+    retrieved_count: int = Field(ge=0)
+    keyword_count: int = Field(ge=0)
+    semantic_count: int = Field(ge=0)
+    retrieval_mode: Literal["keyword", "hybrid"]
+    degraded_reason: str | None
+    embedding_profile: str | None
+    filters_applied: Filters
+    as_of: datetime
+    data_revision: str
+    request_id: str
+    data_mode: Literal["postgres"] = "postgres"
+
+
 class DailyInsight(BaseModel):
     date: date
     count: int = Field(ge=0)

@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
@@ -9,7 +10,9 @@ from sqlalchemy.orm import selectinload
 
 from .cursor import decode_snapshot_cursor, encode_snapshot_cursor, filters_fingerprint
 from .db_schema import SCHEMA_REVISION
+from .hybrid import hybrid_search
 from .models import (
+    EmbeddingProfileRow,
     EntityAliasRow,
     EntityRow,
     EventEntityRow,
@@ -26,7 +29,9 @@ from .repository import (
     InvalidCursor,
     Page,
     RepositoryUnavailable,
+    SearchPage,
 )
+from .retrieval import EmbeddingProvider, checked_query_embedding, search_document
 from .schemas import Article, Category, Event, Evidence, Filters
 
 
@@ -36,8 +41,10 @@ class PostgresRepository:
         sessions: async_sessionmaker[AsyncSession],
         cursor_secret: str,
         timezone: str = "Asia/Shanghai",
+        embedding_provider: EmbeddingProvider | None = None,
     ):
         self.sessions = sessions
+        self.embedding_provider = embedding_provider
         self.cursor_secret = cursor_secret
         self.timezone = ZoneInfo(timezone)
 
@@ -167,6 +174,120 @@ class PostgresRepository:
         )
         return Page(
             page_items, len(frozen), next_cursor, as_of, f"postgres-snapshot-v1:{snapshot_id}"
+        )
+
+    async def search_events(self, filters: Filters, limit: int) -> SearchPage:
+        if not filters.q:
+            raise ValueError("search query is required")
+        hard_filters = filters.model_copy(update={"q": None})
+        now = datetime.now(UTC)
+        try:
+            async with self.sessions() as session:
+                scope_rows = list(
+                    (
+                        await session.scalars(
+                            select(EventRow)
+                            .options(
+                                selectinload(EventRow.entities).selectinload(EventEntityRow.entity)
+                            )
+                            .where(*self._filters(hard_filters))
+                        )
+                    ).all()
+                )
+                scope_ids = [str(row.id) for row in scope_rows]
+                by_id = {str(row.id): row for row in scope_rows}
+
+                async def keyword(
+                    query: str, allowed: Sequence[str], candidate_limit: int
+                ) -> list[str]:
+                    if not allowed:
+                        return []
+                    query_document = search_document(query)
+                    statement = (
+                        select(EventRow.id)
+                        .where(
+                            EventRow.id.in_([UUID(item) for item in allowed]),
+                            or_(
+                                EventRow.search_vector.op("@@")(
+                                    func.plainto_tsquery("simple", query_document)
+                                ),
+                                EventRow.title_zh.ilike(f"%{query}%"),
+                                EventRow.summary_zh.ilike(f"%{query}%"),
+                            ),
+                        )
+                        .order_by(
+                            func.ts_rank(
+                                EventRow.search_vector,
+                                func.plainto_tsquery("simple", query_document),
+                            ).desc(),
+                            EventRow.event_date.desc().nulls_last(),
+                            EventRow.id.desc(),
+                        )
+                        .limit(candidate_limit)
+                    )
+                    return [str(item) for item in (await session.scalars(statement)).all()]
+
+                semantic_retriever = None
+                profile_label = None
+                if self.embedding_provider is not None:
+                    provider = self.embedding_provider
+                    profile = provider.profile
+                    active = await session.scalar(
+                        select(EmbeddingProfileRow).where(EmbeddingProfileRow.active.is_(True))
+                    )
+                    if active is not None and (
+                        active.provider,
+                        active.model_id,
+                        active.revision,
+                        active.dimension,
+                        active.normalize,
+                        active.input_template_version,
+                    ) == (
+                        profile.provider,
+                        profile.model_id,
+                        profile.revision,
+                        profile.dimension,
+                        profile.normalize,
+                        profile.input_template_version,
+                    ):
+                        profile_label = profile.fingerprint
+
+                        async def semantic_query(
+                            query: str, allowed: Sequence[str], candidate_limit: int
+                        ) -> list[str]:
+                            vector = await checked_query_embedding(provider, query)
+                            rendered = "[" + ",".join(str(item) for item in vector) + "]"
+                            rows = await session.execute(
+                                text(
+                                    "SELECT event_id::text FROM event_embeddings_v1 "
+                                    "WHERE profile_id=:profile_id AND status='ready' "
+                                    "AND event_id = ANY(CAST(:allowed AS uuid[])) "
+                                    "ORDER BY embedding <=> CAST(:embedding AS vector) LIMIT :limit"
+                                ),
+                                {
+                                    "profile_id": active.id,
+                                    "allowed": allowed,
+                                    "embedding": rendered,
+                                    "limit": candidate_limit,
+                                },
+                            )
+                            return [str(row[0]) for row in rows]
+
+                        semantic_retriever = semantic_query
+
+                result = await hybrid_search(filters.q, scope_ids, keyword, semantic_retriever)
+        except Exception as exc:
+            raise RepositoryUnavailable("PostgreSQL search failed") from exc
+        return SearchPage(
+            items=[self._event(by_id[item]) for item in result.ranked_ids[:limit]],
+            scope_total=len(scope_ids),
+            keyword_count=result.keyword_count,
+            semantic_count=result.semantic_count,
+            retrieval_mode=result.retrieval_mode,
+            degraded_reason=result.degraded_reason,
+            embedding_profile=profile_label,
+            as_of=now,
+            data_revision="retrieval-v1:cjk-bigram-v1",
         )
 
     def _event(self, row: EventRow) -> Event:

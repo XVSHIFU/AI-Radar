@@ -1264,6 +1264,105 @@
         "title": "QueryPlan",
         "type": "object"
       },
+      "SearchResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "data_mode": {
+            "const": "postgres",
+            "default": "postgres",
+            "title": "Data Mode",
+            "type": "string"
+          },
+          "data_revision": {
+            "title": "Data Revision",
+            "type": "string"
+          },
+          "degraded_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Degraded Reason"
+          },
+          "embedding_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Profile"
+          },
+          "filters_applied": {
+            "$ref": "#/components/schemas/Filters"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "keyword_count": {
+            "minimum": 0.0,
+            "title": "Keyword Count",
+            "type": "integer"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "retrieval_mode": {
+            "enum": [
+              "keyword",
+              "hybrid"
+            ],
+            "title": "Retrieval Mode",
+            "type": "string"
+          },
+          "retrieved_count": {
+            "minimum": 0.0,
+            "title": "Retrieved Count",
+            "type": "integer"
+          },
+          "scope_total": {
+            "minimum": 0.0,
+            "title": "Scope Total",
+            "type": "integer"
+          },
+          "semantic_count": {
+            "minimum": 0.0,
+            "title": "Semantic Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "scope_total",
+          "retrieved_count",
+          "keyword_count",
+          "semantic_count",
+          "retrieval_mode",
+          "degraded_reason",
+          "embedding_profile",
+          "filters_applied",
+          "as_of",
+          "data_revision",
+          "request_id"
+        ],
+        "title": "SearchResponse",
+        "type": "object"
+      },
       "SessionLogin": {
         "properties": {
           "token": {
@@ -2309,6 +2408,157 @@
           }
         },
         "summary": "Query Plan"
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "operationId": "search_events_api_v1_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_importance",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 5,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Importance"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Ids"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "title": "Entity Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Events"
       }
     },
     "/api/v1/sources": {

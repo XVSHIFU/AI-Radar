@@ -17,6 +17,19 @@ class Page:
 
 
 @dataclass(frozen=True)
+class SearchPage:
+    items: list[Event]
+    scope_total: int
+    keyword_count: int
+    semantic_count: int
+    retrieval_mode: str
+    degraded_reason: str | None
+    embedding_profile: str | None
+    as_of: datetime
+    data_revision: str
+
+
+@dataclass(frozen=True)
 class InsightsSnapshot:
     total_events: int
     daily: dict[date, int]
@@ -28,6 +41,8 @@ class InsightsSnapshot:
 
 class EventRepository(Protocol):
     async def resolve_entities(self, text: str) -> EntityResolution: ...
+
+    async def search_events(self, filters: Filters, limit: int) -> SearchPage: ...
 
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page: ...
 

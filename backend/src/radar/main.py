@@ -19,6 +19,7 @@ from .config import get_settings
 from .fixture_repository import FixtureRepository
 from .ingest.dns import configured_resolver
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
+from .local_bge import LocalBgeM3Provider
 from .model_config import ModelConfigUnavailable, effective_model_settings
 from .postgres_repository import PostgresRepository
 from .qa_limits import AskAdmission, AskLimitReached
@@ -41,6 +42,7 @@ from .schemas import (
     IngestRunRequest,
     InsightsResponse,
     QueryPlan,
+    SearchResponse,
 )
 
 
@@ -81,10 +83,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         app.state.sessions = sessions
         app.state.ingest_repository = IngestRepository(sessions)
+        embedding_provider = None
+        if settings.embedding_model_dir and settings.embedding_model_revision:
+            embedding_provider = LocalBgeM3Provider(
+                settings.embedding_model_dir,
+                settings.embedding_model_revision,
+                threads=settings.embedding_threads,
+            )
         app.state.repository = PostgresRepository(
             sessions,
             settings.cursor_secret,
             settings.business_timezone,
+            embedding_provider=embedding_provider,
         )
     yield
     if app.state.engine is not None:
@@ -312,6 +322,54 @@ async def list_events(
         data_revision=page.data_revision,
         request_id=str(uuid4()),
         data_mode=data_mode(request),
+    )
+
+
+@app.get("/api/v1/search", response_model=SearchResponse)
+async def search_events(
+    request: Request,
+    repository: Annotated[EventRepository, Depends(get_repository)],
+    q: Annotated[str, Query(min_length=1, max_length=500)],
+    category: Category | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    min_importance: Annotated[int | None, Query(ge=1, le=5)] = None,
+    entity_ids: Annotated[list[UUID] | None, Query()] = None,
+    entity_match: str = "all",
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> SearchResponse:
+    if data_mode(request) != "postgres":
+        raise api_error("SEARCH_UNAVAILABLE", "Full-text search requires PostgreSQL", 503, True)
+    if date_from and date_to and date_from > date_to:
+        raise api_error("INVALID_DATE_RANGE", "date_from must not be after date_to", 422)
+    if entity_match not in ("all", "any"):
+        raise api_error("INVALID_ENTITY_MATCH", "entity_match must be all or any", 422)
+    filters = Filters(
+        q=q,
+        category=category,
+        date_from=date_from,
+        date_to=date_to,
+        min_importance=min_importance,
+        entity_ids=entity_ids or [],
+        entity_match=entity_match,
+    )
+    try:
+        page = await repository.search_events(filters, limit)
+    except RepositoryUnavailable as exc:
+        raise api_error("RETRIEVAL_FAILED", "Database retrieval failed", 503, True) from exc
+    return SearchResponse(
+        items=page.items,
+        scope_total=page.scope_total,
+        retrieved_count=len(page.items),
+        keyword_count=page.keyword_count,
+        semantic_count=page.semantic_count,
+        retrieval_mode=page.retrieval_mode,
+        degraded_reason=page.degraded_reason,
+        embedding_profile=page.embedding_profile,
+        filters_applied=filters,
+        as_of=page.as_of,
+        data_revision=page.data_revision,
+        request_id=str(uuid4()),
     )
 
 

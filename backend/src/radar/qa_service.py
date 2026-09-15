@@ -105,6 +105,7 @@ class QaService:
             "as_of": page.as_of,
             "filters_applied": plan.filters.model_dump(mode="json"),
             "request_id": plan.request_id or str(uuid4()),
+            "retrieval_snapshot": page.data_revision,
             "data_mode": plan.data_mode or "postgres",
             "coverage": "complete" if page.total <= len(page.items) else "partial",
         }
