@@ -5,7 +5,7 @@ Runs the real `@earendil-works/pi-agent-core` 0.85.1 in fresh per-request instan
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm typecheck
-pnpm test
+pnpm test  # builds JavaScript first
 ```
 
 Node >=22.19.0 is required. Only this package's fixed tool definitions are registered; no coding CLI, default file/bash/edit tools, auto-discovery, plugin installation or persistent conversation store is invoked. pi's package includes additional library exports; their presence is not permission to expose them to the model. Python is deliberately absent until its separate isolation gate is verified.
@@ -31,3 +31,5 @@ This candidate is **not connected to the public assistant**. Pending: Python mod
 The per-run Python guard in `backend/src/radar/research_guard.py` is a second, independent enforcement layer. It is not a replacement for PostgreSQL quota: crash/restart revokes capabilities and retains the persistent reservation. Gateway routing must land on the API instance that owns the active run (single instance initially); do not deploy arbitrary load-balanced callbacks without shared run state or sticky routing.
 
 The Python candidate now also includes research_stream.py and research_gateway.py: bounded provider SSE/tool assembly and a trusted session core with server-owned instructions/history/schemas and a required usage-ledger interface. These are not yet mounted HTTP endpoints or concrete scope/accounting adapters. See docs/research-agent-p2-progress.md for validation and remaining integration work.
+
+Deployment runs compiled JavaScript (`pnpm build`, then `pnpm start`), not native TypeScript stripping. The Ubuntu Node 22.22.1 build lacks native TypeScript support; this build step avoids that optional Node feature. The read-only research package must remain a sibling of runtime in the deployed layout.

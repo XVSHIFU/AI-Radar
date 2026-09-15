@@ -174,8 +174,7 @@ async def test_real_pi_process_runs_through_python_model_and_tool_callbacks():
         )
         process = await asyncio.create_subprocess_exec(
             node,
-            "--experimental-strip-types",
-            str(root / "agent/runtime/src/server.ts"),
+            str(root / "agent/runtime/dist/src/server.js"),
             cwd=root,
             env=environment,
             stdout=asyncio.subprocess.DEVNULL,

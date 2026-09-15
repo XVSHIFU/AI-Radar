@@ -147,7 +147,7 @@ if (
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   const system = await readFile(
-    new URL("../../research/SYSTEM.md", import.meta.url),
+    new URL("../../../research/SYSTEM.md", import.meta.url),
     "utf8",
   );
   const token = process.env.RADAR_RUNTIME_TOKEN ?? "";
