@@ -59,6 +59,7 @@ class EventRow(Base):
     merged_into_event_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("events.id", name="fk_events_merged_into")
     )
+    date_conflict: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String(16), default="published")
     source_count: Mapped[int] = mapped_column(Integer, default=0)
     evidence_count: Mapped[int] = mapped_column(Integer, default=0)

@@ -36,6 +36,7 @@ class Event(BaseModel):
     ] = "unknown"
     canonical_id: UUID | None = None
     merged_source_event_ids: list[UUID] = Field(default_factory=list)
+    date_conflict: bool = False
 
 
 class Filters(BaseModel):

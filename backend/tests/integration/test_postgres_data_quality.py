@@ -81,6 +81,7 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
                 "explicit_body",
                 evidence_id,
             )
+            assert corrected.date_conflict is False
 
         merges = EventMergeService(sessions)
         log_id = await merges.merge(

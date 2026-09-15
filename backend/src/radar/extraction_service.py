@@ -340,9 +340,17 @@ class ExtractionService:
                 event.summary_zh = extraction.summary_zh.strip()
                 event.category = str(extraction.category)
                 event.importance = int(extraction.importance or 1)
-                event.event_date = extraction.event_date
-                event.date_precision = extraction.date_precision
-                event.date_basis = extraction.date_basis
+                if extraction.event_date is not None:
+                    if (
+                        event.date_basis
+                        in {"explicit_body", "official_publication"}
+                        and event.event_date != extraction.event_date
+                    ):
+                        event.date_conflict = True
+                    else:
+                        event.event_date = extraction.event_date
+                        event.date_precision = extraction.date_precision
+                        event.date_basis = extraction.date_basis
                 if event.status != "merged":
                     event.status = "published"
                 event.source_count = source_count
@@ -367,7 +375,8 @@ class ExtractionService:
                 if evidence_item.paragraph_id == extraction.date_evidence_paragraph_id:
                     date_evidence_id = evidence_row.id
             await session.flush()
-            event.date_evidence_id = date_evidence_id
+            if date_evidence_id is not None and not event.date_conflict:
+                event.date_evidence_id = date_evidence_id
             for entity_item in extraction.entities:
                 entity_name = entity_item.canonical_name.strip()
                 await session.execute(

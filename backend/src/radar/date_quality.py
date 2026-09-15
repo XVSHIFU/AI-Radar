@@ -104,5 +104,6 @@ class DateQualityService:
             event.date_precision = "day"
             event.date_basis = "explicit_body"
             event.date_evidence_id = evidence.id
+            event.date_conflict = False
             event.content_version += 1
             return audit_id

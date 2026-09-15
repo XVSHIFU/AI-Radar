@@ -207,6 +207,7 @@ class PostgresRepository:
             date_basis=row.date_basis,
             canonical_id=row.id,
             merged_source_event_ids=merged_source_event_ids or [],
+            date_conflict=row.date_conflict,
         )
 
     async def event(self, event_id: UUID) -> Event | None:

@@ -15,6 +15,10 @@ def upgrade() -> None:
     op.add_column("events", sa.Column("date_basis", sa.String(32), nullable=False, server_default="report_date_unverified"))
     op.add_column("events", sa.Column("date_evidence_id", postgresql.UUID(as_uuid=True)))
     op.add_column("events", sa.Column("merged_into_event_id", postgresql.UUID(as_uuid=True)))
+    op.add_column(
+        "events",
+        sa.Column("date_conflict", sa.Boolean(), nullable=False, server_default=sa.false()),
+    )
     op.create_foreign_key("fk_events_date_evidence", "events", "evidence", ["date_evidence_id"], ["id"])
     op.create_foreign_key("fk_events_merged_into", "events", "events", ["merged_into_event_id"], ["id"])
     op.create_check_constraint("ck_events_date_semantics", "events", "(date_precision = 'unknown' AND event_date IS NULL) OR (date_precision IN ('day', 'month') AND event_date IS NOT NULL)")
@@ -71,5 +75,5 @@ def downgrade() -> None:
     op.drop_constraint("ck_events_date_semantics", "events", type_="check")
     op.drop_constraint("fk_events_merged_into", "events", type_="foreignkey")
     op.drop_constraint("fk_events_date_evidence", "events", type_="foreignkey")
-    for name in ("merged_into_event_id", "date_evidence_id", "date_basis"):
+    for name in ("date_conflict", "merged_into_event_id", "date_evidence_id", "date_basis"):
         op.drop_column("events", name)
