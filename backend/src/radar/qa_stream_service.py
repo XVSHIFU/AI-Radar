@@ -78,6 +78,7 @@ async def prepare_stream(
         "filters_applied": plan.filters.model_dump(mode="json"),
         "scope_total": page.total,
         "retrieved_count": len(page.items),
+        "retrieval_snapshot": page.data_revision,
         "coverage": "complete" if page.total <= len(page.items) else "partial",
     }
     if not page.total:

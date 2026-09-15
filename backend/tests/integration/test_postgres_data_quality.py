@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from radar.date_quality import DateCorrectionRejected, DateQualityService
 from radar.event_merge_service import EventMergeService, MergeRejected
 from radar.models import EventRow
+from radar.postgres_repository import PostgresRepository
+from radar.schemas import Filters
 
 pytestmark = pytest.mark.postgres
 
@@ -63,6 +65,23 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
             quote,
             hashlib.sha256(quote.encode()).hexdigest(),
         )
+        entity_id = uuid4()
+        await connection.execute(
+            "INSERT INTO entities (id,canonical_name,entity_type) "
+            "VALUES ($1,'Member AI','company')",
+            entity_id,
+        )
+        await connection.execute(
+            "INSERT INTO event_entities (event_id,entity_id,role) VALUES ($1,$2,'subject')",
+            first,
+            entity_id,
+        )
+        await connection.execute(
+            "INSERT INTO event_articles (event_id,article_id,relation_type,is_primary) "
+            "VALUES ($1,$2,'supports',true)",
+            first,
+            article_id,
+        )
     finally:
         await connection.close()
 
@@ -100,6 +119,23 @@ async def test_evidence_gated_date_correction_and_reversible_merge(postgres_data
             evidence={"ticket": "DQ-1"},
             operator="reviewer",
         )
+        repository = PostgresRepository(sessions, "projection-test-secret")
+        # Old IDs resolve to the canonical DTO, including the member's entity names.
+        detail = await repository.event(first)
+        assert detail is not None and detail.id == second
+        assert detail.canonical_id == second
+        assert detail.merged_source_event_ids == [first]
+        assert detail.entities == ["Member AI"]
+        page = await repository.list_events(Filters(entity_ids=[entity_id]), 10, None)
+        assert page.total == 1
+        assert page.items[0] == detail
+        assert detail.date_basis == "report_date_unverified"
+        assert detail.date_conflict is False
+        assert (
+            await repository.list_events(Filters(date_from=date(2026, 8, 1)), 10, None)
+        ).total == 0
+        found = await repository.search_events(Filters(q="事件二", entity_ids=[entity_id]), 10)
+        assert found.scope_total == 1 and found.items == [detail]
         with pytest.raises(DateCorrectionRejected, match="canonical"):
             await dates.apply(first, evidence_id, date(2026, 8, 17), operator="reviewer")
         with pytest.raises(MergeRejected):

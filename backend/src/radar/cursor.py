@@ -40,3 +40,35 @@ def decode_cursor(value: str, filters: Filters, secret: str) -> tuple[date | Non
         raise
     except (ValueError, KeyError, json.JSONDecodeError) as error:
         raise InvalidCursor("cursor is malformed") from error
+
+
+def filters_fingerprint(filters: Filters) -> str:
+    return hashlib.sha256(filters.model_dump_json(exclude_none=True).encode()).hexdigest()
+
+
+def encode_snapshot_cursor(snapshot_id: UUID, offset: int, filters: Filters, secret: str) -> str:
+    payload = {"s": str(snapshot_id), "o": offset, "f": filters_fingerprint(filters)}
+    body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode()
+    signature = hmac.new(secret.encode(), body, hashlib.sha256).digest()
+    return base64.urlsafe_b64encode(body + signature).decode().rstrip("=")
+
+
+def decode_snapshot_cursor(value: str, filters: Filters, secret: str) -> tuple[UUID, int]:
+    try:
+        raw = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+        body, supplied = raw[:-32], raw[-32:]
+        if not hmac.compare_digest(
+            supplied, hmac.new(secret.encode(), body, hashlib.sha256).digest()
+        ):
+            raise InvalidCursor("cursor signature is invalid")
+        payload = json.loads(body)
+        if payload["f"] != filters_fingerprint(filters):
+            raise InvalidCursor("cursor does not belong to these filters")
+        offset = int(payload["o"])
+        if offset < 0:
+            raise ValueError("negative offset")
+        return UUID(payload["s"]), offset
+    except InvalidCursor:
+        raise
+    except (ValueError, KeyError, json.JSONDecodeError) as error:
+        raise InvalidCursor("cursor is malformed") from error

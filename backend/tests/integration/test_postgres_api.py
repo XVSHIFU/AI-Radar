@@ -178,3 +178,96 @@ def test_exact_filters_pagination_and_frozen_evidence(
     assert evidence.json()["items"][0]["article_version_id"] == str(ids["version"])
     assert invalid.status_code == 422
     assert invalid.json()["code"] == "EVIDENCE_INVALID"
+
+
+def test_cross_page_snapshot_freezes_event_content(
+    postgres_database: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ids = asyncio.run(_seed_retrieval(postgres_database))
+
+    async def isolate_dates() -> None:
+        connection = await postgres_database.connect()
+        try:
+            await connection.execute(
+                "UPDATE events SET event_date=CASE WHEN id=$1 THEN DATE '2026-08-02' "
+                "ELSE DATE '2026-08-01' END WHERE id = ANY($2::uuid[])",
+                ids["first"],
+                [ids["first"], ids["second"]],
+            )
+        finally:
+            await connection.close()
+
+    asyncio.run(isolate_dates())
+    params = {
+        "q": "deepseek-live",
+        "date_from": "2026-08-01",
+        "date_to": "2026-08-02",
+        "limit": 1,
+    }
+    with _client(postgres_database, monkeypatch) as client:
+        first = client.get("/api/v1/events", params=params)
+        cursor = first.json()["next_cursor"]
+
+        async def mutate_next_page() -> None:
+            connection = await postgres_database.connect()
+            try:
+                await connection.execute(
+                    "UPDATE events SET title_zh='changed after snapshot', content_version=2 "
+                    "WHERE id=$1",
+                    ids["second"],
+                )
+            finally:
+                await connection.close()
+
+        asyncio.run(mutate_next_page())
+        second = client.get("/api/v1/events", params={**params, "cursor": cursor})
+        fresh = client.get("/api/v1/events", params={**params, "limit": 2})
+
+    assert second.status_code == 200
+    assert second.json()["items"][0]["id"] == str(ids["second"])
+    assert second.json()["items"][0]["title_zh"] != "changed after snapshot"
+    assert second.json()["items"][0]["content_version"] == 1
+    assert second.json()["data_revision"] == first.json()["data_revision"]
+    assert fresh.status_code == 200
+    fresh_by_id = {item["id"]: item for item in fresh.json()["items"]}
+    assert fresh_by_id[str(ids["second"])]["title_zh"] == "changed after snapshot"
+    assert fresh_by_id[str(ids["second"])]["content_version"] == 2
+    assert fresh.json()["data_revision"] != first.json()["data_revision"]
+
+
+def test_search_reports_complete_hard_scope_and_keyword_degradation(
+    postgres_database: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ids = asyncio.run(_seed_retrieval(postgres_database))
+
+    async def index_documents() -> None:
+        connection = await postgres_database.connect()
+        try:
+            await connection.execute(
+                "UPDATE events SET search_document='database backed evidence', "
+                "event_date=CASE WHEN id=$1 THEN DATE '2026-07-02' "
+                "ELSE DATE '2026-07-01' END "
+                "WHERE id = ANY($2::uuid[])",
+                ids["first"],
+                [ids["first"], ids["second"]],
+            )
+        finally:
+            await connection.close()
+
+    asyncio.run(index_documents())
+    params = {
+        "q": "Database-backed",
+        "category": "research",
+        "date_from": "2026-07-01",
+        "date_to": "2026-07-02",
+    }
+    with _client(postgres_database, monkeypatch) as client:
+        response = client.get("/api/v1/search", params=params)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["scope_total"] == 2
+    assert {item["id"] for item in body["items"]} == {str(ids["first"]), str(ids["second"])}
+    assert body["retrieval_mode"] == "keyword"
+    assert body["degraded_reason"] == "embedding_unavailable"
+    assert body["semantic_count"] == 0

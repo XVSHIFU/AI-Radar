@@ -267,6 +267,18 @@
       },
       "Event": {
         "properties": {
+          "canonical_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Id"
+          },
           "category": {
             "$ref": "#/components/schemas/Category"
           },
@@ -274,6 +286,22 @@
             "minimum": 1.0,
             "title": "Content Version",
             "type": "integer"
+          },
+          "date_basis": {
+            "default": "unknown",
+            "enum": [
+              "explicit_body",
+              "official_publication",
+              "report_date_unverified",
+              "unknown"
+            ],
+            "title": "Date Basis",
+            "type": "string"
+          },
+          "date_conflict": {
+            "default": false,
+            "title": "Date Conflict",
+            "type": "boolean"
           },
           "date_precision": {
             "enum": [
@@ -319,6 +347,14 @@
             "title": "Importance",
             "type": "integer"
           },
+          "merged_source_event_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Merged Source Event Ids",
+            "type": "array"
+          },
           "source_count": {
             "minimum": 0.0,
             "title": "Source Count",
@@ -349,6 +385,27 @@
         "title": "Event",
         "type": "object"
       },
+      "EventDateCorrectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "event_date": {
+            "format": "date",
+            "title": "Event Date",
+            "type": "string"
+          },
+          "evidence_id": {
+            "format": "uuid",
+            "title": "Evidence Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "event_date"
+        ],
+        "title": "EventDateCorrectionRequest",
+        "type": "object"
+      },
       "EventDetail": {
         "properties": {
           "articles": {
@@ -357,6 +414,18 @@
             },
             "title": "Articles",
             "type": "array"
+          },
+          "canonical_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Id"
           },
           "category": {
             "$ref": "#/components/schemas/Category"
@@ -373,6 +442,22 @@
             ],
             "title": "Data Mode",
             "type": "string"
+          },
+          "date_basis": {
+            "default": "unknown",
+            "enum": [
+              "explicit_body",
+              "official_publication",
+              "report_date_unverified",
+              "unknown"
+            ],
+            "title": "Date Basis",
+            "type": "string"
+          },
+          "date_conflict": {
+            "default": false,
+            "title": "Date Conflict",
+            "type": "boolean"
           },
           "date_precision": {
             "enum": [
@@ -425,6 +510,14 @@
             "title": "Importance",
             "type": "integer"
           },
+          "merged_source_event_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Merged Source Event Ids",
+            "type": "array"
+          },
           "source_count": {
             "minimum": 0.0,
             "title": "Source Count",
@@ -456,6 +549,40 @@
           "data_mode"
         ],
         "title": "EventDetail",
+        "type": "object"
+      },
+      "EventMergeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "additionalProperties": true,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          },
+          "source_event_id": {
+            "format": "uuid",
+            "title": "Source Event Id",
+            "type": "string"
+          },
+          "target_event_id": {
+            "format": "uuid",
+            "title": "Target Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_event_id",
+          "target_event_id",
+          "reason",
+          "evidence"
+        ],
+        "title": "EventMergeRequest",
         "type": "object"
       },
       "EventPage": {
@@ -569,6 +696,40 @@
             "title": "Article Version Id",
             "type": "string"
           },
+          "canonical_event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Event Id"
+          },
+          "claim_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Key"
+          },
+          "claim_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Text"
+          },
           "event_date": {
             "anyOf": [
               {
@@ -595,6 +756,17 @@
             "title": "Paragraph Id",
             "type": "string"
           },
+          "quote_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Hash"
+          },
           "quote_text": {
             "title": "Quote Text",
             "type": "string"
@@ -616,6 +788,16 @@
             "maxLength": 2083,
             "minLength": 1,
             "title": "Source Url",
+            "type": "string"
+          },
+          "support_type": {
+            "default": "direct",
+            "enum": [
+              "direct",
+              "context",
+              "contradicts"
+            ],
+            "title": "Support Type",
             "type": "string"
           },
           "title": {
@@ -1264,6 +1446,105 @@
         "title": "QueryPlan",
         "type": "object"
       },
+      "SearchResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "data_mode": {
+            "const": "postgres",
+            "default": "postgres",
+            "title": "Data Mode",
+            "type": "string"
+          },
+          "data_revision": {
+            "title": "Data Revision",
+            "type": "string"
+          },
+          "degraded_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Degraded Reason"
+          },
+          "embedding_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Profile"
+          },
+          "filters_applied": {
+            "$ref": "#/components/schemas/Filters"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "keyword_count": {
+            "minimum": 0.0,
+            "title": "Keyword Count",
+            "type": "integer"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "retrieval_mode": {
+            "enum": [
+              "keyword",
+              "hybrid"
+            ],
+            "title": "Retrieval Mode",
+            "type": "string"
+          },
+          "retrieved_count": {
+            "minimum": 0.0,
+            "title": "Retrieved Count",
+            "type": "integer"
+          },
+          "scope_total": {
+            "minimum": 0.0,
+            "title": "Scope Total",
+            "type": "integer"
+          },
+          "semantic_count": {
+            "minimum": 0.0,
+            "title": "Semantic Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "scope_total",
+          "retrieved_count",
+          "keyword_count",
+          "semantic_count",
+          "retrieval_mode",
+          "degraded_reason",
+          "embedding_profile",
+          "filters_applied",
+          "as_of",
+          "data_revision",
+          "request_id"
+        ],
+        "title": "SearchResponse",
+        "type": "object"
+      },
       "SessionLogin": {
         "properties": {
           "token": {
@@ -1400,6 +1681,268 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/audit": {
+      "get": {
+        "operationId": "list_admin_audit_api_v1_admin_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Admin Audit Api V1 Admin Audit Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Admin Audit"
+      }
+    },
+    "/api/v1/admin/event-date-review": {
+      "get": {
+        "operationId": "review_event_dates_api_v1_admin_event_date_review_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 1000,
+              "maximum": 5000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Review Event Dates Api V1 Admin Event Date Review Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Event Dates"
+      }
+    },
+    "/api/v1/admin/event-date-review/{event_id}": {
+      "post": {
+        "operationId": "correct_event_date_api_v1_admin_event_date_review__event_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Event Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventDateCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Correct Event Date Api V1 Admin Event Date Review  Event Id  Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Event Date"
+      }
+    },
+    "/api/v1/admin/event-merges": {
+      "get": {
+        "operationId": "merge_history_api_v1_admin_event_merges_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Merge History Api V1 Admin Event Merges Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Merge History"
+      },
+      "post": {
+        "operationId": "merge_events_api_v1_admin_event_merges_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventMergeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Merge Events Api V1 Admin Event Merges Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Merge Events"
+      }
+    },
+    "/api/v1/admin/event-merges/{merge_id}/revert": {
+      "post": {
+        "operationId": "unmerge_events_api_v1_admin_event_merges__merge_id__revert_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "merge_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Merge Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Unmerge Events Api V1 Admin Event Merges  Merge Id  Revert Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unmerge Events"
+      }
+    },
     "/api/v1/admin/model": {
       "get": {
         "operationId": "get_model_api_v1_admin_model_get",
@@ -2309,6 +2852,157 @@
           }
         },
         "summary": "Query Plan"
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "operationId": "search_events_api_v1_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Category"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_importance",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 5,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Importance"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Ids"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity_match",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "title": "Entity Match",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Events"
       }
     },
     "/api/v1/sources": {
