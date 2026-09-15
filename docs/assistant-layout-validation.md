@@ -17,7 +17,7 @@
 | 验证 | 证据及边界 |
 | --- | --- |
 | 六套桌面与手机布局 | 根任务已执行 1440px / 390px 合并检查。手机以 `.run/concept-desk-mobile.png`、`concept-bubble-mobile.png`、`concept-evidence-mobile.png`、`concept-workspace-mobile.png`、`concept-timeline-mobile.png`、`concept-note-mobile.png` 的最新真实视口截图为准 |
-| 状态覆盖 | 已有空态、历史、来源、中断英语等 `concept-*-mobile.png`；流式为本地模拟，不是付费模型质量验收 |
+| 状态覆盖 | 空态、发送/停止、历史选择、引用核查及英语中断已做浏览器交互检查；早期元素裁剪图不作为视觉通过证据；流式为本地模拟 |
 | 工程检查 | 根任务报告 42 项前端测试、类型检查与构建通过 |
 | 独立审查 | 历史状态旧定时器问题已修正；最终审查结论由根任务在发布记录中补充，不将尚未收到的结论写成通过 |
 | 指定来源入口与悬停 | 已由独立任务验证；本记录不扩大其验证范围 |
