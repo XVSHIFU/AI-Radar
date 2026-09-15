@@ -12,6 +12,9 @@ return {theme,index,visible:angle>=-86&&angle<=-4,style:{left:Math.cos(r)*81+"%"
 }));
 const themeNames:Record<string,[string,string]>={mist:["雾白钴蓝","Mist cobalt"],paper:["暖纸松绿","Warm paper pine"],lilac:["雾紫墨蓝","Lilac ink"],oat:["燕麦陶红","Oat terracotta"],glacier:["冰川青","Glacier teal"]};
 const themeNotes:Record<string,[string,string]>={mist:["清晰 · 安静","Clear · quiet"],paper:["温暖 · 耐看","Warm · enduring"],lilac:["柔和 · 雅致","Soft · elegant"],oat:["温润 · 质朴","Gentle · grounded"],glacier:["清爽 · 明净","Fresh · clean"]};
+
+Object.assign(themeNames, {"slate":["雨后灰蓝","Rain slate"],"olive":["浅苔橄榄","Moss olive"],"rose":["玫瑰豆沙","Dusty rose"],"apricot":["杏纸琥珀","Apricot amber"],"plum":["梅子暮紫","Evening plum"],"sea":["海盐湖蓝","Sea salt blue"],"jade":["玉石竹青","Bamboo jade"],"coffee":["奶油可可","Cream cocoa"],"iris":["鸢尾靛蓝","Iris indigo"],"coral":["珊瑚浅沙","Coral sand"],"graphite":["月白石墨","Moonlit graphite"]});
+Object.assign(themeNotes, {"slate":["沉静 · 理性","Calm · considered"],"olive":["自然 · 舒缓","Natural · soothing"],"rose":["细腻 · 温柔","Delicate · gentle"],"apricot":["明朗 · 温暖","Bright · warm"],"plum":["含蓄 · 深邃","Subtle · deep"],"sea":["轻快 · 通透","Light · clear"],"jade":["清润 · 平和","Fresh · peaceful"],"coffee":["醇和 · 朴实","Mellow · grounded"],"iris":["知性 · 清朗","Thoughtful · crisp"],"coral":["柔暖 · 活泼","Soft · lively"],"graphite":["克制 · 专注","Restrained · focused"]});
 const themeName=(theme:{id:string;name:string})=>{const value=themeNames[theme.id];return value?tr(value[0],value[1]):theme.name};
 const themeNote=(theme:{id:string;note:string})=>{const value=themeNotes[theme.id];return value?tr(value[0],value[1]):theme.note};
 const centerIndex=computed(()=>((Math.round((-45-rotation.value)/step)%themes.length)+themes.length)%themes.length);
