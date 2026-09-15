@@ -239,6 +239,18 @@ async def test_irrelevant_and_invalid_evidence_are_not_published(postgres_databa
                     "SELECT article_version_id,status FROM article_candidates"
                 )
             }
+            invalid_call = await connection.fetchrow(
+                "SELECT prompt_tokens,completion_tokens,total_tokens "
+                "FROM llm_calls WHERE error_code='invalid_extraction' "
+                "AND article_version_id IN ($1,$2)",
+                irrelevant_version,
+                invalid_version,
+            )
+            assert dict(invalid_call) == {
+                "prompt_tokens": 10,
+                "completion_tokens": 5,
+                "total_tokens": 15,
+            }
             # Source UUID ordering is intentionally independent of insertion order.
             assert {statuses[irrelevant_version], statuses[invalid_version]} == {
                 "filtered",
@@ -276,13 +288,66 @@ async def test_unknown_failure_is_retained_and_not_retried(postgres_database: An
         connection = await postgres_database.connect()
         try:
             row = await connection.fetchrow(
-                "SELECT status,error_code FROM llm_calls WHERE article_version_id=$1",
+                "SELECT status,error_code,prompt_tokens,completion_tokens,total_tokens "
+                "FROM llm_calls WHERE article_version_id=$1",
                 version_id,
             )
             assert dict(row) == {
                 "status": "extraction_unknown",
                 "error_code": "unknown_transport_failure",
+                "prompt_tokens": None,
+                "completion_tokens": None,
+                "total_tokens": None,
             }
+        finally:
+            await connection.close()
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_truncated_response_usage_is_persisted_without_event(postgres_database: Any) -> None:
+    _, version_id = await _seed_version(
+        postgres_database,
+        sources=1,
+        published_at=datetime(2026, 8, 7, 2, tzinfo=UTC),
+    )
+    engine = create_async_engine(postgres_database.rendered_url, pool_pre_ping=True)
+    sessions = async_sessionmaker(engine, expire_on_commit=False)
+    client = ErrorClient(
+        DeepSeekError(
+            "truncated",
+            code="truncated_response",
+            stop_batch=False,
+            completion=Completion("{", "truncated-id", ProviderUsage(21, 9, 30)),
+        )
+    )
+    try:
+        result = await ExtractionService(sessions, cast(DeepSeekClient, client)).run(
+            date(2026, 8, 7), date(2026, 8, 7), 1
+        )
+        assert (result.failed, client.calls) == (1, 1)
+        connection = await postgres_database.connect()
+        try:
+            row = await connection.fetchrow(
+                "SELECT status,error_code,provider_response_id,prompt_tokens,"
+                "completion_tokens,total_tokens FROM llm_calls WHERE article_version_id=$1",
+                version_id,
+            )
+            assert dict(row) == {
+                "status": "extraction_failed",
+                "error_code": "truncated_response",
+                "provider_response_id": "truncated-id",
+                "prompt_tokens": 21,
+                "completion_tokens": 9,
+                "total_tokens": 30,
+            }
+            assert (
+                await connection.fetchval(
+                    "SELECT count(*) FROM evidence WHERE article_version_id=$1", version_id
+                )
+                == 0
+            )
         finally:
             await connection.close()
     finally:

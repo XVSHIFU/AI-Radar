@@ -6,13 +6,6 @@ from typing import Any
 import httpx
 
 
-class DeepSeekError(RuntimeError):
-    def __init__(self, message: str, *, code: str, stop_batch: bool) -> None:
-        super().__init__(message)
-        self.code = code
-        self.stop_batch = stop_batch
-
-
 @dataclass(frozen=True)
 class ProviderUsage:
     prompt_tokens: int | None = None
@@ -25,6 +18,21 @@ class Completion:
     content: str
     response_id: str | None
     usage: ProviderUsage
+
+
+class DeepSeekError(RuntimeError):
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str,
+        stop_batch: bool,
+        completion: Completion | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.stop_batch = stop_batch
+        self.completion = completion
 
 
 class DeepSeekClient:
@@ -94,21 +102,13 @@ class DeepSeekClient:
                 code=f"provider_http_{response.status_code}",
                 stop_batch=response.status_code in {403, 429},
             )
+
+        completion: Completion | None = None
         try:
             payload: dict[str, Any] = response.json()
-            choice = payload["choices"][0]
-            if choice.get("finish_reason") == "length":
-                raise DeepSeekError(
-                    "DeepSeek JSON was truncated", code="truncated_response", stop_batch=False
-                )
-            content = choice["message"]["content"]
-            if not isinstance(content, str) or not content.strip():
-                raise DeepSeekError(
-                    "DeepSeek returned empty JSON", code="empty_response", stop_batch=False
-                )
             usage = payload.get("usage") or {}
-            return Completion(
-                content=content,
+            completion = Completion(
+                content="",
                 response_id=payload.get("id"),
                 usage=ProviderUsage(
                     prompt_tokens=_optional_int(usage.get("prompt_tokens")),
@@ -116,11 +116,33 @@ class DeepSeekClient:
                     total_tokens=_optional_int(usage.get("total_tokens")),
                 ),
             )
+            choice = payload["choices"][0]
+            content = choice["message"]["content"]
+            if isinstance(content, str):
+                completion = Completion(content, completion.response_id, completion.usage)
+            if choice.get("finish_reason") == "length":
+                raise DeepSeekError(
+                    "DeepSeek JSON was truncated",
+                    code="truncated_response",
+                    stop_batch=False,
+                    completion=completion,
+                )
+            if not isinstance(content, str) or not content.strip():
+                raise DeepSeekError(
+                    "DeepSeek returned empty JSON",
+                    code="empty_response",
+                    stop_batch=False,
+                    completion=completion,
+                )
+            return completion
         except DeepSeekError:
             raise
-        except (KeyError, IndexError, TypeError, ValueError) as exc:
+        except (AttributeError, KeyError, IndexError, TypeError, ValueError) as exc:
             raise DeepSeekError(
-                "DeepSeek response shape is invalid", code="invalid_response", stop_batch=False
+                "DeepSeek response shape is invalid",
+                code="invalid_response",
+                stop_batch=False,
+                completion=completion,
             ) from exc
 
 

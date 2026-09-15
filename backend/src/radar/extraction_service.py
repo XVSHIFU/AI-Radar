@@ -113,7 +113,7 @@ class ExtractionService:
                         result.stopped,
                     )
             except DeepSeekError as exc:
-                await self._fail(call_id, version_id, exc.code)
+                await self._fail(call_id, version_id, exc.code, exc.completion)
                 result = BatchResult(
                     result.claimed,
                     result.published,
@@ -124,7 +124,7 @@ class ExtractionService:
                 if exc.stop_batch:
                     break
             except (ValidationError, ValueError, json.JSONDecodeError):
-                await self._fail(call_id, version_id, "invalid_extraction")
+                await self._invalid(call_id, version_id, completion)
                 result = BatchResult(
                     result.claimed,
                     result.published,
@@ -412,12 +412,20 @@ class ExtractionService:
                 .values(error_code="invalid_extraction")
             )
 
-    async def _fail(self, call_id: UUID, version_id: UUID, code: str) -> None:
+    async def _fail(
+        self,
+        call_id: UUID,
+        version_id: UUID,
+        code: str,
+        completion: Completion | None = None,
+    ) -> None:
         candidate_status = (
             "extraction_unknown" if code == "unknown_transport_failure" else "extraction_failed"
         )
         async with self._sessions() as session, session.begin():
             await self._mark_candidates(session, version_id, candidate_status)
+            if completion is not None:
+                await self._complete_call(session, call_id, completion, candidate_status)
             await session.execute(
                 update(LlmCallRow)
                 .where(LlmCallRow.id == call_id)

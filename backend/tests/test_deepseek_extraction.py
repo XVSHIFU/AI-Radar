@@ -70,6 +70,11 @@ async def test_deepseek_failures_are_classified(response: httpx.Response, code: 
         await client.close()
     assert captured.value.code == code
     assert captured.value.stop_batch is (code in {"authentication_failed", "insufficient_balance"})
+    if code in {"empty_response", "truncated_response"}:
+        assert captured.value.completion is not None
+        assert captured.value.completion.usage.total_tokens == 18
+    else:
+        assert captured.value.completion is None
 
 
 @pytest.mark.asyncio
@@ -149,3 +154,24 @@ def test_publishable_event_requires_chinese_and_nonblank_structural_fields() -> 
     extraction = ExtractionResult.model_validate(payload)
     with pytest.raises(ValueError, match="exact paragraph substring"):
         extraction.validate_publishable({"p-0001": "released text"})
+
+
+@pytest.mark.asyncio
+async def test_invalid_shape_retains_usage_when_response_is_parseable() -> None:
+    response = httpx.Response(
+        200,
+        json={
+            "id": "provider-response",
+            "choices": [],
+            "usage": {"prompt_tokens": 11, "completion_tokens": 7, "total_tokens": 18},
+        },
+    )
+    client = DeepSeekClient("test-key", transport=httpx.MockTransport(lambda _: response))
+    try:
+        with pytest.raises(DeepSeekError) as captured:
+            await client.complete_json(system="JSON only", user="article")
+    finally:
+        await client.close()
+    assert captured.value.code == "invalid_response"
+    assert captured.value.completion is not None
+    assert captured.value.completion.usage.total_tokens == 18
