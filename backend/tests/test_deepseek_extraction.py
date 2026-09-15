@@ -237,3 +237,48 @@ async def test_version_failure_cannot_reuse_previous_completion(
     assert (result.filtered, result.failed) == (1, 1)
     assert finish.await_args.args[3].usage.total_tokens == 108
     fail.assert_awaited_once_with(second_call, second_version, "invalid_extraction")
+
+
+@pytest.mark.asyncio
+async def test_openai_compatible_base_path_and_payload_are_preserved() -> None:
+    seen: dict[str, object] = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["authorization"] = request.headers.get("authorization")
+        seen["body"] = json.loads(request.content)
+        return _response('{"ok":true}')
+
+    client = DeepSeekClient(
+        "openai-key",
+        provider="openai",
+        base_url="https://api.openai.com/v1",
+        model="gpt-4.1-mini",
+        transport=httpx.MockTransport(handler),
+    )
+    try:
+        await client.complete_json(system="JSON only", user="test")
+    finally:
+        await client.close()
+    assert seen["url"] == "https://api.openai.com/v1/chat/completions"
+    assert seen["authorization"] == "Bearer openai-key"
+    body = seen["body"]
+    assert isinstance(body, dict)
+    assert body["model"] == "gpt-4.1-mini"
+    assert "thinking" not in body
+
+
+@pytest.mark.asyncio
+async def test_missing_key_is_not_added_to_authorization_header() -> None:
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["authorization"] = request.headers.get("authorization")
+        return _response()
+
+    client = DeepSeekClient(None, transport=httpx.MockTransport(handler))
+    try:
+        await client.complete_json(system="JSON only", user="test")
+    finally:
+        await client.close()
+    assert seen["authorization"] is None

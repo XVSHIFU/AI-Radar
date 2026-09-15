@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime, timedelta
 from typing import Literal, cast
 from urllib.parse import urlsplit
@@ -26,11 +25,11 @@ from .ingest.core import (
 from .ingest.dns import configured_resolver
 from .ingest.public_transport import PublicAsyncTransport
 from .model_config import (
-    BASE_URL,
-    MODEL,
-    PROVIDER,
+    PRESETS,
+    EffectiveModelConfig,
     ModelConfigStore,
     ModelConfigUnavailable,
+    normalize_base_url,
 )
 from .models import LlmCallRow, SourceRow
 
@@ -99,6 +98,9 @@ class ModelUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     api_key: str | None = Field(default=None, max_length=2000)
     enabled: bool
+    provider: str | None = Field(default=None, min_length=1, max_length=64)
+    base_url: str | None = Field(default=None, min_length=1, max_length=2000)
+    model: str | None = Field(default=None, min_length=1, max_length=200)
     max_tokens: int = Field(ge=1, le=2000)
 
 
@@ -275,15 +277,15 @@ async def probe_source(source_id: UUID, request: Request) -> dict[str, object]:
     ok = False
     status: int | None = None
     items_found: int | None = None
-    message = "Feed probe failed"
+    message = "来源探测失败"
     try:
         result = await fetch_public(client, feed_url, resolver=resolver)
         status = result.status
         if channel_type == "rss":
             items_found = len(parse_feed(result.body))
-            message = "RSS feed is reachable"
+            message = "RSS 订阅可访问"
         else:
-            message = "Archive page is reachable"
+            message = "归档页面可访问"
         ok = True
     except (httpx.HTTPError, UnsafeUrl, ValueError):
         pass
@@ -303,38 +305,58 @@ async def probe_source(source_id: UUID, request: Request) -> dict[str, object]:
     return body
 
 
-def _model_body(store: ModelConfigStore) -> dict[str, object]:
+def _model_body(config: object) -> dict[str, object]:
+    value = cast(EffectiveModelConfig, config)
+    return {
+        "provider": value.provider,
+        "base_url": value.base_url,
+        "model": value.model,
+        "configured": bool(value.api_key),
+        "enabled": value.enabled,
+        "max_tokens": value.max_tokens,
+    }
+
+
+def _read_model(request: Request) -> EffectiveModelConfig:
     try:
-        config = store.read()
+        return ModelConfigStore(request.app.state.settings).read()
     except ModelConfigUnavailable as exc:
         raise admin_error("MODEL_CONFIG_UNAVAILABLE", str(exc), 503) from exc
-    return {
-        "provider": PROVIDER,
-        "base_url": BASE_URL,
-        "model": MODEL,
-        "configured": bool(config.api_key),
-        "enabled": config.enabled,
-        "max_tokens": config.max_tokens,
-    }
+
+
+@router.get("/model/presets")
+async def model_presets() -> dict[str, object]:
+    return {"items": list(PRESETS)}
 
 
 @router.get("/model")
 async def get_model(request: Request) -> dict[str, object]:
-    return _model_body(ModelConfigStore(request.app.state.settings))
+    return _model_body(_read_model(request))
 
 
 @router.put("/model")
 async def put_model(payload: ModelUpdate, request: Request) -> dict[str, object]:
     store = ModelConfigStore(request.app.state.settings)
+    current = _read_model(request)
     try:
-        store.update(
-            api_key=payload.api_key, enabled=payload.enabled, max_tokens=payload.max_tokens
+        candidate_base = (
+            normalize_base_url(payload.base_url) if payload.base_url else current.base_url
         )
-    except ModelConfigUnavailable as exc:
-        if "API key is required" in str(exc):
-            raise admin_error("MODEL_UNAVAILABLE", str(exc), 422) from exc
-        raise admin_error("MODEL_CONFIG_UNAVAILABLE", str(exc), 503) from exc
-    return _model_body(store)
+        endpoint_changed = candidate_base != current.base_url
+        if payload.enabled and (endpoint_changed or not current.enabled):
+            resolver = configured_resolver(request.app.state.settings.fetch_dns_mode)
+            await resolve_public(candidate_base, resolver)
+        config = store.update(
+            api_key=payload.api_key,
+            enabled=payload.enabled,
+            max_tokens=payload.max_tokens,
+            provider=payload.provider,
+            base_url=payload.base_url,
+            model=payload.model,
+        )
+    except (ModelConfigUnavailable, UnsafeUrl, OSError) as exc:
+        raise admin_error("MODEL_CONFIG_INVALID", str(exc), 422) from exc
+    return _model_body(config)
 
 
 async def _record_admin_test(
@@ -357,34 +379,82 @@ async def _record_admin_test(
         await session.execute(update(LlmCallRow).where(LlmCallRow.id == call_id).values(**values))
 
 
+TEST_MESSAGES = [
+    {"role": "system", "content": "你是模型连接测试助手，只返回 JSON。"},
+    {"role": "user", "content": '请返回 {"message":"连接成功"}。'},
+]
+
+
+def _test_result(
+    *,
+    ok: bool,
+    message: str,
+    model: str,
+    error_code: str | None = None,
+    usage: dict[str, int | None] | None = None,
+    response_text: str | None = None,
+) -> dict[str, object]:
+    body: dict[str, object] = {
+        "ok": ok,
+        "message": message,
+        "model": model,
+        "request_messages": TEST_MESSAGES,
+    }
+    if error_code is not None:
+        body["error_code"] = error_code
+    if usage is not None:
+        body["usage"] = usage
+    if response_text is not None:
+        body["response_text"] = response_text[:1000]
+    return body
+
+
 @router.post("/model/test")
 async def test_model(payload: ModelTestRequest, request: Request) -> dict[str, object]:
-    try:
-        config = ModelConfigStore(request.app.state.settings).read()
-    except ModelConfigUnavailable as exc:
-        raise admin_error("MODEL_CONFIG_UNAVAILABLE", str(exc), 503) from exc
+    config = _read_model(request)
     if not config.enabled or not config.api_key:
-        raise admin_error("MODEL_UNAVAILABLE", "Model is disabled or not configured", 422)
+        raise admin_error("MODEL_UNAVAILABLE", "模型未启用或未配置密钥", 422)
     resolver = configured_resolver(request.app.state.settings.fetch_dns_mode)
     transport = getattr(request.app.state, "admin_model_transport", None)
     selected_transport = transport or PublicAsyncTransport(resolver=resolver)
     if payload.kind == "connectivity":
+        headers = {"Authorization": f"Bearer {config.api_key}"} if config.api_key else None
         try:
             async with httpx.AsyncClient(
-                base_url=BASE_URL, transport=selected_transport, timeout=20
+                base_url=config.base_url.rstrip("/") + "/",
+                transport=selected_transport,
+                timeout=20,
+                follow_redirects=False,
+                trust_env=False,
             ) as client:
-                response = await client.get(
-                    "/models", headers={"Authorization": f"Bearer {config.api_key}"}
-                )
+                response = await client.get("models", headers=headers)
+                if response.status_code in {404, 405}:
+                    return _test_result(
+                        ok=False,
+                        message="当前服务不支持模型列表接口",
+                        model=config.model,
+                        error_code="model_list_unsupported",
+                    )
                 response.raise_for_status()
-                body = response.json()
-                models = body.get("data", []) if isinstance(body, dict) else []
-                if not any(isinstance(item, dict) and item.get("id") == MODEL for item in models):
-                    raise ValueError("Flash model is not listed")
-            return {"ok": True, "message": "DeepSeek is reachable", "model": MODEL}
+                data = response.json()
+                models = data.get("data", []) if isinstance(data, dict) else []
+                if not any(
+                    isinstance(item, dict) and item.get("id") == config.model for item in models
+                ):
+                    return _test_result(
+                        ok=False,
+                        message="模型列表中未找到当前模型",
+                        model=config.model,
+                        error_code="model_not_found",
+                    )
+            return _test_result(ok=True, message="连接成功，已找到当前模型", model=config.model)
         except (httpx.HTTPError, ValueError):
-            return {"ok": False, "message": "DeepSeek connectivity test failed", "model": MODEL}
-
+            return _test_result(
+                ok=False,
+                message="模型连接测试失败",
+                model=config.model,
+                error_code="connectivity_failed",
+            )
     sessions = _sessions(request)
     call_id = uuid4()
     async with sessions() as session, session.begin():
@@ -395,60 +465,54 @@ async def test_model(payload: ModelTestRequest, request: Request) -> dict[str, o
                 article_version_id=None,
                 logical_request_id=f"admin-test:{call_id}",
                 purpose="admin_test",
-                provider=PROVIDER,
-                model_id=MODEL,
+                provider=config.provider,
+                model_id=config.model,
                 attempt=1,
                 status="pending",
             )
         )
     model_client = DeepSeekClient(
         config.api_key,
-        model=MODEL,
+        base_url=config.base_url,
+        model=config.model,
+        provider=config.provider,
         max_tokens=min(config.max_tokens, 32),
         transport=selected_transport,
+        resolver=resolver,
     )
     try:
         completion = await model_client.complete_json(
-            system="Return JSON only.", user='Return exactly {"ok":true} as JSON.'
+            system=TEST_MESSAGES[0]["content"], user=TEST_MESSAGES[1]["content"]
         )
-        try:
-            body = json.loads(completion.content)
-            if body != {"ok": True}:
-                raise ValueError("unexpected completion")
-        except (ValueError, TypeError):
-            await _record_admin_test(
-                sessions,
-                call_id,
-                status="invalid_extraction",
-                usage=completion.usage,
-                error_code="invalid_admin_test_response",
-            )
-            return {
-                "ok": False,
-                "message": "DeepSeek returned an invalid test response",
-                "model": MODEL,
-            }
         await _record_admin_test(sessions, call_id, status="completed", usage=completion.usage)
         usage = {
             "prompt_tokens": completion.usage.prompt_tokens,
             "completion_tokens": completion.usage.completion_tokens,
             "total_tokens": completion.usage.total_tokens,
         }
-        return {
-            "ok": True,
-            "message": "DeepSeek completion succeeded",
-            "model": MODEL,
-            "usage": usage,
-        }
+        return _test_result(
+            ok=True,
+            message="模型短对话测试成功",
+            model=config.model,
+            usage=usage,
+            response_text=completion.content,
+        )
     except DeepSeekError as exc:
+        status = "unknown" if exc.code == "unknown_transport_failure" else "failed"
         await _record_admin_test(
             sessions,
             call_id,
-            status=("unknown" if exc.code == "unknown_transport_failure" else "failed"),
+            status=status,
             usage=exc.completion.usage if exc.completion else None,
             error_code=exc.code,
         )
-        return {"ok": False, "message": "DeepSeek completion failed", "model": MODEL}
+        return _test_result(
+            ok=False,
+            message=str(exc),
+            model=config.model,
+            error_code=exc.code,
+            response_text=exc.completion.content if exc.completion else None,
+        )
     finally:
         await model_client.close()
 

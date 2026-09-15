@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from .config import get_settings
 from .deepseek_client import DeepSeekClient
 from .extraction_service import ExtractionService
+from .ingest.dns import configured_resolver
 from .model_config import ModelConfigStore, ModelConfigUnavailable
 
 
@@ -39,8 +40,10 @@ async def _run(date_from: date, date_to: date, limit: int) -> int:
     engine = create_async_engine(url, pool_pre_ping=True)
     client = DeepSeekClient(
         model_config.api_key,
-        base_url="https://api.deepseek.com",
-        model="deepseek-flash",
+        base_url=model_config.base_url,
+        model=model_config.model,
+        provider=model_config.provider,
+        resolver=configured_resolver(settings.fetch_dns_mode),
         max_tokens=model_config.max_tokens,
     )
     try:
@@ -49,6 +52,8 @@ async def _run(date_from: date, date_to: date, limit: int) -> int:
             client,
             timezone=settings.business_timezone,
             credential_changed_at=model_config.credential_changed_at,
+            provider=model_config.provider,
+            model=model_config.model,
         ).run(date_from, date_to, limit)
     finally:
         await client.close()

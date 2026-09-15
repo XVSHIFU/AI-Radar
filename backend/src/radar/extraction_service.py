@@ -61,11 +61,15 @@ class ExtractionService:
         *,
         timezone: str = "Asia/Shanghai",
         credential_changed_at: datetime | None = None,
+        provider: str = "deepseek",
+        model: str = "deepseek-flash",
     ) -> None:
         self._sessions = sessions
         self._client = client
         self._timezone = ZoneInfo(timezone)
         self._credential_changed_at = credential_changed_at
+        self._provider = provider
+        self._model = model
 
     async def run(self, date_from: date, date_to: date, limit: int) -> BatchResult:
         if date_from > date_to:
@@ -142,7 +146,7 @@ class ExtractionService:
 
     async def _provider_blocked(self) -> bool:
         conditions = [
-            LlmCallRow.provider == "deepseek",
+            LlmCallRow.provider == self._provider,
             LlmCallRow.error_code.in_(("authentication_failed", "insufficient_balance")),
         ]
         if self._credential_changed_at is not None:
@@ -242,8 +246,8 @@ class ExtractionService:
                     article_version_id=version_id,
                     logical_request_id=f"event-extraction:{version_id}",
                     purpose="event_extraction",
-                    provider="deepseek",
-                    model_id="deepseek-flash",
+                    provider=self._provider,
+                    model_id=self._model,
                     attempt=1,
                     status="pending",
                 )

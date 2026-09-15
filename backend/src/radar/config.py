@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     fetch_interval_seconds: float = Field(default=10.0, ge=1.0, le=3600.0)
     fetch_dns_mode: Literal["system", "cloudflare"] = "system"
     llm_api_key: str | None = None
+    llm_provider: str = "deepseek"
     llm_base_url: str = "https://api.deepseek.com"
-    llm_model: Literal["deepseek-flash"] = "deepseek-flash"
+    llm_model: str = Field(default="deepseek-flash", min_length=1, max_length=200)
     llm_max_tokens: int = Field(default=1600, ge=1, le=2000)
     model_config_path: Path = Path.home() / ".config" / "ai-radar" / "model.json"
     cursor_secret: str = Field(default="development-only-change-me", min_length=16)

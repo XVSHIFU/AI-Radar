@@ -137,7 +137,15 @@ def test_admin_sources_and_usage_live_postgres(
         )
         archive_probe = client.post(f"/api/v1/admin/sources/{builtin_id}/probe", headers=headers)
         assert archive_probe.status_code == 200
-        assert archive_probe.json()["message"] == "Archive page is reachable"
+        assert archive_probe.json()["message"] == "归档页面可访问"
+        presets = client.get("/api/v1/admin/model/presets", headers=headers)
+        assert presets.status_code == 200
+        assert {item["id"] for item in presets.json()["items"]} == {
+            "deepseek",
+            "openai",
+            "qwen",
+            "moonshot",
+        }
         configured = client.put(
             "/api/v1/admin/model",
             json={"api_key": "test-only-key", "enabled": True, "max_tokens": 64},
@@ -145,14 +153,31 @@ def test_admin_sources_and_usage_live_postgres(
         )
         assert configured.status_code == 200
         assert "api_key" not in configured.json()
+        rejected = client.put(
+            "/api/v1/admin/model",
+            json={
+                "enabled": True,
+                "max_tokens": 64,
+                "provider": "openai",
+                "base_url": "https://api.openai.com/v1",
+                "model": "gpt-4.1-mini",
+            },
+            headers=headers,
+        )
+        assert rejected.status_code == 422
+        current = client.get("/api/v1/admin/model", headers=headers).json()
+        assert current["provider"] == "deepseek"
         connectivity = client.post(
             "/api/v1/admin/model/test", json={"kind": "connectivity"}, headers=headers
         )
         assert connectivity.json()["ok"] is True
+        assert connectivity.json()["request_messages"]
         completion = client.post(
             "/api/v1/admin/model/test", json={"kind": "completion"}, headers=headers
         )
         assert completion.json()["usage"]["total_tokens"] == 11
+        assert completion.json()["response_text"] == '{"ok":true}'
+        assert completion.json()["request_messages"][0]["role"] == "system"
         usage = client.get("/api/v1/admin/model/usage", headers=headers)
         assert usage.status_code == 200
         row = next(
@@ -163,4 +188,26 @@ def test_admin_sources_and_usage_live_postgres(
         assert row["calls"] >= 2
         assert row["usage_recorded"] >= 1
         assert row["total_tokens"] is not None
+
+        async def failing_resolver(_host: str) -> list[str]:
+            raise OSError("dns unavailable")
+
+        monkeypatch.setattr(admin_api, "configured_resolver", lambda _mode: failing_resolver)
+        disabled = client.put(
+            "/api/v1/admin/model",
+            json={"enabled": False, "max_tokens": 64},
+            headers=headers,
+        )
+        assert disabled.status_code == 200
+        invalid = client.put(
+            "/api/v1/admin/model",
+            json={
+                "enabled": False,
+                "max_tokens": 64,
+                "base_url": "http://127.0.0.1/v1",
+                "api_key": "replacement",
+            },
+            headers=headers,
+        )
+        assert invalid.status_code == 422
         assert client.get("/api/v1/ingest/runs").status_code == 401
