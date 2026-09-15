@@ -1,0 +1,38 @@
+@font-face{font-family:RadarStudySans;src:url('/type-studies/fonts/noto-sans-sc.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:RadarStudySerif;src:url('/type-studies/fonts/noto-serif-sc.woff2') format('woff2');font-weight:200 900;font-display:swap}
+@font-face{font-family:RadarStudyWenkai;src:url('/type-studies/fonts/lxgw-wenkai.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:RadarStudyXiaowei;src:url('/type-studies/fonts/zcool-xiaowei.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:RadarStudyInter;src:url('/type-studies/fonts/inter.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:RadarStudySource;src:url('/type-studies/fonts/source-serif-4.woff2') format('woff2');font-weight:200 900;font-display:swap}
+.type-lab{max-width:1120px;margin:12px auto 48px}
+.type-lab-header{display:flex;justify-content:space-between;align-items:start;gap:24px;border-bottom:1px solid var(--line);padding-bottom:24px}
+.type-lab-header h1{margin:0 0 12px;font-size:32px;line-height:1.3}
+.type-lab-header p{margin:0;color:var(--muted);font-size:14px;max-width:58ch}
+.type-lab-header a{white-space:nowrap;font-size:14px;padding-top:8px}
+.type-options{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 16px}
+.app-shell .type-options button{min-height:38px;padding:7px 12px;border-radius:6px;background:transparent;color:var(--muted)}
+.app-shell .type-options button[aria-pressed=true]{color:var(--blue);background:var(--blue-soft);font-weight:600}
+.type-pair{font-size:14px;margin:0 0 6px;overflow-wrap:anywhere;color:var(--blue)}
+.type-description{font-size:14px;color:var(--muted);margin:0 0 32px}
+.type-specimens{--study-heading:RadarStudyInter,RadarStudySans,sans-serif;--study-body:RadarStudyInter,RadarStudySans,sans-serif;--study-weight:600;display:grid;grid-template-columns:1fr 1fr;gap:0 48px}
+.type-specimens[data-type=editorial]{--study-heading:RadarStudySource,RadarStudySerif,serif}
+.type-specimens[data-type=literary]{--study-heading:RadarStudySource,RadarStudySerif,serif;--study-body:RadarStudySource,RadarStudySerif,serif}
+.type-specimens[data-type=warm]{--study-heading:RadarStudySource,RadarStudyWenkai,serif;--study-body:RadarStudySource,RadarStudyWenkai,serif;--study-weight:400}
+.type-specimens[data-type=distinct]{--study-heading:RadarStudySource,RadarStudyXiaowei,serif;--study-weight:400}
+.type-specimen{border-top:1px solid var(--line);padding-top:18px;min-width:0;font-synthesis:none}
+.type-specimen-label{font-size:13px;color:var(--muted);margin-bottom:26px}
+.type-mini-meta{display:flex;flex-wrap:wrap;gap:12px;font:13px/1.6 RadarStudyInter,RadarStudySans,sans-serif;color:var(--muted)}
+.type-mini-meta span{color:var(--blue)}
+.type-specimen h2{font-family:var(--study-heading);font-size:28px;font-weight:var(--study-weight);line-height:1.55;letter-spacing:0;margin:12px 0 20px;max-width:28ch;min-height:3.1em;text-wrap:pretty}
+.type-body{font-family:var(--study-body);font-size:17px;font-weight:400;line-height:1.9;margin:0 0 20px;max-width:65ch}
+.type-specimen[lang=en] h2{line-height:1.4}
+.type-specimen[lang=en] .type-body{line-height:1.75}
+.type-small{font:13px/1.8 RadarStudyInter,RadarStudySans,sans-serif;color:var(--muted);font-variant-numeric:tabular-nums}
+.type-ui-specimen{grid-column:1/-1;margin-top:24px;padding:24px 0;border-top:1px solid var(--line);font-family:RadarStudyInter,RadarStudySans,sans-serif}
+.type-ui-specimen h2{font-size:18px;font-weight:500;margin:0 0 20px}
+.type-control-row{display:flex;flex-wrap:wrap;align-items:end;gap:20px}
+.type-control-row label{display:grid;gap:6px;flex:0 1 360px;font-size:13px}
+.type-control-row input{width:100%;font-family:inherit}
+.type-lab-note,.type-font-sources{font-size:13px;line-height:1.8;color:var(--muted);max-width:85ch}
+.type-font-sources summary{cursor:pointer;color:var(--blue)}
+@media(max-width:800px){.type-specimens{grid-template-columns:1fr;gap:28px}.type-lab-header{display:block}.type-lab-header a{display:inline-block;margin-top:12px}.type-specimen h2{min-height:0}.type-ui-specimen{margin-top:0}.type-lab-header h1{font-size:28px}.type-body{font-size:16px}.type-lab{margin-top:0}.type-options{gap:6px}}

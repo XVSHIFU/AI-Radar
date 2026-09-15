@@ -1,9 +1,6 @@
-/* A single continuous timeline; preview-only until the user chooses this direction. */
+/* The selected comfortable reading layout uses one continuous timeline. */
 .fusion-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding:0 0 20px; margin-bottom:32px; border-bottom:1px solid var(--line); font-size:13px; color:var(--muted); }
 .fusion-toolbar > span { margin-right:auto; }
-.fusion-density { display:flex; gap:2px; }
-.fusion-density button { min-height:32px; padding:4px 10px; border:0; background:transparent; color:var(--muted); }
-.fusion-density button[aria-pressed=true] { background:var(--blue-soft); color:var(--blue); }
 .fusion-preview .app-content main { max-width:1240px; padding:32px 44px; }
 .fusion-preview .home-layout { grid-template-columns:minmax(0,1fr) 180px; gap:48px; }
 .fusion-preview .home-stream { padding:0; background:transparent; }
@@ -45,11 +42,6 @@
 .fusion-preview .context-panel .meta { font-size:12px; line-height:1.8; }
 .fusion-preview .context-panel ul { list-style:none; padding:0; margin-top:20px; }
 .fusion-preview .context-panel li { padding:5px 0; border-bottom:1px solid var(--line); }
-.fusion-preview[data-density=compact] .timeline-event { padding:12px 0 16px; }
-.fusion-preview[data-density=compact] .timeline-event::before { top:18px; }
-.fusion-preview[data-density=compact] .timeline-event__title { font-size:19px; margin:5px 0 8px; }
-.fusion-preview[data-density=compact] .timeline-event > .muted { font-size:14px; line-height:1.7; }
-.fusion-preview[data-density=compact] .timeline-event__entities { display:none; }
 .brand-studies-heading { display:flex; align-items:end; gap:24px; justify-content:space-between; margin-bottom:36px; }
 .brand-studies-heading h1 { font-size:32px; line-height:1.3; margin:0 0 14px; }
 .brand-studies-heading p { color:var(--muted); font-size:14px; max-width:52ch; }
@@ -111,4 +103,18 @@
 }
 
 html[lang="en"] .fusion-preview .timeline-event > .muted { line-height:1.75; }
-@media(max-width:600px) { .fusion-preview[data-density=compact] .timeline-event > .muted { font-size:16px; } .fusion-preview .filter-strip input.control { font-size:16px; } }
+@media(max-width:600px) { .fusion-preview .filter-strip input.control { font-size:16px; } }
+.timeline-event__summary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden; max-height:4lh; }
+.fusion-preview .timeline-month__toggle { position:relative; }
+.fusion-preview .timeline-month__toggle::after,
+.fusion-preview .timeline-day__toggle::after { display:none; }
+.fusion-preview .timeline-fold-icon { width:16px; height:16px; flex:none; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; transition:transform 180ms ease; }
+.fusion-preview .timeline-month__toggle .timeline-fold-icon { position:absolute; left:-34px; }
+.fusion-preview [aria-expanded=true] > .timeline-fold-icon { transform:rotate(90deg); }
+@media(max-width:600px) {
+ .fusion-preview .timeline-month__toggle .timeline-fold-icon { left:-26px; }
+ .fusion-preview .timeline-day__toggle { width:44px; left:-68px; gap:2px; flex-wrap:nowrap; }
+ .fusion-preview .timeline-day__toggle .timeline-fold-icon { width:12px; height:12px; }
+ .fusion-preview .timeline-day__toggle > span:first-of-type { white-space:nowrap; font-size:12px; }
+}
+@media(prefers-reduced-motion:reduce) { .fusion-preview .timeline-fold-icon { transition:none; } }

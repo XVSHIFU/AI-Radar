@@ -12,4 +12,3 @@ export const brandStudies = [
   { id: 'relay', name: '08 · 知识接力', note: '两个相扣的开放环，强调证据、来源与事件之间的联系。', paths: ['M18 9l2-2a6 6 0 0 1 9 8l-6 6a6 6 0 0 1-9 0M14 23l-2 2a6 6 0 0 1-9-8l6-6a6 6 0 0 1 9 0M11 21l10-10'], dots: [] },
 ];
 export const previewBrand = ref('thread');
-export const previewDensity = ref('reading');

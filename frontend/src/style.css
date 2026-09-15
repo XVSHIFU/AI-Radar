@@ -1139,6 +1139,7 @@ html.drawer-scroll-locked { overflow: hidden; }
 
 /* Keep the assistant mark calm: the lift remains, without the former bright halo. */
 .assistant-trigger { box-shadow: 0 6px 15px rgb(34 61 93 / .16); }
-.assistant-trigger:hover { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 19px rgb(34 61 93 / .19); filter: brightness(.97) saturate(.94); }
-.theme-wheel-locale { transform: scale(.9); transform-origin: left center; }
-.theme-wheel-locale button { min-height:25px; padding:1px 6px; font-size:11px; }
+.assistant-trigger:hover { box-shadow: 0 10px 19px rgb(34 61 93 / .19); filter: brightness(.97) saturate(.94); }
+.theme-wheel-locale { gap:1px; padding:1px; }
+.theme-wheel .theme-wheel-locale button { min-height:26px; padding:1px 6px; font-size:11px; }
+@media(max-width:900px) { .theme-wheel .theme-wheel-locale button { min-height:44px; } }

@@ -294,7 +294,7 @@ watch(
         unlockScroll();
         backgroundInert(false);
         await nextTick();
-        eventOpener?.focus();
+        eventOpener?.focus({ preventScroll: true });
         outerExitTimer = undefined;
       }, motionDuration("drawerExit"));
     }
@@ -303,12 +303,12 @@ watch(
 );
 watch(sourceKey, async (next, previous) => {
   if (!next && previous && !evidenceId.value) {
-    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus(); }, motionDuration("drawerExit"));
+    window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus({ preventScroll: true }); }, motionDuration("drawerExit"));
   }
 });
 watch(evidenceId, async (next, previous) => {
   if (!next && previous) {
-    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus(); }, motionDuration("drawerExit"));
+    window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus({ preventScroll: true }); }, motionDuration("drawerExit"));
   }
 });
 const onEscape = (event: KeyboardEvent) => {

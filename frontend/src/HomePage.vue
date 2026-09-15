@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
             :placeholder='tx("标题、摘要、实体", "Title, summary, entity")'
         /></label>
         <button
-          v-if="compact && route.path !== '/timeline-preview'"
+          v-if="compact && !['/', '/timeline-preview'].includes(route.path)"
           class="mobile"
           :aria-expanded="advanced"
           aria-controls="advanced"
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
         >
           {{ tx("分类与日期", "Category and date") }} {{ advanced ? "−" : "+" }}
         </button>
-        <div id="advanced" v-show="!compact || advanced || route.path === '/timeline-preview'" class="filter-details">
+        <div id="advanced" v-show="!compact || advanced || ['/', '/timeline-preview'].includes(route.path)" class="filter-details">
           <fieldset class="category-list">
             <legend>{{ tx("分类", "Category") }}</legend>
             <label class="category-list__all"><input v-model="category" type="radio" value="" />{{ tx("全部", "All") }}</label>
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
             :aria-expanded="timelineState[month.key]"
             @click="toggle(month.key)"
           >
-            <span>{{ month.label }}</span>
+            <svg class="timeline-fold-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg><span>{{ month.label }}</span>
             <span class="timeline-month__count"
               >{{ tx("已加载", "Loaded") }}
               {{ month.days.reduce((sum, day) => sum + day.events.length, 0) }}
@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
           <div v-if="timelineState[month.key]">
             <section v-for="day in month.days" :key="day.key" class="timeline-day">
               <button class="timeline-day__toggle" data-testid="timeline-day-toggle" :aria-label="day.key" :aria-expanded="timelineState[day.key]" :aria-controls="'day-'+day.key" @click="toggle(day.key)">
-                <span>{{ day.label }}</span>
+                <svg class="timeline-fold-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg><span>{{ day.label }}</span>
                 <span class="timeline-day__loaded">{{ tx("已加载", "Loaded") }} {{ day.events.length }} {{ tx("条", "events") }}</span>
               </button>
               <div v-if="timelineState[day.key]" :id="'day-'+day.key">
@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
                 <h2 class="timeline-event__title">
                   <a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a>
                 </h2>
-                <p class="muted">{{ item.summary_zh }}</p>
+                <p class="muted timeline-event__summary">{{ item.summary_zh }}</p>
                 <p class="meta tabular timeline-event__meta">
                   {{ tx("重要度", "Importance") }} {{ item.importance }}/5 · {{ item.source_count }} {{ tx("个来源", "sources") }} · {{ item.evidence_count }} {{ tx("条关联证据", "evidence excerpts") }}
                 </p>

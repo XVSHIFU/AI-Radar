@@ -6,15 +6,15 @@ import AssistantPanel from "./AssistantPanel.vue";
 import RadarMark from "./RadarMark.vue";
 import BrandCandidate from "./BrandCandidate.vue";
 import TimelinePreviewBar from "./TimelinePreviewBar.vue";
-import { previewBrand, previewDensity } from "./brand-preview";
+import { previewBrand } from "./brand-preview";
 import ThemeWheel from "./ThemeWheel.vue";
 import "./preview/preview.css";
 import { t } from "./locale";
 const route = useRoute();
 const demoEnabled = computed(() => route.query.demo === "1");
 const previewEnabled = computed(() => route.path.startsWith("/preview"));
-const fusionEnabled = computed(() => route.path === "/timeline-preview");
-const brandEnabled = computed(() => fusionEnabled.value || route.path === "/brand-preview");
+const fusionEnabled = computed(() => ["/", "/timeline-preview"].includes(route.path));
+const brandEnabled = computed(() => route.path === "/brand-preview");
 const adminEnabled = computed(() => route.path === "/ingest");
 const link = (path: string) => (demoEnabled.value ? `${path}?demo=1` : path);
 const viewKey = computed(
@@ -36,7 +36,7 @@ const viewKey = computed(
     <main class="preview-shell-main"><RouterView :key="viewKey" /></main>
     <footer class="preview-shell-footer"><RouterLink :to="'/ingest'">{{ t("maintenance") }}</RouterLink></footer>
   </div>
-  <div v-else class="app-shell" :class="{ 'fusion-preview': fusionEnabled }" :data-density="previewDensity">
+  <div v-else class="app-shell" :class="{ 'fusion-preview': fusionEnabled }">
     <header class="app-rail">
       <RouterLink :to="link('/')" class="brand"
         ><BrandCandidate v-if="brandEnabled" :name="previewBrand" /><RadarMark v-else />AI 革新雷达</RouterLink
@@ -79,7 +79,7 @@ const viewKey = computed(
       <p v-else-if="dataMode === 'fixture' && !adminEnabled" class="demo" role="note">
         {{ t("fixture") }}
       </p>
-      <main><TimelinePreviewBar v-if="fusionEnabled" /><RouterView :key="viewKey" /></main>
+      <main><TimelinePreviewBar v-if="route.path === '/timeline-preview'" /><RouterView :key="viewKey" /></main>
     </div>
   </div>
   <AssistantPanel />
