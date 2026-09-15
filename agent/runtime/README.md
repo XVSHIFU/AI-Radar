@@ -33,3 +33,5 @@ The per-run Python guard in `backend/src/radar/research_guard.py` is a second, i
 The Python candidate now also includes research_stream.py and research_gateway.py: bounded provider SSE/tool assembly and a trusted session core with server-owned instructions/history/schemas and a required usage-ledger interface. These are not yet mounted HTTP endpoints or concrete scope/accounting adapters. See docs/research-agent-p2-progress.md for validation and remaining integration work.
 
 Deployment runs compiled JavaScript (`pnpm build`, then `pnpm start`), not native TypeScript stripping. The Ubuntu Node 22.22.1 build lacks native TypeScript support; this build step avoids that optional Node feature. The read-only research package must remain a sibling of runtime in the deployed layout.
+
+The private Python HTTP callbacks, PostgreSQL snapshot tools and durable per-model ledger are now implemented and verified in an isolated Ubuntu worktree. They still require assembly into the public run controller. The compiled Node/Python callback integration test passes on Ubuntu; no production provider or public rollout is implied.
