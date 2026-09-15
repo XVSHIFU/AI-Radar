@@ -138,3 +138,10 @@ flowchart LR
   [OpenAI GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini)、
   [阿里云兼容接口](https://help.aliyun.com/zh/model-studio/model-calling-in-sub-workspace)、
   [Kimi 官方接口](https://platform.kimi.com/docs/api/chat)：用于本轮预设的URL与兼容性核对。
+
+
+## 2026-09-15 用户扩展：专用 Agent 边界与选型
+
+原文完整保留。后续以 [V2 扩展方案](research-agent-v2.md) 为新增开发依据：pi 核心路线、隔离 Python、权限与记忆规范、同 IP 滚动 48 小时 20 次问题，以及容器化备份恢复。用户确认追问也计一次。
+
+原文“模型不得生成代码”仅对专用沙箱内 Python 放宽；宿主代码、SQL、命令、管理员操作仍禁止。原有质量基线、范围快照和引用核验目标继续有效。

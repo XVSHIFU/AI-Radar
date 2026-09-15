@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "status": "design_contract_not_active",
+  "runtime": "pi-agent-core",
+  "default_allow": false,
+  "tools": [
+    "resolve_entities",
+    "search_events",
+    "get_event_evidence",
+    "aggregate_events",
+    "compare_periods",
+    "build_chart",
+    "run_python",
+    "load_research_skill"
+  ],
+  "forbidden_capabilities": [
+    "shell",
+    "host_files",
+    "arbitrary_network",
+    "database_write",
+    "admin_api",
+    "container_control",
+    "install_packages",
+    "install_plugins",
+    "self_modify",
+    "spawn_agents",
+    "background_jobs"
+  ],
+  "limits": {
+    "ip_questions": 20,
+    "ip_window_seconds": 172800,
+    "model_calls_per_run": 3,
+    "business_tool_calls_per_run": 4,
+    "skill_loads_per_run": 2,
+    "python_calls_per_run": 1,
+    "input_tokens_per_run": 24000,
+    "output_tokens_per_run": 4800,
+    "run_deadline_seconds": 90,
+    "automatic_paid_retries": 0,
+    "global_concurrent_runs": 2
+  },
+  "python": {
+    "network": "none",
+    "read_only_rootfs": true,
+    "non_root": true,
+    "drop_all_capabilities": true,
+    "no_new_privileges": true,
+    "host_mounts": false,
+    "docker_socket": false,
+    "cpu_cores": 1,
+    "memory_mib": 256,
+    "pids": 32,
+    "execution_seconds": 10,
+    "job_deadline_seconds": 30,
+    "scratch_mib": 32,
+    "input_bytes": 2097152,
+    "dataset_rows": 10000,
+    "code_bytes": 16384,
+    "stdout_bytes": 65536,
+    "artifact_bytes": 1048576,
+    "artifact_types": [
+      "application/json",
+      "text/csv",
+      "image/png"
+    ],
+    "enabled": false,
+    "requires_isolation_verification": true
+  },
+  "memory": {
+    "shared_user_memory": false,
+    "ip_is_identity": false,
+    "server_persistent_transcripts": false,
+    "summary_tokens": 1200,
+    "policy_writable_by_agent": false
+  }
+}
