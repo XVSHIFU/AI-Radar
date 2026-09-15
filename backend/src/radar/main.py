@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator, Awaitable, Callable
-from contextlib import asynccontextmanager
+from contextlib import aclosing, asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, cast
@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from starlette.responses import Response
@@ -17,11 +17,13 @@ from .admin_api import session_router
 from .admin_auth import AdminSessionStore, require_admin
 from .config import get_settings
 from .fixture_repository import FixtureRepository
+from .ingest.dns import configured_resolver
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
 from .model_config import ModelConfigUnavailable, effective_model_settings
 from .postgres_repository import PostgresRepository
 from .qa_limits import AskAdmission, AskLimitReached
 from .qa_service import QaError, answer_question
+from .qa_stream_service import StreamContext, prepare_stream, sse, stream_answer
 from .queryplanner import InvalidTimezone, QueryPlanner
 from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
 from .schemas import (
@@ -593,6 +595,95 @@ async def ask(
         "真实回答仅在已配置模型的数据库模式下可用。",
         503,
         details={"query_plan_public": public_plan},
+    )
+
+
+@app.post("/api/v1/ask/stream")
+async def ask_stream(
+    payload: AskRequest,
+    request: Request,
+    repository: Annotated[EventRepository, Depends(get_repository)],
+    clock: Annotated[datetime, Depends(get_clock)],
+) -> StreamingResponse:
+    plan = await create_query_plan(payload, request, repository, clock)
+    if request.app.state.sessions is None:
+        raise api_error("MODEL_UNAVAILABLE", "真实流式回答仅在数据库模式下可用。", 503)
+    client_id = request.client.host if request.client else "unknown"
+    admission = request.app.state.ask_admission.slot(client_id)
+    try:
+        admission.__enter__()
+        settings = effective_model_settings(request.app.state.settings)
+        prepared = await prepare_stream(
+            payload, plan, repository, request.app.state.sessions, settings
+        )
+    except ModelConfigUnavailable as exc:
+        admission.__exit__(type(exc), exc, exc.__traceback__)
+        raise api_error(
+            "MODEL_CONFIG_UNAVAILABLE", "模型配置暂不可用，请联系管理员。", 503
+        ) from exc
+    except AskLimitReached as exc:
+        raise api_error("RATE_LIMITED", str(exc), 429, True) from exc
+    except QaError as exc:
+        admission.__exit__(type(exc), exc, exc.__traceback__)
+        raise api_error(exc.code, exc.message, exc.status, exc.retryable, exc.details) from exc
+    except BaseException as exc:
+        admission.__exit__(type(exc), exc, exc.__traceback__)
+        raise
+
+    async def body() -> AsyncIterator[bytes]:
+        try:
+            if isinstance(prepared, StreamContext):
+                resolver = configured_resolver(settings.fetch_dns_mode)
+                transport = getattr(request.app.state, "answer_stream_transport", None)
+                stream = stream_answer(
+                    prepared, request.app.state.sessions, settings, resolver, transport=transport
+                )
+                async with aclosing(stream):
+                    async for chunk in stream:
+                        yield chunk
+            else:
+                request_id = str(prepared["request_id"])
+                yield sse(
+                    "meta",
+                    {
+                        "request_id": request_id,
+                        "protocol_version": 1,
+                        **{
+                            key: prepared[key]
+                            for key in (
+                                "query_plan_public",
+                                "data_mode",
+                                "as_of",
+                                "filters_applied",
+                            )
+                        },
+                    },
+                )
+                yield sse("sources", {"items": []})
+                yield sse(
+                    "done",
+                    {
+                        "status": "completed",
+                        **{
+                            k: prepared[k]
+                            for k in (
+                                "answer_status",
+                                "scope_total",
+                                "retrieved_count",
+                                "summarized_count",
+                                "citation_count",
+                                "coverage",
+                            )
+                        },
+                    },
+                )
+        finally:
+            admission.__exit__(None, None, None)
+
+    return StreamingResponse(
+        body(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-store", "X-Accel-Buffering": "no"},
     )
 
 

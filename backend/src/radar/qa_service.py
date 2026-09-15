@@ -61,9 +61,14 @@ class QaService:
         self,
         sessions: async_sessionmaker[AsyncSession],
         client: CompletionClient | None,
+        *,
+        provider: str = "deepseek",
+        model: str = "deepseek-flash",
     ) -> None:
         self.sessions = sessions
         self.client = client
+        self.provider = provider
+        self.model = model
         self.semaphore = asyncio.Semaphore(1)
 
     async def answer(
@@ -211,8 +216,8 @@ class QaService:
                     logical_request_id=logical,
                     request_payload_hash=digest,
                     purpose="answer_generation",
-                    provider="deepseek",
-                    model_id="deepseek-flash",
+                    provider=self.provider,
+                    model_id=self.model,
                     attempt=1,
                     status="pending",
                 )
@@ -288,7 +293,12 @@ async def answer_question(
         else None
     )
     try:
-        return await QaService(sessions, client).answer(payload, plan, repository)
+        return await QaService(
+            sessions,
+            client,
+            provider=getattr(settings, "llm_provider", "deepseek"),
+            model=settings.llm_model,
+        ).answer(payload, plan, repository)
     finally:
         if client is not None:
             await client.close()
