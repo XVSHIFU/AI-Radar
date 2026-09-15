@@ -319,3 +319,15 @@ def test_explicit_entity_match_always_has_request_origin_and_conflict_warning(
     assert body["filters"]["entity_match"] == expected_match
     assert body["constraints_origin"]["entity_match"] == "request"
     assert any("entity_match" in warning for warning in body["warnings"])
+
+
+def test_analysis_intent_words_are_consumed_but_unknown_constraints_remain(client: TestClient):
+    clean = client.post(
+        "/api/v1/query-plan",
+        json={"question": "请分析说明这条事件", "client_request_id": "intent-1"},
+    )
+    unknown = client.post(
+        "/api/v1/query-plan", json={"question": "请分析火星约束", "client_request_id": "intent-2"}
+    )
+    assert clean.status_code == 200 and clean.json()["free_text"] == ""
+    assert unknown.status_code == 200 and unknown.json()["free_text"] == "火星约束"

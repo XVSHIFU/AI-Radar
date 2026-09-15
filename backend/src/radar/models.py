@@ -239,6 +239,7 @@ class LlmCallRow(Base):
     ingest_run_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("ingest_runs.id"))
     article_version_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("article_versions.id"))
     logical_request_id: Mapped[str] = mapped_column(String(200))
+    request_payload_hash: Mapped[str | None] = mapped_column(String(64))
     purpose: Mapped[str] = mapped_column(String(48))
     provider: Mapped[str] = mapped_column(String(100))
     model_id: Mapped[str] = mapped_column(String(200))

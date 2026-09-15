@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0006_llm_extraction"
+SCHEMA_REVISION = "0007_answer_idempotency"
