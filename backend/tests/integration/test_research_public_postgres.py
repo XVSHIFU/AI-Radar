@@ -225,8 +225,12 @@ async def test_public_pi_answers_and_followups_share_durable_question_quota(data
                 base + "/api/v1/ask/stream",
                 json={"question": "失败引用", "client_request_id": str(uuid4())},
             )
-            assert '"status": "failed"' in response.text, response.text
-            assert '"items": []' in response.text
+            failed_frames = [
+                (block.split("\n")[0][7:], json.loads(block.split("\ndata: ")[1]))
+                for block in response.text.strip().split("\n\n")
+            ]
+            assert failed_frames[-1] == ("done", {"status": "failed"})
+            assert failed_frames[-2] == ("sources", {"items": []})
             assert "fixture-provider-key" not in response.text and token not in response.text
             assert len(paid) == 6  # Two model calls still count as one submitted question.
             assert (await client.get(base + "/api/v1/assistant/session")).json()["quota"][
