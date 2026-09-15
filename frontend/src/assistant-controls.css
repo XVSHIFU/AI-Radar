@@ -1,0 +1,35 @@
+/* Scoped compact controls for the assistant workspace. */
+.assistant-workspace .assistant-icon-control {
+  --control-size: 34px;
+  width:var(--control-size); min-width:var(--control-size); height:var(--control-size); min-height:var(--control-size);
+  display:inline-grid; place-items:center; flex:0 0 auto; padding:0; border-radius:50%;
+  color:var(--muted); background:var(--paper); border:1px solid var(--line); box-shadow:none;
+}
+.assistant-workspace .assistant-icon-control:hover,.assistant-workspace .assistant-icon-control:focus-visible { color:var(--blue); background:var(--blue-soft); border-color:var(--blue); }
+.assistant-workspace .assistant-icon-control svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.assistant-workspace .assistant-icon-control[aria-disabled="true"] { color:var(--muted); opacity:.52; cursor:not-allowed; }
+.assistant-workspace .assistant-icon-control[aria-disabled="true"]:hover { background:var(--paper); border-color:var(--line); }
+.assistant-workspace .assistant-toolbar { display:flex; align-items:center; gap:6px; min-width:0; margin-top:10px; }
+.assistant-workspace .assistant-toolbar-spacer { flex:1 1 auto; min-width:4px; }
+.assistant-workspace .assistant-send { color:#fff; background:var(--blue); border-color:var(--blue); }
+.assistant-workspace .assistant-send:hover,.assistant-workspace .assistant-send:focus-visible { color:#fff; background:var(--blue); filter:brightness(1.06); }
+.assistant-workspace .assistant-send.is-stop { background:var(--danger); border-color:var(--danger); }
+.assistant-workspace .assistant-attachment { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+.assistant-workspace .assistant-attachment > span:first-child { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.assistant-workspace .assistant-attachment-actions { display:inline-flex; gap:4px; flex:none; }
+.assistant-workspace .assistant-attachment .assistant-icon-control { --control-size:30px; background:transparent; }
+.assistant-workspace .latest-message { position:sticky; left:calc(100% - 40px); bottom:10px; z-index:2; margin:-42px 8px 8px auto; }
+.assistant-workspace .latest-message.is-running::after { content:""; position:absolute; inset:-3px; border:2px solid transparent; border-top-color:var(--blue); border-right-color:var(--blue); border-radius:50%; animation:assistant-edge-spin .9s linear infinite; }
+.assistant-workspace .turn-context { display:flex; align-items:center; gap:6px; margin:0 0 8px; }
+.assistant-workspace .turn-role,.assistant-workspace .turn-mode { display:inline-flex; align-items:center; min-height:20px; }
+.assistant-workspace .turn-details { margin-top:12px; }
+.assistant-workspace .turn-details > summary { margin-left:0; padding-left:0; }
+.assistant-workspace .turn-details > :not(summary) { margin-left:0; margin-top:10px; }
+@keyframes assistant-edge-spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .assistant-workspace .latest-message.is-running::after { animation:none; } }
+@media (max-width:380px) { .assistant-workspace .assistant-toolbar { gap:4px; }.assistant-workspace .assistant-icon-control { --control-size:32px; } }
+.assistant-workspace .turn-details > summary { position:relative; list-style:none; }
+.assistant-workspace .turn-details > summary::-webkit-details-marker { display:none; }
+.assistant-workspace .turn-details > summary::before { content:"›"; position:absolute; left:-12px; top:0; color:var(--muted); transition:transform 140ms ease; }
+.assistant-workspace .turn-details[open] > summary::before { transform:rotate(90deg); }
+@media (prefers-reduced-motion:reduce) { .assistant-workspace .turn-details > summary::before { transition:none; } }
