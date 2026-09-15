@@ -40,6 +40,10 @@ const evidenceError = ref<ReturnType<typeof err>>();
 const eventDialog = ref<HTMLDialogElement>();
 const sourceDialog = ref<HTMLDialogElement>();
 const evidenceDialog = ref<HTMLDialogElement>();
+const shieldVisible = ref(false);
+const outerClosing = ref(false);
+let outerExitTimer: number | undefined;
+const dialogTimers = new WeakMap<HTMLDialogElement, number>();
 let generation = 0;
 let controller: AbortController | undefined;
 let savedScroll = 0;
@@ -188,16 +192,16 @@ function openEvidence(row: Evidence) {
 
 function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
   if (!dialog) return;
-  if (open && !dialog.open) {
-    try {
-      if (matchMedia("(max-width: 900px)").matches) dialog.showModal();
-
-      else dialog.show();
-    } catch {
-      // A dialog can already be closing during a browser history transition.
-    }
+  const pending = dialogTimers.get(dialog);
+  if (open) {
+    if (pending) { clearTimeout(pending); dialogTimers.delete(dialog); }
+    dialog.classList.remove("drawer-surface--leaving");
+    if (!dialog.open) try { if (matchMedia("(max-width: 900px)").matches) dialog.showModal(); else dialog.show(); } catch {}
+    return;
   }
-  if (!open && dialog.open) dialog.close();
+  if (!dialog.open || pending) return;
+  dialog.classList.add("drawer-surface--leaving");
+  dialogTimers.set(dialog, window.setTimeout(() => { dialog.close(); dialog.classList.remove("drawer-surface--leaving"); dialogTimers.delete(dialog); }, 260));
 }
 function syncDialogs() {
   void nextTick(() => {
@@ -267,30 +271,37 @@ watch(
   eventLayer,
   async (next, previous) => {
     if (next && !previous) {
+      if (outerExitTimer) { clearTimeout(outerExitTimer); outerExitTimer = undefined; }
+      shieldVisible.value = true;
+      outerClosing.value = false;
       const active = document.activeElement;
       if (active instanceof HTMLElement) eventOpener = active;
       lockScroll();
       backgroundInert(true);
     }
     if (!next && previous) {
-      unlockScroll();
-      backgroundInert(false);
-      await nextTick();
-      eventOpener?.focus();
+      outerClosing.value = true;
+      outerExitTimer = window.setTimeout(async () => {
+        shieldVisible.value = false;
+        outerClosing.value = false;
+        unlockScroll();
+        backgroundInert(false);
+        await nextTick();
+        eventOpener?.focus();
+        outerExitTimer = undefined;
+      }, 260);
     }
   },
   { immediate: true },
 );
 watch(sourceKey, async (next, previous) => {
   if (!next && previous && !evidenceId.value) {
-    await nextTick();
-    sourceOpener?.focus();
+    window.setTimeout(() => sourceOpener?.focus(), 260);
   }
 });
 watch(evidenceId, async (next, previous) => {
   if (!next && previous) {
-    await nextTick();
-    evidenceOpener?.focus();
+    window.setTimeout(() => evidenceOpener?.focus(), 260);
   }
 });
 const onEscape = (event: KeyboardEvent) => {
@@ -303,11 +314,12 @@ function backgroundInert(drawerOpen: boolean) {
   const assistantModal = document.documentElement.classList.contains("global-assistant-open") && matchMedia("(max-width: 900px)").matches;
   for (const node of document.querySelectorAll(".app-content main,.app-rail")) node.toggleAttribute("inert", drawerOpen || assistantModal);
 }
-onMounted(() => { document.addEventListener("keydown", onEscape); if(eventLayer.value) backgroundInert(true); });
+onMounted(() => { document.addEventListener("keydown", onEscape); if(eventLayer.value) { shieldVisible.value = true; backgroundInert(true); } });
 
 onBeforeUnmount(() => {
   generation++;
   controller?.abort();
+  if (outerExitTimer) clearTimeout(outerExitTimer);
   unlockScroll();
 
   document.removeEventListener("keydown", onEscape);
@@ -320,7 +332,7 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
-    <div v-if="eventLayer" class="drawer-shield" data-testid="drawer-shield" aria-hidden="true" @click.stop.prevent="moveToParent" @pointerdown.stop></div>
+    <div v-if="shieldVisible" class="drawer-shield" :class="{ 'drawer-shield--leaving': outerClosing }" data-testid="drawer-shield" aria-hidden="true" @click.stop.prevent="moveToParent" @pointerdown.stop></div>
     <dialog
       ref="eventDialog"
       class="drawer-surface drawer-surface--event"
