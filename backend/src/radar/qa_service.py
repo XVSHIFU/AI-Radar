@@ -31,6 +31,14 @@ SYSTEM_PROMPT = """你是AI Radar库内研究助手，只能使用用户消息�
 只返回JSON对象，字段为answer字符串和citation_indices整数数组。"""
 
 
+def context_over_budget(prompt: str) -> bool:
+    # Conservative byte estimate for the current text-only model adapter, including framing.
+    # No tokenizer is claimed here; actual usage remains recorded separately.
+    return len(prompt) > MAX_CONTEXT_CHARS or (
+        len(prompt.encode("utf-8")) + len(SYSTEM_PROMPT.encode("utf-8")) + 1024 > 24_000
+    )
+
+
 class QaError(RuntimeError):
     def __init__(
         self,
@@ -137,14 +145,14 @@ class QaService:
             return no_answer(base, "no_evidence")
         prompt_payload = payload
         prompt_text = make_prompt(prompt_payload, page.items, evidence)
-        if len(prompt_text) > MAX_CONTEXT_CHARS and payload.history:
+        if context_over_budget(prompt_text) and payload.history:
             prompt_payload = payload.model_copy(update={"history": []})
             prompt_text = make_prompt(prompt_payload, page.items, evidence)
-        while len(prompt_text) > MAX_CONTEXT_CHARS and len(evidence) > 1:
+        while context_over_budget(prompt_text) and len(evidence) > 1:
             evidence.pop()
             base["coverage"] = "partial"
             prompt_text = make_prompt(prompt_payload, page.items, evidence)
-        if len(prompt_text) > MAX_CONTEXT_CHARS:
+        if context_over_budget(prompt_text):
             raise QaError("CONTEXT_TOO_LARGE", "Frozen evidence exceeds the context limit", 422)
         evidenced_ids = {event.id for event, _item in evidence}
         if len(evidenced_ids) < len(page.items):

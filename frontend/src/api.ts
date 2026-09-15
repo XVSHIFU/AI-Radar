@@ -193,14 +193,29 @@ export const events = {
           signal,
         }).then((x) => x.items),
 };
-export const askStream = (payload: unknown, signal?: AbortSignal) => fetch("/api/v1/ask/stream", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), signal }).then(async (response) => { if (!response.ok || !response.body) { let body: ApiError = { code: "HTTP_" + response.status, message: "研究请求失败", status: response.status }; try { body = { ...body, ...(await response.json()) }; } catch {} throw body; } return response; });
-export const ask = (payload: unknown, signal?: AbortSignal) =>
-  api<AskResult>("/api/v1/ask", {
+export type AssistantQuota = { remaining: number; limit: number; window_hours: number; next_available_at: string | null };
+export const assistantQuota = ref<AssistantQuota | null>(null);
+let sessionRequest: Promise<void> | undefined;
+export function refreshAssistantQuota(): Promise<void> {
+  if (isDemo()) return Promise.resolve();
+  if (!sessionRequest) sessionRequest = api<{ quota: AssistantQuota | null }>("/api/v1/assistant/session")
+    .then(result => { assistantQuota.value = result.quota; })
+    .finally(() => { sessionRequest = undefined; });
+  return sessionRequest;
+}
+export const askStream = async (payload: unknown, signal?: AbortSignal) => {
+  await refreshAssistantQuota();
+  return fetch("/api/v1/ask/stream", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), signal }).then(async (response) => { if (!response.ok || !response.body) { let body: ApiError = { code: "HTTP_" + response.status, message: "研究请求失败", status: response.status }; try { body = { ...body, ...(await response.json()) }; } catch {} throw body; } return response; });
+};
+export const ask = async (payload: unknown, signal?: AbortSignal) => {
+  await refreshAssistantQuota();
+  try { return await api<AskResult>("/api/v1/ask", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
     signal,
-  });
+  }); } finally { void refreshAssistantQuota().catch(() => {}); }
+};
 export type Citation = {
   index: number;
   source_url: string;

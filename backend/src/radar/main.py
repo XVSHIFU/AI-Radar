@@ -1,6 +1,7 @@
+import asyncio
 import logging
 import re
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import aclosing, asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -31,6 +32,10 @@ from .ingest_repository import IdempotencyConflict, IngestRepository, SourceReje
 from .local_bge import LocalBgeM3Provider
 from .model_config import ModelConfigUnavailable, effective_model_settings
 from .postgres_repository import PostgresRepository
+from .public_assistant import begin_public_run
+from .public_assistant import router as public_assistant_router
+from .public_identity import PublicIdentity
+from .public_quota import PostgresPublicQuota, QuotaPolicy
 from .qa_limits import AskAdmission, AskLimitReached
 from .qa_service import QaError, answer_question
 from .qa_stream_service import StreamContext, prepare_stream, sse, stream_answer
@@ -83,6 +88,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.sessions = None
     app.state.admin_sessions = MemoryAdminSessionStore()
     app.state.ask_admission = AskAdmission()
+    app.state.public_identity = None
+    app.state.public_quota = None
     if settings.radar_data_mode == "fixture":
         path = Path(__file__).resolve().parents[3] / "contracts" / "prototype-events.json"
         app.state.repository = FixtureRepository(path, settings.cursor_secret)
@@ -91,6 +98,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.engine = engine
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         app.state.sessions = sessions
+        if settings.public_assistant_secret:
+            app.state.public_identity = PublicIdentity(settings.public_assistant_secret)
+            app.state.public_quota = PostgresPublicQuota(
+                sessions,
+                QuotaPolicy(
+                    input_per_day=settings.assistant_input_per_day,
+                    output_per_day=settings.assistant_output_per_day,
+                ),
+            )
         app.state.admin_sessions = PostgresAdminSessionStore(sessions)
         app.state.ingest_repository = IngestRepository(sessions)
         embedding_provider = None
@@ -112,6 +128,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="AI Radar API", version="0.1.0", lifespan=lifespan)
+app.include_router(public_assistant_router)
 app.include_router(session_router)
 app.include_router(admin_router)
 app.include_router(data_quality_router)
@@ -217,7 +234,9 @@ async def handle_http_error(request: Request, exc: StarletteHTTPException) -> JS
     request_id = getattr(request.state, "request_id", str(uuid4()))
     if isinstance(exc.detail, dict) and "code" in exc.detail:
         return JSONResponse(
-            status_code=exc.status_code, content={**exc.detail, "request_id": request_id}
+            status_code=exc.status_code,
+            content={**exc.detail, "request_id": request_id},
+            headers=exc.headers,
         )
     return JSONResponse(
         status_code=exc.status_code,
@@ -691,9 +710,24 @@ async def ask(
             settings = effective_model_settings(request.app.state.settings)
             client = request.client.host if request.client else "unknown"
             with request.app.state.ask_admission.slot(client):
-                return await answer_question(
-                    payload, plan, repository, request.app.state.sessions, settings
-                )
+                run = await begin_public_run(request, payload, plan)
+                completed = False
+                try:
+                    async with asyncio.timeout(run.seconds_left if run else 90):
+                        result = await answer_question(
+                            run.payload if run else payload,
+                            plan,
+                            repository,
+                            request.app.state.sessions,
+                            settings,
+                        )
+                    completed = True
+                    return result
+                finally:
+                    if run:
+                        await run.finish(completed=completed)
+        except TimeoutError as exc:
+            raise api_error("ANSWER_TIMEOUT", "回答超时，请稍后再试。", 504) from exc
         except ModelConfigUnavailable as exc:
             raise api_error(
                 "MODEL_CONFIG_UNAVAILABLE", "模型配置暂不可用，请联系管理员。", 503
@@ -767,12 +801,19 @@ async def ask_stream(
         raise api_error("MODEL_UNAVAILABLE", "真实流式回答仅在数据库模式下可用。", 503)
     client_id = request.client.host if request.client else "unknown"
     admission = request.app.state.ask_admission.slot(client_id)
+    run = None
     try:
         admission.__enter__()
         settings = effective_model_settings(request.app.state.settings)
-        prepared = await prepare_stream(
-            payload, plan, repository, request.app.state.sessions, settings
-        )
+        run = await begin_public_run(request, payload, plan)
+        async with asyncio.timeout(run.seconds_left if run else 90):
+            prepared = await prepare_stream(
+                run.payload if run else payload,
+                plan,
+                repository,
+                request.app.state.sessions,
+                settings,
+            )
     except ModelConfigUnavailable as exc:
         admission.__exit__(type(exc), exc, exc.__traceback__)
         raise api_error(
@@ -781,13 +822,19 @@ async def ask_stream(
     except AskLimitReached as exc:
         raise api_error("RATE_LIMITED", str(exc), 429, True) from exc
     except QaError as exc:
+        if run:
+            await run.finish(completed=False)
         admission.__exit__(type(exc), exc, exc.__traceback__)
         raise api_error(exc.code, exc.message, exc.status, exc.retryable, exc.details) from exc
     except BaseException as exc:
+        if run:
+            await run.finish(completed=False)
         admission.__exit__(type(exc), exc, exc.__traceback__)
+        if isinstance(exc, TimeoutError):
+            raise api_error("ANSWER_TIMEOUT", "回答超时，请稍后再试。", 504) from exc
         raise
 
-    async def body() -> AsyncIterator[bytes]:
+    async def unbounded_body() -> AsyncGenerator[bytes, None]:
         try:
             if isinstance(prepared, StreamContext):
                 resolver = configured_resolver(settings.fetch_dns_mode)
@@ -836,6 +883,28 @@ async def ask_stream(
                 )
         finally:
             admission.__exit__(None, None, None)
+
+    async def body() -> AsyncIterator[bytes]:
+        completed = False
+        try:
+            async with asyncio.timeout(run.seconds_left if run else 90):
+                async with aclosing(unbounded_body()) as stream:
+                    async for chunk in stream:
+                        yield chunk
+            completed = True
+        except TimeoutError:
+            yield sse(
+                "error",
+                {
+                    "code": "ANSWER_TIMEOUT",
+                    "message": "回答超时，请稍后再试。",
+                    "retryable": False,
+                    "request_id": str(plan.request_id),
+                },
+            )
+        finally:
+            if run:
+                await run.finish(completed=completed)
 
     return StreamingResponse(
         body(),

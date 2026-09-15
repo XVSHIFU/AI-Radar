@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0010_admin_durable"
+SCHEMA_REVISION = "0011_public_ask_quota"

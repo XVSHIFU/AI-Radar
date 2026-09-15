@@ -23,7 +23,7 @@ UMask=0077
 WantedBy=default.target
 EOF
 }
-write_unit api "$checkout/backend" "$checkout/backend/.venv/bin/uvicorn radar.main:app --host 127.0.0.1 --port 8000"
+write_unit api "$checkout/backend" "$checkout/backend/.venv/bin/uvicorn radar.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips=127.0.0.1,::1"
 write_unit worker "$checkout/backend" "$checkout/backend/.venv/bin/python -m app.worker"
 write_unit scheduler "$checkout/backend" "$checkout/backend/.venv/bin/python -m app.scheduler"
 write_unit frontend "$checkout/frontend" "$(command -v node) $checkout/frontend/node_modules/vite/bin/vite.js --host 0.0.0.0 --port 5173 --strictPort"

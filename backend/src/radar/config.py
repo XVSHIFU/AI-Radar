@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     llm_max_tokens: int = Field(default=1600, ge=1, le=2000)
     model_config_path: Path = Path.home() / ".config" / "ai-radar" / "model.json"
     cursor_secret: str = Field(default="development-only-change-me", min_length=16)
+    public_assistant_secret: str | None = Field(default=None, min_length=32)
+    assistant_input_per_day: int = Field(default=200_000, ge=24_000)
+    assistant_output_per_day: int = Field(default=32_000, ge=4_800)
     embedding_model_dir: Path | None = None
     embedding_model_revision: str | None = None
     embedding_threads: int = Field(default=4, ge=1, le=8)

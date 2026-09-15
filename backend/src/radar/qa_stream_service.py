@@ -21,6 +21,7 @@ from .qa_service import (
     SYSTEM_PROMPT,
     QaError,
     QaService,
+    context_over_budget,
     make_prompt,
     payload_hash,
     validate_answer,
@@ -109,14 +110,14 @@ async def prepare_stream(
         return {**base, "answer_status": "no_answer", "summarized_count": 0, "citation_count": 0}
     pp = payload
     prompt = make_prompt(pp, page.items, evidence)
-    if len(prompt) > MAX_CONTEXT_CHARS and payload.history:
+    if context_over_budget(prompt) and payload.history:
         pp = payload.model_copy(update={"history": []})
         prompt = make_prompt(pp, page.items, evidence)
-    while len(prompt) > MAX_CONTEXT_CHARS and len(evidence) > 1:
+    while context_over_budget(prompt) and len(evidence) > 1:
         evidence.pop()
         base["coverage"] = "partial"
         prompt = make_prompt(pp, page.items, evidence)
-    if len(prompt) > MAX_CONTEXT_CHARS:
+    if context_over_budget(prompt):
         raise QaError("CONTEXT_TOO_LARGE", "Frozen evidence exceeds context limit", 422)
     evidenced = {e.id for e, _ in evidence}
     if len(evidenced) < len(page.items):
