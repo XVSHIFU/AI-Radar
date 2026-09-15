@@ -31,9 +31,9 @@ class LocalBgeM3Provider:
         if self._runtime is not None:
             return self._runtime
         try:
-            import numpy as np  # type: ignore[import-not-found]
-            import onnxruntime as ort  # type: ignore[import-not-found]
-            from tokenizers import Tokenizer  # type: ignore[import-not-found]
+            import numpy as np
+            import onnxruntime as ort  # type: ignore[import-untyped]
+            from tokenizers import Tokenizer
         except ImportError as exc:
             raise RuntimeError("install the embedding-local optional dependency") from exc
         model_path = self.model_dir / "model.onnx"
