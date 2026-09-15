@@ -220,12 +220,18 @@ def test_cross_page_snapshot_freezes_event_content(
 
         asyncio.run(mutate_next_page())
         second = client.get("/api/v1/events", params={**params, "cursor": cursor})
+        fresh = client.get("/api/v1/events", params={**params, "limit": 2})
 
     assert second.status_code == 200
     assert second.json()["items"][0]["id"] == str(ids["second"])
     assert second.json()["items"][0]["title_zh"] != "changed after snapshot"
     assert second.json()["items"][0]["content_version"] == 1
     assert second.json()["data_revision"] == first.json()["data_revision"]
+    assert fresh.status_code == 200
+    fresh_by_id = {item["id"]: item for item in fresh.json()["items"]}
+    assert fresh_by_id[str(ids["second"])]["title_zh"] == "changed after snapshot"
+    assert fresh_by_id[str(ids["second"])]["content_version"] == 2
+    assert fresh.json()["data_revision"] != first.json()["data_revision"]
 
 
 def test_search_reports_complete_hard_scope_and_keyword_degradation(

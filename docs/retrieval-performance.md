@@ -1,20 +1,27 @@
-# Retrieval performance baseline
+# Retrieval performance validation
 
-Measured on 2026-09-15 in a disposable `radar_test_*` PostgreSQL 16 + pgvector
-database on the 8 vCPU / 7.2 GiB Ubuntu VM. The fixture contained 10,000 published
-events and issued 20 concurrent cold requests. The database was deleted after the run.
+Measured on 2026-09-15 in disposable `radar_test_*` PostgreSQL 16 + pgvector
+databases on the 8 vCPU / 7.2 GiB Ubuntu VM. Each fixture issued 20 concurrent
+cold requests and was deleted after the run.
 
-| Operation | Measured p95 | Initial specification example | Result |
-| --- | ---: | ---: | --- |
-| strict event list with frozen full-result snapshot | 5.45 s | 300 ms | not met |
-| hard-scoped keyword search with exact scope count | 4.30 s | 500 ms | not met |
+| Fixture | Strict list p95 | Keyword p95 | Observation |
+| ---: | ---: | ---: | --- |
+| 10,000 events, initial implementation | 5.45 s | 4.30 s | full ORM materialization and application JSON decoding |
+| 10,000 events, SQL snapshot + ID-first search | 0.465 s | 0.588 s | exact totals and complete immutable snapshot preserved |
+| 100,000 events, diagnostic run | 1.972 s | 4.587 s | full snapshot aggregation and exact hard-scope ID enumeration dominate |
 
-The benchmark is reproducible with the gated
-`tests/integration/test_retrieval_performance.py` test. Set both
-`RADAR_RUN_POSTGRES_TESTS=1` and `RADAR_RUN_PERFORMANCE_TESTS=1`; the shared test
-harness refuses non-loopback servers and database names outside `radar_test_*`.
+The 10k result improves list latency by 91.5% and keyword latency by 86.3%.
+The 100k run is diagnostic evidence, not a claimed service objective.
 
-Correctness remains the current priority. The first-page strict snapshot materializes
-the complete frozen response, which dominates this baseline under concurrency. Future
-optimization must preserve frozen content and exact totals; using a created-at cutoff or
-semantic top-k as a substitute is not acceptable.
+The benchmark is reproducible with
+`tests/integration/test_retrieval_performance.py`. Set
+`RADAR_RUN_POSTGRES_TESTS=1`, `RADAR_RUN_PERFORMANCE_TESTS=1`, and optionally
+`RADAR_PERFORMANCE_EVENT_COUNT` (default 10000). The harness accepts only
+loopback servers and disposable `radar_test_*` databases.
+
+Strict pagination stores the entire ordered public event representation as JSONB in
+PostgreSQL. Subsequent pages slice JSONB in SQL and decode only the requested page.
+A statement-level revision trigger invalidates snapshot reuse after any event/entity
+change; an advisory transaction lock shares one immutable snapshot across concurrent
+identical first-page requests. Hybrid search enumerates only IDs for the exact hard
+scope, then loads entities for the final ranked page.

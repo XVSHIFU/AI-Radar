@@ -12,9 +12,10 @@ from radar.schemas import Filters
 pytestmark = [pytest.mark.postgres, pytest.mark.performance]
 
 
-def test_ten_thousand_event_list_and_keyword_p95(migration_database: Any) -> None:
+def test_event_list_and_keyword_p95(migration_database: Any) -> None:
     if os.environ.get("RADAR_RUN_PERFORMANCE_TESTS") != "1":
-        pytest.skip("set RADAR_RUN_PERFORMANCE_TESTS=1 for the 10k benchmark")
+        pytest.skip("set RADAR_RUN_PERFORMANCE_TESTS=1 for the benchmark")
+    event_count = int(os.environ.get("RADAR_PERFORMANCE_EVENT_COUNT", "10000"))
     migration_database.upgrade()
 
     async def run() -> tuple[float, float]:
@@ -28,7 +29,8 @@ def test_ten_thousand_event_list_and_keyword_p95(migration_database: Any) -> Non
                 ) SELECT md5(i::text)::uuid, '人工智能模型 ' || i, '性能基线 ' || i,
                     'research', 3, DATE '2026-09-01' + (i % 10), 'day', 'published',
                     1, 0, 1, '人工 工智 智能 模型 性能 基线 ' || i, 'cjk-bigram-v1', now()
-                FROM generate_series(1, 10000) AS i"""
+                FROM generate_series(1, $1) AS i""",
+                event_count,
             )
         finally:
             await connection.close()
@@ -66,7 +68,7 @@ def test_ten_thousand_event_list_and_keyword_p95(migration_database: Any) -> Non
     list_p95, search_p95 = asyncio.run(run())
     print(
         {
-            "events": 10000,
+            "events": event_count,
             "concurrency": 20,
             "list_p95_seconds": list_p95,
             "keyword_p95_seconds": search_p95,

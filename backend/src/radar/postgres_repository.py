@@ -4,7 +4,8 @@ from typing import Any
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import and_, case, exists, func, or_, select, text
+from sqlalchemy import and_, case, exists, func, insert, literal, or_, select, text
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
@@ -121,6 +122,47 @@ class PostgresRepository:
                 aliases.setdefault(entity_alias.normalized_alias, []).append(entity)
         return resolve_confirmed_entities(normalized, aliases)
 
+    def _snapshot_item_json(self) -> Any:
+        """Frozen event projection; keep in sync with the public Event schema."""
+        entity_names = (
+            select(
+                func.coalesce(
+                    func.jsonb_agg(
+                        aggregate_order_by(EntityRow.canonical_name, EntityRow.canonical_name)
+                    ),
+                    text("'[]'::jsonb"),
+                )
+            )
+            .select_from(EventEntityRow)
+            .join(EntityRow, EntityRow.id == EventEntityRow.entity_id)
+            .where(EventEntityRow.event_id == EventRow.id)
+            .scalar_subquery()
+        )
+        return func.jsonb_build_object(
+            "id",
+            EventRow.id,
+            "title_zh",
+            EventRow.title_zh,
+            "summary_zh",
+            EventRow.summary_zh,
+            "category",
+            EventRow.category,
+            "importance",
+            EventRow.importance,
+            "event_date",
+            EventRow.event_date,
+            "date_precision",
+            EventRow.date_precision,
+            "source_count",
+            EventRow.source_count,
+            "evidence_count",
+            EventRow.evidence_count,
+            "entities",
+            entity_names,
+            "content_version",
+            EventRow.content_version,
+        )
+
     async def list_events(self, filters: Filters, limit: int, cursor: str | None) -> Page:
         now = datetime.now(UTC)
         try:
@@ -129,15 +171,22 @@ class PostgresRepository:
                     snapshot_id, offset = decode_snapshot_cursor(
                         cursor, filters, self.cursor_secret
                     )
-                    snapshot = await session.get(RetrievalSnapshotRow, snapshot_id)
+                    snapshot = (
+                        await session.execute(
+                            select(
+                                RetrievalSnapshotRow.total,
+                                RetrievalSnapshotRow.created_at,
+                                RetrievalSnapshotRow.expires_at,
+                                RetrievalSnapshotRow.data_revision,
+                            ).where(RetrievalSnapshotRow.id == snapshot_id)
+                        )
+                    ).one_or_none()
                     if snapshot is None or snapshot.expires_at <= now:
                         raise InvalidCursor("cursor snapshot has expired")
-                    if snapshot.filters_hash != filters_fingerprint(filters):
-                        raise InvalidCursor("cursor does not belong to these filters")
-                    frozen = snapshot.items
+                    total = snapshot.total
                     as_of = snapshot.created_at
+                    revision = snapshot.data_revision
                 else:
-                    await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"))
                     await session.execute(
                         text(
                             "DELETE FROM retrieval_snapshots WHERE expires_at <= :now OR id IN "
@@ -146,42 +195,108 @@ class PostgresRepository:
                         ),
                         {"now": now},
                     )
-                    statement = (
-                        select(EventRow)
-                        .options(
-                            selectinload(EventRow.entities).selectinload(EventEntityRow.entity)
+                    revision = int(
+                        await session.scalar(
+                            text(
+                                "SELECT revision FROM retrieval_data_revision "
+                                "WHERE singleton FOR SHARE"
+                            )
                         )
-                        .where(*self._filters(filters))
-                        .order_by(EventRow.event_date.desc().nulls_last(), EventRow.id.desc())
                     )
-                    rows = list((await session.scalars(statement)).all())
-                    frozen = [self._event(row).model_dump(mode="json") for row in rows]
-                    snapshot_id = uuid4()
+                    fingerprint = filters_fingerprint(filters)
+                    await session.execute(
+                        text("SELECT pg_advisory_xact_lock(hashtextextended(:key, 0))"),
+                        {"key": f"snapshot:{fingerprint}:{revision}"},
+                    )
+                    existing = (
+                        await session.execute(
+                            select(
+                                RetrievalSnapshotRow.id,
+                                RetrievalSnapshotRow.total,
+                                RetrievalSnapshotRow.created_at,
+                            ).where(
+                                RetrievalSnapshotRow.filters_hash == fingerprint,
+                                RetrievalSnapshotRow.data_revision == revision,
+                                RetrievalSnapshotRow.expires_at > now,
+                            )
+                        )
+                    ).one_or_none()
+                    if existing is not None:
+                        snapshot_id = existing.id
+                        total = existing.total
+                        as_of = existing.created_at
+                    else:
+                        snapshot_id = uuid4()
+                        as_of = now
+                        item = self._snapshot_item_json()
+                        ordered_items = func.coalesce(
+                            func.jsonb_agg(
+                                aggregate_order_by(
+                                    item,
+                                    EventRow.event_date.desc().nulls_last(),
+                                    EventRow.id.desc(),
+                                )
+                            ),
+                            text("'[]'::jsonb"),
+                        )
+                        source = select(
+                            literal(snapshot_id),
+                            literal(fingerprint),
+                            literal(revision),
+                            ordered_items,
+                            func.count(),
+                            literal(as_of),
+                            literal(as_of + timedelta(minutes=15)),
+                        ).where(*self._filters(filters))
+                        await session.execute(
+                            insert(RetrievalSnapshotRow).from_select(
+                                [
+                                    "id",
+                                    "filters_hash",
+                                    "data_revision",
+                                    "items",
+                                    "total",
+                                    "created_at",
+                                    "expires_at",
+                                ],
+                                source,
+                            )
+                        )
+                        total = int(
+                            await session.scalar(
+                                select(RetrievalSnapshotRow.total).where(
+                                    RetrievalSnapshotRow.id == snapshot_id
+                                )
+                            )
+                        )
                     offset = 0
-                    as_of = now
-                    session.add(
-                        RetrievalSnapshotRow(
-                            id=snapshot_id,
-                            filters_hash=filters_fingerprint(filters),
-                            items=frozen,
-                            total=len(frozen),
-                            created_at=as_of,
-                            expires_at=as_of + timedelta(minutes=15),
-                        )
-                    )
+                rows = await session.execute(
+                    text(
+                        "SELECT entry.value FROM retrieval_snapshots s, "
+                        "LATERAL jsonb_array_elements(s.items) WITH ORDINALITY "
+                        "AS entry(value, ordinal) WHERE s.id=:snapshot_id "
+                        "AND entry.ordinal > :offset AND entry.ordinal <= :end "
+                        "ORDER BY entry.ordinal"
+                    ),
+                    {"snapshot_id": snapshot_id, "offset": offset, "end": offset + limit},
+                )
         except InvalidCursor:
             raise
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL query failed") from exc
-        page_items = [Event.model_validate(item) for item in frozen[offset : offset + limit]]
+        page_items = [Event.model_validate(row[0]) for row in rows]
         next_offset = offset + len(page_items)
         next_cursor = (
             encode_snapshot_cursor(snapshot_id, next_offset, filters, self.cursor_secret)
-            if next_offset < len(frozen)
+            if next_offset < total
             else None
         )
         return Page(
-            page_items, len(frozen), next_cursor, as_of, f"postgres-snapshot-v1:{snapshot_id}"
+            page_items,
+            total,
+            next_cursor,
+            as_of,
+            f"postgres-snapshot-v2:{revision}:{snapshot_id}",
         )
 
     async def search_events(self, filters: Filters, limit: int) -> SearchPage:
@@ -191,19 +306,14 @@ class PostgresRepository:
         now = datetime.now(UTC)
         try:
             async with self.sessions() as session:
-                scope_rows = list(
+                scope_uuid_ids = list(
                     (
                         await session.scalars(
-                            select(EventRow)
-                            .options(
-                                selectinload(EventRow.entities).selectinload(EventEntityRow.entity)
-                            )
-                            .where(*self._filters(hard_filters))
+                            select(EventRow.id).where(*self._filters(hard_filters))
                         )
                     ).all()
                 )
-                scope_ids = [str(row.id) for row in scope_rows]
-                by_id = {str(row.id): row for row in scope_rows}
+                scope_ids = [str(event_id) for event_id in scope_uuid_ids]
 
                 async def keyword(
                     query: str, allowed: Sequence[str], candidate_limit: int
@@ -214,7 +324,7 @@ class PostgresRepository:
                     statement = (
                         select(EventRow.id)
                         .where(
-                            EventRow.id.in_([UUID(item) for item in allowed]),
+                            *self._filters(hard_filters),
                             or_(
                                 EventRow.search_vector.op("@@")(
                                     func.plainto_tsquery("simple", query_document)
@@ -287,10 +397,23 @@ class PostgresRepository:
                         semantic_retriever = semantic_query
 
                 result = await hybrid_search(filters.q, scope_ids, keyword, semantic_retriever)
+                ranked_ids = [UUID(item) for item in result.ranked_ids[:limit]]
+                ranked_rows = list(
+                    (
+                        await session.scalars(
+                            select(EventRow)
+                            .options(
+                                selectinload(EventRow.entities).selectinload(EventEntityRow.entity)
+                            )
+                            .where(EventRow.id.in_(ranked_ids))
+                        )
+                    ).all()
+                )
+                by_id = {row.id: row for row in ranked_rows}
         except Exception as exc:
             raise RepositoryUnavailable("PostgreSQL search failed") from exc
         return SearchPage(
-            items=[self._event(by_id[item]) for item in result.ranked_ids[:limit]],
+            items=[self._event(by_id[event_id]) for event_id in ranked_ids],
             scope_total=len(scope_ids),
             keyword_count=result.keyword_count,
             semantic_count=result.semantic_count,

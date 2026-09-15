@@ -96,6 +96,7 @@ class RetrievalSnapshotRow(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     filters_hash: Mapped[str] = mapped_column(String(64))
     items: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
+    data_revision: Mapped[int] = mapped_column(Integer)
     total: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

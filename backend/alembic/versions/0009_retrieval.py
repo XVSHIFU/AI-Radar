@@ -119,10 +119,43 @@ def upgrade() -> None:
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint("total = jsonb_array_length(items)", name="ck_retrieval_snapshot_total"),
     )
+    op.add_column(
+        "retrieval_snapshots", sa.Column("data_revision", sa.BigInteger(), nullable=False)
+    )
     op.create_index("ix_retrieval_snapshots_expires_at", "retrieval_snapshots", ["expires_at"])
+    op.create_index(
+        "uq_retrieval_snapshots_filter_revision",
+        "retrieval_snapshots",
+        ["filters_hash", "data_revision"],
+        unique=True,
+    )
+    op.create_table(
+        "retrieval_data_revision",
+        sa.Column("singleton", sa.Boolean(), primary_key=True, server_default=sa.true()),
+        sa.Column("revision", sa.BigInteger(), nullable=False, server_default="1"),
+        sa.CheckConstraint("singleton", name="ck_retrieval_data_revision_singleton"),
+    )
+    op.execute("INSERT INTO retrieval_data_revision (singleton, revision) VALUES (true, 1)")
+    op.execute("""
+    CREATE FUNCTION bump_retrieval_data_revision() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN
+      UPDATE retrieval_data_revision SET revision = revision + 1 WHERE singleton;
+      RETURN NULL;
+    END $$""")
+    for table in ("events", "event_entities", "entities", "entity_aliases"):
+        op.execute(
+            f"CREATE TRIGGER trg_{table}_retrieval_revision "
+            f"AFTER INSERT OR UPDATE OR DELETE ON {table} FOR EACH STATEMENT "
+            "EXECUTE FUNCTION bump_retrieval_data_revision()"
+        )
 
 
 def downgrade() -> None:
+    for table in ("events", "event_entities", "entities", "entity_aliases"):
+        op.execute(f"DROP TRIGGER trg_{table}_retrieval_revision ON {table}")
+    op.execute("DROP FUNCTION bump_retrieval_data_revision()")
+    op.drop_table("retrieval_data_revision")
+    op.drop_index("uq_retrieval_snapshots_filter_revision", table_name="retrieval_snapshots")
     op.drop_table("retrieval_snapshots")
     op.drop_table("event_embeddings_v1")
     op.drop_table("embedding_profiles")
