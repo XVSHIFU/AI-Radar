@@ -30,6 +30,17 @@
 @media (max-width:380px) { .assistant-workspace .assistant-toolbar { gap:4px; }.assistant-workspace .assistant-icon-control { --control-size:32px; } }
 .assistant-workspace .turn-details > summary { position:relative; list-style:none; }
 .assistant-workspace .turn-details > summary::-webkit-details-marker { display:none; }
-.assistant-workspace .turn-details > summary::before { content:"›"; position:absolute; left:-12px; top:0; color:var(--muted); transition:transform 140ms ease; }
-.assistant-workspace .turn-details[open] > summary::before { transform:rotate(90deg); }
+.assistant-workspace .turn-details > summary::before { position:absolute; color:var(--muted); transition:transform 140ms ease; }
 @media (prefers-reduced-motion:reduce) { .assistant-workspace .turn-details > summary::before { transition:none; } }
+/* Final control refinements: keep icons in their hit targets and details in one text column. */
+.assistant-workspace .assistant-send.is-stop { color:#fff; background:var(--blue); border-color:var(--blue); }
+.assistant-workspace .assistant-send[aria-disabled="true"]:hover,
+.assistant-workspace .assistant-send[aria-disabled="true"]:focus-visible { color:var(--muted); background:var(--paper); border-color:var(--line); filter:none; }
+.assistant-workspace .conversation-turn { padding:20px 0; }
+.assistant-workspace .turn-details > summary { padding-left:14px; }
+.assistant-workspace .turn-details > summary::before { content:""; left:2px; top:calc(50% - 3px); width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(-45deg); }
+.assistant-workspace .turn-details[open] > summary::before { transform:rotate(45deg); }
+.assistant-workspace .turn-details > :not(summary) { margin-left:14px; }
+.assistant-workspace .assistant-composer { border:1px solid transparent; border-top-color:var(--line); padding-inline:8px; }
+.assistant-workspace .assistant-composer:focus-within { border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft); }
+@media (max-width:900px) { .assistant-workspace .assistant-icon-control { --control-size:44px; } .assistant-workspace .assistant-attachment .assistant-icon-control { --control-size:44px; } }
