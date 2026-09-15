@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { translate as tr } from "./locale";
+import { categoryLabel, countLabel, formatDate, precisionLabel, translate as tr } from "./reader-locale";
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { events, err, isDemo, type Event, type Evidence } from "./api";
 import { useRoute } from "vue-router";
@@ -22,7 +22,7 @@ async function load() {
     const id = String(route.params.id);
     const x = await events.one(id, controller.signal);
     if (current !== generation) return;
-    if (!x) throw { code: "NOT_FOUND", message: "未找到该事件", status: 404 };
+    if (!x) throw { code: "NOT_FOUND", message: tr("未找到该事件", "Event not found"), status: 404 };
     item.value = x;
     const list = await events.evidence(id, controller.signal);
     if (current === generation) evidence.value = list;
@@ -50,7 +50,7 @@ onBeforeUnmount(() => {
       >
     </p>
     <div v-if="error" class="card error" role="alert">
-      {{ error.status === 404 ? "事件不存在" : error.message }}
+      {{ error.status === 404 ? tr("事件不存在", "Event not found") : error.message }}
       <button v-if="error.status !== 404" @click="load">{{ tr("重试", "Retry") }}</button
       ><RouterLink
         v-else
@@ -60,10 +60,11 @@ onBeforeUnmount(() => {
     </div>
     <article v-else-if="item">
       <p class="meta">
-        {{ item.event_date || "日期未知" }} · {{ item.date_precision }}
+        {{ item.event_date ? formatDate(item.event_date) : tr("日期未知", "Date unknown") }} · {{ precisionLabel(item.date_precision) }}
       </p>
       <h1 class="page-title">{{ item.title_zh }}</h1>
       <p class="answer-body">{{ item.summary_zh }}</p>
+      <p class="meta">{{ categoryLabel(item.category) }} · {{ tr("重要度 {value}/5", "Importance {value}/5", { value: item.importance }) }} · {{ countLabel(item.source_count, "个来源", "source") }}</p>
       <h2>{{ tr("相关实体", "Related entities") }}</h2>
       <p class="row">
         <span v-for="entity in item.entities" :key="entity" class="pill">{{
@@ -72,8 +73,8 @@ onBeforeUnmount(() => {
       </p>
       <section class="evidence-layer">
         <h2>{{ tr("来源与摘录", "Sources & excerpts") }}</h2>
-        <p v-if="isDemo()" class="demo">以下摘录为合成演示。</p>
-        <p v-if="!item.evidence_count" class="meta">此事件没有关联证据。</p>
+        <p v-if="isDemo()" class="demo">{{ tr("以下摘录为合成演示。", "The following excerpts are synthetic demo data.") }}</p>
+        <p v-if="!item.evidence_count" class="meta">{{ tr("此事件没有关联证据。", "This event has no linked evidence.") }}</p>
         <div
           v-for="x in item.evidence_count ? evidence : []"
           :key="x.id"
@@ -84,12 +85,12 @@ onBeforeUnmount(() => {
             :aria-controls="`quote-${x.id}`"
             @click="toggle(x.id)"
           >
-            {{ open === x.id ? "收起" : "展开" }}摘录：{{ x.title }}
+            {{ open === x.id ? tr("收起摘录", "Collapse excerpt") : tr("展开摘录", "Expand excerpt") }}：{{ x.title }}
           </button>
           <blockquote v-if="open === x.id" :id="`quote-${x.id}`" tabindex="-1">
             {{ x.quote_text }}
             <footer class="meta">
-              版本 {{ x.article_version_id }} · 段落 {{ x.paragraph_id }}
+              {{ tr("版本 {version} · 段落 {paragraph}", "Version {version} · Paragraph {paragraph}", { version: x.article_version_id, paragraph: x.paragraph_id }) }}
             </footer>
           </blockquote>
           <a
