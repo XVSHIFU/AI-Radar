@@ -1,0 +1,54 @@
+/* Forms signal focus at their existing edge, without a second outer frame. */
+input:not([type=checkbox]):not([type=radio]):focus,
+textarea:focus,
+select:focus,
+.app-shell .control:focus,
+.app-shell .assistant-composer textarea:focus,
+.app-shell .assistant-composer textarea:focus-visible {
+  outline:none !important;
+  outline-offset:0;
+  border-color:var(--blue);
+  box-shadow:none !important;
+}
+.assistant-composer:focus-within { border-color:var(--blue); }
+
+/* Text actions stay light; category selections retain their filled affordance. */
+.app-shell .timeline-day__toggle:hover,
+.app-shell .timeline-month__toggle:hover,
+.app-shell .quiet-button:hover,
+.drawer-header button[data-testid=drawer-back]:hover,
+.assistant-scope-menu > summary:not(.scope-changed):hover,
+.turn-details > summary:hover {
+  background:transparent;
+  color:var(--blue);
+  box-shadow:none;
+}
+.app-shell .timeline-day__toggle:hover > span:first-of-type { color:var(--blue); }
+
+/* Place the disclosure next to its month label, clear of the continuous rail. */
+.fusion-preview .timeline-month__toggle .timeline-fold-icon {
+  position:static;
+  order:1;
+  width:14px;
+  height:14px;
+  margin:0 2px;
+}
+.fusion-preview .timeline-month__toggle > span:first-of-type { order:0; }
+.fusion-preview .timeline-month__count { order:2; }
+
+@media(forced-colors:active) {
+ input:not([type=checkbox]):not([type=radio]):focus, textarea:focus, select:focus {
+   outline:1px solid Highlight !important;
+   outline-offset:0;
+ }
+}
+
+button:focus-visible, a:focus-visible, summary:focus-visible, .app-shell button:focus-visible, .range-popover button:focus-visible, .conversation-menu button:focus-visible { outline:1px solid var(--blue) !important; outline-offset:2px; box-shadow:none; }
+input[type=checkbox], input[type=radio] { accent-color:var(--blue); }
+.app-shell .category-list label:has(input:focus-visible) { outline:1px solid var(--blue); outline-offset:1px; }
+
+.range-fields input { border:1px solid transparent; }
+
+.assistant-workspace .assistant-composer:focus-within { border-color:var(--blue); box-shadow:none; }
+
+.assistant-workspace .assistant-send[aria-disabled='true'], .assistant-workspace .assistant-send[aria-disabled='true']:hover { color:var(--blue); background:var(--blue-soft); border-color:transparent; opacity:.6; filter:none; }

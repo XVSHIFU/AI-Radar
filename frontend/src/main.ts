@@ -8,6 +8,7 @@ import "./themes.css";
 import "./timeline-preview.css";
 import "./editorial-fonts.css";
 import "./reading-typography.css";
+import "./interaction-polish.css";
 import { initTheme } from "./themes";
 initTheme();
 const router = createRouter({

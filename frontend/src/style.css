@@ -63,8 +63,8 @@ button,
 }
 button:hover,
 .switch:hover {
-  background: var(--blue-soft);
   border-color: var(--hover-line);
+  color: var(--blue);
 }
 button:disabled {
   opacity: 0.52;

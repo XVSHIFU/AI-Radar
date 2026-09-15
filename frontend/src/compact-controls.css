@@ -1,7 +1,7 @@
 /* Approved B controls: shared production rules. */
 :root{--control-radius:6px;--control-height:32px;--control-small:28px}
 .app-shell button,.range-popover button,.conversation-menu button,.conversation-rename button,.app-shell .switch{min-height:var(--control-height);padding:4px 10px;border:0;border-radius:var(--control-radius);font-size:14px;line-height:1.5;background:transparent;color:var(--ink);box-shadow:none;cursor:pointer}
-.app-shell button:hover,.range-popover button:hover,.conversation-menu button:hover,.conversation-rename button:hover{background:var(--blue-soft)}
+.range-popover button:hover,.conversation-menu button:hover,.conversation-rename button:hover{background:var(--blue-soft)}
 .app-shell button.primary,.range-popover button.primary,.conversation-rename button.primary{background:var(--blue);color:white}
 .app-shell button.primary:hover,.range-popover button.primary:hover,.conversation-rename button.primary:hover{background:var(--primary-hover)}
 .app-shell button:disabled,.range-popover button:disabled,.conversation-rename button:disabled{opacity:1;color:var(--disabled-ink);background:var(--disabled-bg);cursor:default}
