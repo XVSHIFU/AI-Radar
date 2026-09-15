@@ -1,3 +1,5 @@
+import { secureUuid } from "./browser-ids";
+
 export function idempotentSubmission() {
   let key: string | undefined;
   let pending = false;
@@ -5,7 +7,7 @@ export function idempotentSubmission() {
     begin() {
       if (pending) return undefined;
       pending = true;
-      key ??= crypto.randomUUID();
+      key ??= secureUuid();
       return key;
     },
     finish(success: boolean) {

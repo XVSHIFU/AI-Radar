@@ -18,6 +18,7 @@ import {
   type Event,
   type Evidence,
 } from "./api";
+import { preferredReadingUrl } from "./source-links";
 
 type SourceChoice = {
   key: string;
@@ -375,12 +376,12 @@ onBeforeUnmount(() => {
             </p>
             <section v-for="source in sources" :key="source.key" class="drawer-source">
               <h4 class="drawer-source__name">{{ source.title }}</h4>
-              <p v-if="safeUrl(source.sourceUrl)"><a :href="source.sourceUrl" target="_blank" rel="noopener">打开原始来源</a></p>
+              <p v-if="safeUrl(source.sourceUrl)" class="row"><a :href="preferredReadingUrl(source.sourceUrl)" target="_blank" rel="noopener">{{ preferredReadingUrl(source.sourceUrl) === source.sourceUrl ? "打开原始来源" : "打开中文页面" }}</a><a v-if="preferredReadingUrl(source.sourceUrl) !== source.sourceUrl" :href="source.sourceUrl" target="_blank" rel="noopener">查看采集原文（英文摘录核验）</a></p>
               <p v-else class="drawer-status">该来源未提供可安全打开的链接。</p>
               <p v-if="!source.evidence.length" class="drawer-status">该来源没有已保存的段落证据。</p>
               <section v-for="row in source.evidence" :key="row.id" class="drawer-evidence">
                 <blockquote class="drawer-quote">{{ row.quote_text || "未保存段落摘录。" }}</blockquote>
-                <details class="drawer-source__details"><summary>来源信息</summary><p>不可变版本：{{ row.article_version_id || "未提供" }}</p><p>段落：{{ row.paragraph_id || "未提供" }}</p><p>核验状态：{{ verificationLabel(row.verification_status) }}</p></details>
+
               </section>
               <button data-testid="source-open" @click="openSource(source)">来源详情</button>
             </section>          </template>
@@ -433,19 +434,12 @@ onBeforeUnmount(() => {
             <p v-if="selectedSource.language" class="meta">
               语言：{{ selectedSource.language }}
             </p>
-            <p v-if="safeUrl(selectedSource.sourceUrl)">
-              <a :href="selectedSource.sourceUrl" target="_blank" rel="noopener"
-                >打开原始来源</a
-              >
-            </p>
+            <p v-if="safeUrl(selectedSource.sourceUrl)" class="row"><a :href="preferredReadingUrl(selectedSource.sourceUrl)" target="_blank" rel="noopener">{{ preferredReadingUrl(selectedSource.sourceUrl) === selectedSource.sourceUrl ? "打开原始来源" : "打开中文页面" }}</a><a v-if="preferredReadingUrl(selectedSource.sourceUrl) !== selectedSource.sourceUrl" :href="selectedSource.sourceUrl" target="_blank" rel="noopener">查看采集原文（英文摘录核验）</a></p>
             <p v-else class="drawer-status">该来源未提供可安全打开的链接。</p>
-            <h3>关联证据</h3>
-            <p v-if="!selectedSource.evidence.length" class="drawer-status">
-              该来源没有已保存的段落证据。
-            </p>
-            <section v-for="row in selectedSource.evidence" :key="row.id" class="drawer-evidence">
-              <blockquote class="drawer-quote">{{ row.quote_text || "未保存段落摘录。" }}</blockquote>
-              <details class="drawer-source__details"><summary>来源信息</summary><p>不可变版本：{{ row.article_version_id || "未提供" }}</p><p>段落：{{ row.paragraph_id || "未提供" }}</p><p>核验状态：{{ verificationLabel(row.verification_status) }}</p></details>
+            <h3>保存版本与核验</h3>
+            <p v-if="!selectedSource.evidence.length" class="drawer-status">该来源没有已保存的段落证据。</p>
+            <section v-for="(row, index) in selectedSource.evidence" :key="row.id" class="drawer-evidence">
+              <p class="drawer-source__name">引用段落 {{ index + 1 }}</p><p>不可变版本：{{ row.article_version_id || "未提供" }}</p><p>段落：{{ row.paragraph_id || "未提供" }}</p><p>核验状态：{{ verificationLabel(row.verification_status) }}</p>
             </section>          </template>
           <p v-else class="drawer-status">正在读取来源…</p>
         </div>

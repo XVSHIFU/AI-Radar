@@ -16,7 +16,7 @@ function release(){pointer=null;dragging.value=false}
 async function show(){
 if(closing.value)return;
 rotation.value=-45-themes.findIndex(t=>t.id===activeTheme.value.id)*step;
-open.value=true;hadInert=document.querySelector("#app")?.hasAttribute("inert")||false;
+open.value=true;hadInert=document.querySelector("#app")?.hasAttribute("inert")||false;window.addEventListener("wheel",captureWheel,{capture:true,passive:false});
 document.querySelector("#app")?.setAttribute("inert","");window.addEventListener("keydown",key,true);
 await nextTick();panel.value?.focus();
 }
@@ -38,10 +38,11 @@ await closeAnimation.finished;
 if(disposed)return;
 open.value=false;closing.value=false;closeAnimation=undefined;
 if(!hadInert)document.querySelector("#app")?.removeAttribute("inert");
-window.removeEventListener("keydown",key,true);void nextTick(()=>trigger.value?.focus());
+window.removeEventListener("keydown",key,true);window.removeEventListener("wheel",captureWheel,true);void nextTick(()=>trigger.value?.focus());
 }
 function rotate(direction:number){rotation.value-=direction*step}
 function onWheel(e:WheelEvent){e.preventDefault();wheelDelta+=e.deltaY||e.deltaX;if(Math.abs(wheelDelta)>=35){rotate(Math.sign(wheelDelta));wheelDelta=0}}
+function captureWheel(e:WheelEvent){const rect=panel.value?.getBoundingClientRect();if(!rect||e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)return;e.preventDefault();e.stopPropagation();if(!closing.value)onWheel(e)}
 function angleAt(e:PointerEvent){const r=panel.value!.getBoundingClientRect();return Math.atan2(e.clientY-r.bottom,e.clientX-r.left)*180/Math.PI}
 function down(e:PointerEvent){if(e.button!==0||(e.target as HTMLElement).closest(".theme-wheel-controls"))return;pointer=e.pointerId;startX=e.clientX;startY=e.clientY;lastAngle=angleAt(e);moved=false}
 function move(e:PointerEvent){
@@ -74,7 +75,7 @@ const index=list.indexOf(document.activeElement as HTMLButtonElement);
 e.preventDefault();list[index<0?(e.shiftKey?list.length-1:0):(index+(e.shiftKey?-1:1)+list.length)%list.length]?.focus();
 }
 }
-onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!hadInert)document.querySelector("#app")?.removeAttribute("inert");window.removeEventListener("keydown",key,true)}release()});
+onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!hadInert)document.querySelector("#app")?.removeAttribute("inert");window.removeEventListener("keydown",key,true);window.removeEventListener("wheel",captureWheel,true)}release()});
 </script>
 <template>
 <button ref="trigger" class="theme-trigger" data-testid="theme-toggle" :aria-expanded="open" aria-haspopup="dialog" aria-controls="theme-wheel" @click="show">
@@ -82,7 +83,7 @@ onBeforeUnmount(()=>{disposed=true;closeAnimation?.cancel();if(open.value){if(!h
 </button>
 <Teleport to="body">
 <div v-if="open" class="theme-wheel-dismiss" aria-hidden="true" @pointerdown.prevent="close" @wheel.prevent></div>
-<section v-if="open" id="theme-wheel" ref="panel" :inert="closing" class="theme-wheel" :class="{'is-dragging':dragging}" role="dialog" aria-modal="true" aria-label="主题轮盘" aria-describedby="theme-wheel-help" tabindex="-1" @wheel="onWheel" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="release" @click.capture="e=>{if(moved){e.preventDefault();e.stopPropagation()}}">
+<section v-if="open" id="theme-wheel" ref="panel" :inert="closing" class="theme-wheel" :class="{'is-dragging':dragging}" role="dialog" aria-modal="true" aria-label="主题轮盘" aria-describedby="theme-wheel-help" tabindex="-1" @pointerdown="down" @pointermove="move" @pointerup="up" @pointercancel="release" @click.capture="e=>{if(moved){e.preventDefault();e.stopPropagation()}}">
 <svg class="theme-wheel-track" viewBox="0 0 380 380" aria-hidden="true"><path d="M0 72 A308 308 0 0 1 308 380"/><path d="M0 130 A250 250 0 0 1 250 380"/></svg>
 <button v-for="item in items" :key="item.theme.id" :hidden="!item.visible" class="theme-swatch" :style="item.style" :data-theme-id="item.theme.id" :aria-label="item.theme.name+'，'+item.theme.note" :aria-pressed="item.theme.id===activeTheme.id" @click="select(item.index,$event)">
 <span class="theme-swatch-chip"><svg v-if="item.theme.id===activeTheme.id" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-8"/></svg></span><span class="theme-swatch-name">{{item.theme.name}}</span>
