@@ -25,6 +25,7 @@ embedding-local = [
 
 [project.scripts]
 radar-register-sources = "radar.register_sources:main"
+radar-index-embeddings = "radar.embedding_indexer:main"
 [dependency-groups]
 dev = [
   "mypy>=1.17,<2",
@@ -43,6 +44,7 @@ packages = ["src/radar"]
 [tool.pytest.ini_options]
 markers = [
   "postgres: requires an explicitly enabled disposable PostgreSQL test database",
+  "embedding: requires RADAR_RUN_EMBEDDING_TESTS=1 and pinned local model",
   "performance: requires RADAR_RUN_PERFORMANCE_TESTS=1 and disposable PostgreSQL",
 ]
 asyncio_mode = "auto"

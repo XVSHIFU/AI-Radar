@@ -1,17 +1,37 @@
 """Versioned full text, embeddings and immutable retrieval snapshots."""
 
+import re
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
-from radar.retrieval import search_document
 
 revision: str = "0009_retrieval"
 down_revision: str | None = "0008_data_quality"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
+
+
+_TOKEN = re.compile(r"[a-z0-9]+(?:[._+-][a-z0-9]+)*|[\u3400-\u9fff]+", re.IGNORECASE)
+
+
+def _search_document(*parts: str) -> str:
+    """Frozen cjk-bigram-v1 implementation; migrations must remain self-contained."""
+    tokens: list[str] = []
+    for raw in parts:
+        for match in _TOKEN.findall(raw.casefold()):
+            if "\u3400" <= match[0] <= "\u9fff":
+                chars = list(match)
+                tokens.extend(
+                    chars
+                    if len(chars) == 1
+                    else ["".join(chars[i : i + 2]) for i in range(len(chars) - 1)]
+                )
+            else:
+                tokens.append(match)
+    return " ".join(dict.fromkeys(tokens))
 
 
 def upgrade() -> None:
@@ -40,7 +60,7 @@ def upgrade() -> None:
             sa.text(
                 "UPDATE events SET search_document=:document, search_indexed_at=now() WHERE id=:id"
             ),
-            {"id": row["id"], "document": search_document(row["title_zh"], row["summary_zh"])},
+            {"id": row["id"], "document": _search_document(row["title_zh"], row["summary_zh"])},
         )
     op.create_index("ix_events_search_vector", "events", ["search_vector"], postgresql_using="gin")
     op.create_table(

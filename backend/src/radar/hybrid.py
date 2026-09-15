@@ -25,6 +25,7 @@ async def hybrid_search(
     semantic: CandidateRetriever | None,
     *,
     candidate_limit: int = 60,
+    unavailable_reason: str = "embedding_unavailable",
 ) -> HybridResult:
     """Rank candidates while preserving the complete structured scope separately."""
     scope = list(dict.fromkeys(hard_scope_ids))
@@ -37,7 +38,7 @@ async def hybrid_search(
     semantic_ids: list[str] = []
     degraded_reason: str | None = None
     if semantic is None:
-        degraded_reason = "embedding_unavailable"
+        degraded_reason = unavailable_reason
     else:
         try:
             semantic_ids = [
@@ -47,6 +48,8 @@ async def hybrid_search(
             ][:candidate_limit]
         except Exception:
             degraded_reason = "embedding_failed"
+        if degraded_reason is None and not semantic_ids and scope:
+            degraded_reason = "embedding_missing"
     rankings = [keyword_ids]
     if semantic_ids:
         rankings.append(semantic_ids)

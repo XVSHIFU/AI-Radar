@@ -183,10 +183,24 @@ def test_cross_page_snapshot_freezes_event_content(
     postgres_database: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ids = asyncio.run(_seed_retrieval(postgres_database))
+
+    async def isolate_dates() -> None:
+        connection = await postgres_database.connect()
+        try:
+            await connection.execute(
+                "UPDATE events SET event_date=CASE WHEN id=$1 THEN DATE '2026-08-02' "
+                "ELSE DATE '2026-08-01' END WHERE id = ANY($2::uuid[])",
+                ids["first"],
+                [ids["first"], ids["second"]],
+            )
+        finally:
+            await connection.close()
+
+    asyncio.run(isolate_dates())
     params = {
         "q": "deepseek-live",
-        "date_from": "2026-09-01",
-        "date_to": "2026-09-30",
+        "date_from": "2026-08-01",
+        "date_to": "2026-08-02",
         "limit": 1,
     }
     with _client(postgres_database, monkeypatch) as client:
@@ -223,9 +237,12 @@ def test_search_reports_complete_hard_scope_and_keyword_degradation(
         connection = await postgres_database.connect()
         try:
             await connection.execute(
-                "UPDATE events SET search_document='database backed evidence' "
-                "WHERE id = ANY($1::uuid[])",
-                [ids["first"], ids["second"], ids["mention"]],
+                "UPDATE events SET search_document='database backed evidence', "
+                "event_date=CASE WHEN id=$1 THEN DATE '2026-07-02' "
+                "ELSE DATE '2026-07-01' END "
+                "WHERE id = ANY($2::uuid[])",
+                ids["first"],
+                [ids["first"], ids["second"]],
             )
         finally:
             await connection.close()
@@ -234,8 +251,8 @@ def test_search_reports_complete_hard_scope_and_keyword_degradation(
     params = {
         "q": "Database-backed",
         "category": "research",
-        "date_from": "2026-09-09",
-        "date_to": "2026-09-10",
+        "date_from": "2026-07-01",
+        "date_to": "2026-07-02",
     }
     with _client(postgres_database, monkeypatch) as client:
         response = client.get("/api/v1/search", params=params)

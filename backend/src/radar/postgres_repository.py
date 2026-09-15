@@ -138,6 +138,14 @@ class PostgresRepository:
                     as_of = snapshot.created_at
                 else:
                     await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"))
+                    await session.execute(
+                        text(
+                            "DELETE FROM retrieval_snapshots WHERE expires_at <= :now OR id IN "
+                            "(SELECT id FROM retrieval_snapshots ORDER BY created_at DESC, id DESC "
+                            "OFFSET 999)"
+                        ),
+                        {"now": now},
+                    )
                     statement = (
                         select(EventRow)
                         .options(
@@ -259,10 +267,13 @@ class PostgresRepository:
                             rendered = "[" + ",".join(str(item) for item in vector) + "]"
                             rows = await session.execute(
                                 text(
-                                    "SELECT event_id::text FROM event_embeddings_v1 "
-                                    "WHERE profile_id=:profile_id AND status='ready' "
-                                    "AND event_id = ANY(CAST(:allowed AS uuid[])) "
-                                    "ORDER BY embedding <=> CAST(:embedding AS vector) LIMIT :limit"
+                                    "SELECT ee.event_id::text FROM event_embeddings_v1 ee "
+                                    "JOIN events e ON e.id=ee.event_id "
+                                    "WHERE ee.profile_id=:profile_id AND ee.status='ready' "
+                                    "AND ee.event_content_version=e.content_version "
+                                    "AND ee.event_id = ANY(CAST(:allowed AS uuid[])) "
+                                    "ORDER BY ee.embedding <=> CAST(:embedding AS vector) "
+                                    "LIMIT :limit"
                                 ),
                                 {
                                     "profile_id": active.id,

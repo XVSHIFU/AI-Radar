@@ -353,6 +353,13 @@ class ExtractionService:
                 event.search_config_version = SEARCH_CONFIG_VERSION
                 event.search_indexed_at = datetime.now(UTC)
                 event.updated_at = datetime.now(UTC)
+                await session.execute(
+                    text(
+                        "UPDATE event_embeddings_v1 SET status='stale', embedding=NULL, "
+                        "indexed_at=NULL WHERE event_id=:event_id"
+                    ),
+                    {"event_id": event.id},
+                )
             for evidence_item in extraction.evidence:
                 session.add(
                     EvidenceRow(

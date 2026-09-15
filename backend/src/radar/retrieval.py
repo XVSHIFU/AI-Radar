@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -79,4 +80,11 @@ async def checked_query_embedding(provider: EmbeddingProvider, text: str) -> lis
             f"profile expects {provider.profile.dimension} dimensions, "
             f"provider returned {len(vector)}"
         )
+    if not vector or not all(math.isfinite(value) for value in vector):
+        raise ValueError("embedding must contain only finite values")
+    norm = math.sqrt(sum(value * value for value in vector))
+    if norm == 0:
+        raise ValueError("embedding must not be a zero vector")
+    if provider.profile.normalize and not math.isclose(norm, 1.0, rel_tol=1e-3, abs_tol=1e-3):
+        raise ValueError("embedding profile requires an L2-normalized vector")
     return vector
