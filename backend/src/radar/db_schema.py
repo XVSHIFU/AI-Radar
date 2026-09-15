@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0011_public_ask_quota"
+SCHEMA_REVISION = "0012_research_model_calls"

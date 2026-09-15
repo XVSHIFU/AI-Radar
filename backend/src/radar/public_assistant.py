@@ -6,12 +6,11 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from sqlalchemy import select
 
-from .models import LlmCallRow
 from .public_identity import SESSION_LIFETIME, PublicIdentity
 from .public_quota import PostgresPublicQuota, PublicAdmissionError, PublicReservation
 from .qa_service import payload_hash
+from .research_ledger import finish_public_question
 from .schemas import AskRequest, QueryPlan
 
 router = APIRouter()
@@ -89,21 +88,13 @@ class PublicRun:
 
     async def finish(self, *, completed: bool) -> None:
         async def settle() -> None:
-            async with self.quota.sessions() as session:
-                row = await session.scalar(
-                    select(LlmCallRow).where(
-                        LlmCallRow.purpose == "answer_generation",
-                        LlmCallRow.logical_request_id == f"answer:{self.payload.client_request_id}",
-                    )
-                )
-                started = completed or row is not None
-                await self.quota.settle(
-                    self.reservation.id,
-                    self.owner,
-                    started=started,
-                    input_tokens=row.prompt_tokens if row else 0,
-                    output_tokens=row.completion_tokens if row else 0,
-                )
+            await finish_public_question(
+                self.quota.sessions,
+                self.reservation.id,
+                self.owner,
+                self.payload.client_request_id,
+                completed=completed,
+            )
 
         try:
             # Disconnects must not cancel accounting. Failed accounting retains the reservation.

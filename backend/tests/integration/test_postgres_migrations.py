@@ -24,7 +24,7 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
 ) -> None:
     migration_database.upgrade()
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0011_public_ask_quota",
+        "0012_research_model_calls",
         True,
     )
 
@@ -80,7 +80,7 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
 
     assert asyncio.run(verify_preserved_rows()) == (1, 1, 1)
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0011_public_ask_quota",
+        "0012_research_model_calls",
         True,
     )
 
@@ -100,6 +100,6 @@ def test_schema_can_upgrade_downgrade_and_reupgrade(
     assert asyncio.run(verify_base()) == (None, True)
     migration_database.upgrade()
     assert asyncio.run(_revision_and_vector(migration_database)) == (
-        "0011_public_ask_quota",
+        "0012_research_model_calls",
         True,
     )
