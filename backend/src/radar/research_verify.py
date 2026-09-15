@@ -58,7 +58,14 @@ class VerificationExecutor:
     async def execute(self, name: str, arguments: dict[str, Any]) -> object:
         if name != "aggregate_events" or arguments.get("dimension") != "category":
             raise ResearchRejected("TOOL_UNAVAILABLE")
-        return await self.tools.execute(name, arguments)
+        result = await self.tools.execute(name, arguments)
+        if not isinstance(result, dict):
+            raise ResearchRejected("TOOL_UNAVAILABLE")
+        return {
+            key: result[key]
+            for key in ("rows", "fields", "unit", "total_events", "citation_index")
+            if key in result
+        }
 
 
 class VerificationLedger:
@@ -134,10 +141,20 @@ class VerificationLedger:
             )
 
 
+def verification_destination(settings: Settings) -> None:
+    if (
+        settings.llm_provider != "deepseek"
+        or settings.llm_base_url.rstrip("/") != "https://api.deepseek.com"
+        or settings.llm_model != "deepseek-flash"
+    ):
+        raise ValueError("verification destination differs from explicit authorization")
+
+
 async def verify(config_root: Path, run_id: UUID) -> dict[str, Any]:
     settings = effective_model_settings(
         Settings(_env_file=config_root / ".env")  # type: ignore[call-arg]
     )
+    verification_destination(settings)
     if not settings.llm_api_key or not settings.sqlalchemy_url():
         raise ValueError("model/database configuration unavailable")
     policy = ResearchPolicy.load(REPO_ROOT / "agent/research")
