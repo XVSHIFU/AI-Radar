@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0008_data_quality"
+SCHEMA_REVISION = "0010_admin_durable"

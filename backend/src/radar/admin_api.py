@@ -13,7 +13,13 @@ from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from .admin_auth import SESSION_COOKIE, AdminSessionStore, admin_error, require_admin
+from .admin_auth import SESSION_COOKIE, admin_error, require_admin
+from .admin_persistence import (
+    AdminAuditRow,
+    AdminSessionStore,
+    InvalidAdminToken,
+    LoginRateLimited,
+)
 from .deepseek_client import DeepSeekClient, DeepSeekError, ProviderUsage
 from .ingest.core import (
     UnsafeUrl,
@@ -136,7 +142,14 @@ def _source(row: SourceRow) -> dict[str, object]:
 async def login(payload: SessionLogin, request: Request) -> JSONResponse:
     store: AdminSessionStore = request.app.state.admin_sessions
     client = request.client.host if request.client else "unknown"
-    token, session = store.login(payload.token, request.app.state.settings.admin_token, client)
+    try:
+        token, session = await store.login(
+            payload.token, request.app.state.settings.admin_token, client
+        )
+    except LoginRateLimited as exc:
+        raise admin_error("LOGIN_RATE_LIMITED", "Too many login attempts", 429) from exc
+    except InvalidAdminToken as exc:
+        raise admin_error("UNAUTHORIZED", "Administrator token is invalid", 401) from exc
     response = JSONResponse(
         {
             "authenticated": True,
@@ -160,7 +173,7 @@ async def login(payload: SessionLogin, request: Request) -> JSONResponse:
 @session_router.get("")
 async def current_session(request: Request) -> JSONResponse:
     store: AdminSessionStore = request.app.state.admin_sessions
-    session = store.get(request.cookies.get(SESSION_COOKIE))
+    session = await store.get(request.cookies.get(SESSION_COOKIE))
     body: dict[str, object] = {"authenticated": session is not None}
     if session is not None:
         body.update(csrf_token=session.csrf_token, expires_at=session.expires_at.isoformat())
@@ -170,10 +183,40 @@ async def current_session(request: Request) -> JSONResponse:
 @session_router.delete("", status_code=204, dependencies=[Depends(require_admin)])
 async def logout(request: Request) -> Response:
     store: AdminSessionStore = request.app.state.admin_sessions
-    store.logout(request.cookies.get(SESSION_COOKIE))
+    await store.logout(request.cookies.get(SESSION_COOKIE))
     response = Response(status_code=204, headers={"Cache-Control": "no-store"})
     response.delete_cookie(SESSION_COOKIE, path="/")
     return response
+
+
+@router.get("/audit")
+async def list_admin_audit(request: Request, limit: int = 50) -> dict[str, object]:
+    if not 1 <= limit <= 200:
+        raise admin_error("AUDIT_LIMIT_INVALID", "limit must be between 1 and 200", 422)
+    async with _sessions(request)() as session:
+        rows = list(
+            (
+                await session.scalars(
+                    select(AdminAuditRow)
+                    .order_by(AdminAuditRow.occurred_at.desc(), AdminAuditRow.id.desc())
+                    .limit(limit)
+                )
+            ).all()
+        )
+    return {
+        "items": [
+            {
+                "id": str(row.id),
+                "action": row.action,
+                "target": row.target,
+                "status_code": row.status_code,
+                "outcome": row.outcome,
+                "request_id": row.request_id,
+                "occurred_at": row.occurred_at,
+            }
+            for row in rows
+        ]
+    }
 
 
 @router.get("/sources")

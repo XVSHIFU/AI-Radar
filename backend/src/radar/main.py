@@ -1,3 +1,5 @@
+import logging
+import re
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import aclosing, asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
@@ -9,12 +11,18 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
 
 from .admin_api import router as admin_router
 from .admin_api import session_router
-from .admin_auth import AdminSessionStore, require_admin
+from .admin_auth import require_admin
+from .admin_persistence import (
+    MemoryAdminSessionStore,
+    PostgresAdminSessionStore,
+    append_admin_audit,
+)
 from .config import get_settings
 from .data_quality_api import router as data_quality_router
 from .fixture_repository import FixtureRepository
@@ -71,7 +79,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.engine = None
     app.state.ingest_repository = None
     app.state.sessions = None
-    app.state.admin_sessions = AdminSessionStore()
+    app.state.admin_sessions = MemoryAdminSessionStore()
     app.state.ask_admission = AskAdmission()
     if settings.radar_data_mode == "fixture":
         path = Path(__file__).resolve().parents[3] / "contracts" / "prototype-events.json"
@@ -81,6 +89,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.engine = engine
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         app.state.sessions = sessions
+        app.state.admin_sessions = PostgresAdminSessionStore(sessions)
         app.state.ingest_repository = IngestRepository(sessions)
         app.state.repository = PostgresRepository(
             sessions,
@@ -98,6 +107,87 @@ app.include_router(admin_router)
 app.include_router(data_quality_router)
 
 
+logger = logging.getLogger(__name__)
+_SOURCE_ROUTE = re.compile(
+    r"^/api/v1/admin/sources/(?P<source_id>[0-9a-fA-F-]{36})(?P<probe>/probe)?$"
+)
+_MERGE_REVERT_ROUTE = re.compile(
+    r"^/api/v1/admin/event-merges/(?P<merge_id>[0-9a-fA-F-]{36})/revert$"
+)
+_DATE_CORRECTION_ROUTE = re.compile(
+    r"^/api/v1/admin/event-date-review/(?P<event_id>[0-9a-fA-F-]{36})$"
+)
+
+
+def _admin_audit_target(request: Request) -> tuple[str, str] | None:
+    method = request.method
+    path = request.url.path
+    fixed = {
+        ("POST", "/api/v1/admin/session"): ("session.login", "session"),
+        ("DELETE", "/api/v1/admin/session"): ("session.logout", "session"),
+        ("POST", "/api/v1/admin/sources"): ("source.create", "sources"),
+        ("PUT", "/api/v1/admin/model"): ("model.update", "model"),
+        ("POST", "/api/v1/admin/model/test"): ("model.test", "model"),
+        ("POST", "/api/v1/ingest/runs"): ("ingest.start", "ingest-runs"),
+        ("POST", "/api/v1/admin/event-merges"): ("event_merge.create", "event-merges"),
+    }
+    if result := fixed.get((method, path)):
+        return result
+    match = _SOURCE_ROUTE.fullmatch(path)
+    if match and method in {"PATCH", "POST"}:
+        try:
+            source_id = str(UUID(match.group("source_id")))
+        except ValueError:
+            return None
+        if method == "PATCH" and match.group("probe") is None:
+            return "source.update", f"source:{source_id}"
+        if method == "POST" and match.group("probe") == "/probe":
+            return "source.probe", f"source:{source_id}"
+    merge_match = _MERGE_REVERT_ROUTE.fullmatch(path)
+    if merge_match and method == "POST":
+        try:
+            merge_id = str(UUID(merge_match.group("merge_id")))
+        except ValueError:
+            return None
+        return "event_merge.revert", f"event-merge:{merge_id}"
+    date_match = _DATE_CORRECTION_ROUTE.fullmatch(path)
+    if date_match and method == "POST":
+        try:
+            event_id = str(UUID(date_match.group("event_id")))
+        except ValueError:
+            return None
+        return "event_date.correct", f"event:{event_id}"
+    return None
+
+
+@app.middleware("http")
+async def audit_admin_writes(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    audit_target = _admin_audit_target(request)
+    if audit_target is None:
+        return await call_next(request)
+    request_id = str(uuid4())
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    sessions = cast(async_sessionmaker[AsyncSession] | None, request.app.state.sessions)
+    if sessions is not None:
+        try:
+            await append_admin_audit(
+                sessions,
+                action=audit_target[0],
+                target=audit_target[1],
+                status_code=response.status_code,
+                request_id=request_id,
+            )
+        except Exception:
+            logger.exception(
+                "administrator audit persistence failed", extra={"request_id": request_id}
+            )
+    return response
+
+
 @app.middleware("http")
 async def no_store_admin(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
@@ -112,17 +202,20 @@ async def no_store_admin(
     return response
 
 
-@app.exception_handler(HTTPException)
-async def handle_http_error(_request: Request, exc: HTTPException) -> JSONResponse:
+@app.exception_handler(StarletteHTTPException)
+async def handle_http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", str(uuid4()))
     if isinstance(exc.detail, dict) and "code" in exc.detail:
-        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+        return JSONResponse(
+            status_code=exc.status_code, content={**exc.detail, "request_id": request_id}
+        )
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "code": "HTTP_ERROR",
             "message": str(exc.detail),
             "retryable": False,
-            "request_id": str(uuid4()),
+            "request_id": request_id,
         },
     )
 
