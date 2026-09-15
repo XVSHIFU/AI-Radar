@@ -62,7 +62,7 @@ const viewKey = computed(
         >演示模式</RouterLink
       >
       <RouterLink v-else-if="!adminEnabled" :to="route.path" class="switch">连接服务</RouterLink>
-      <div v-if="route.path !== '/ingest'" id="assistant-mobile-slot" aria-label="研究助手入口"></div>
+      <div id="assistant-mobile-slot" aria-label="研究助手入口"></div>
       </div>
 
     </header>
@@ -74,7 +74,7 @@ const viewKey = computed(
       <p v-else-if="dataMode === 'fixture' && !adminEnabled" class="demo" role="note">
         后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。
       </p>
-      <main><RouterView :key="viewKey" /></main><AssistantPanel v-if="route.path !== '/ingest'" />
+      <main><RouterView :key="viewKey" /></main><AssistantPanel />
     </div>
   </div>
 </template>
