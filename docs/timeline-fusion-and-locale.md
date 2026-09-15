@@ -60,11 +60,21 @@
 
 实现依据：[locale.ts](../frontend/src/locale.ts)、[reading-locale.ts](../frontend/src/reading-locale.ts)、[admin-locale.ts](../frontend/src/admin-locale.ts)、[HomePage.vue](../frontend/src/HomePage.vue)、[TimelinePreviewBar.vue](../frontend/src/TimelinePreviewBar.vue)、[BrandPreview.vue](../frontend/src/BrandPreview.vue)、[brand-preview.ts](../frontend/src/brand-preview.ts)、[timeline-preview.css](../frontend/src/timeline-preview.css)。
 
-## 验证状态：待最终合并复核
+## 验证结果（2026-09-15）
 
-本记录撰写时，主执行代理正在进行最终浏览器验证与测试汇总。此处不预写整体通过结论；最终交接应补入对应提交、截图、测试报告与仍未覆盖的范围。
+最终实现提交：`5d8bddf`。前端 42 项测试通过；最终生产构建与 `git diff --check` 通过。本轮没有调用付费模型。
 
-待补证据包括：桌面与手机的时间线、侧边日期、真实日历、8 款 SVG 展示尺寸；中英文切换、跨路由与刷新后的语言保持；后台各页签与已有通知的语言更新；抽屉和助手进入、退出、减少动态偏好；原文、引用、标识和诊断保持不变。合成演示与前端模拟验证不能替代真实 API、采集或模型调用的验收。
+两轮批量视觉检查覆盖 1440px 桌面与 390px 手机。最终证据位于工作区 `.impeccable/review/fusion-final-report.json`、`fusion-admin-report.json` 和 `screenshots/final-*.png`：
+
+- 中英文预览均无页面横向溢出；日期位于正文左侧，连续主线跨事件贯通；正文使用 16px。
+- 实际日历只有一个弹层，不含原生 date 输入重叠；2026-09-01 至 2026-09-14 的日期应用有效。预览打开事件仍停留在 `/timeline-preview`。
+- SVG 对照桌面为 64 / 28 / 16px，手机为 48 / 28 / 16px；8 个选项均可切换，导航同步预览。
+- 助手退出 200ms 时仍可见且不透明，之后完成隐藏；浮标悬停实际变换为上移 5px、缩放 1.04。减少动态模式的共享时长为 120ms，助手正常收回。
+- 通过真实轮盘按钮切换语言，跨路由保持；英文助手默认状态、日期控件和导航已检查。
+- 使用受保护的真实管理员会话只读检查来源、模型设置的桌面与手机版面，均无横向溢出；未运行模型测试或修改模型配置，验收结束已退出会话。
+- 后台已有通知的响应式翻译、原始诊断保持不变，由新增测试覆盖。采集内容、模型返回和已有会话仍保留原文，不冒充已翻译。
+
+最终视觉轮发现补充主题中的 11 个名称尚未英文化，已在 `5d8bddf` 补齐全部 16 套名称和说明，并完成构建确认。保留当前布局的范围限定：此处验收预览与语言/动效实现，不代表用户已批准将融合布局和某一品牌图标替换到正式首页。
 
 ## 设计权威与未同步事项
 
