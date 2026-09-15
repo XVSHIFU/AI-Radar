@@ -541,3 +541,5 @@
 /* Every desktop drawer layer owns the same rounded, clipped reading plane. */
 @media(min-width:901px){.drawer-surface,.drawer-surface--source,.drawer-surface--evidence,html.global-assistant-open .drawer-surface,html.global-assistant-open .drawer-surface--source,html.global-assistant-open .drawer-surface--evidence{border-radius:16px;overflow:hidden}.drawer-shell{border-radius:inherit;overflow:hidden}}
 @media(max-width:900px){.drawer-surface,.drawer-surface--source,.drawer-surface--evidence{inset:8px;width:calc(100vw - 16px);height:calc(100dvh - 16px);border:1px solid var(--line);border-radius:16px;overflow:hidden}.drawer-shell{border-radius:inherit;overflow:hidden}}
+@media(min-width:901px){.drawer-shell>.drawer-header{border-radius:16px 16px 0 0}}
+@media(max-width:900px){.drawer-shell>.drawer-header{border-radius:16px 16px 0 0}}
