@@ -125,3 +125,17 @@ test("error with failed done passes", async () => {
     collect("event: error\ndata: {}\n\n" + done("failed")),
   );
 });
+
+test("accepts the live ask stream envelope and preserves partial tokens before failure", async () => {
+  const stream = [
+    'event: meta\ndata: {"request_id":"r1","protocol_version":1}\n\n',
+    'event: status\ndata: {"phase":"retrieval","message":"正在检索"}\n\n',
+    'event: token\ndata: {"seq":1,"text":"部分正文"}\n\n',
+    'event: error\ndata: {"code":"MODEL_UNAVAILABLE","message":"模型不可用","retryable":false,"request_id":"r1"}\n\n',
+    'event: sources\ndata: {"items":[]}\n\n',
+    'event: done\ndata: {"status":"failed","answer_status":null,"scope_total":0,"retrieved_count":0,"summarized_count":0,"citation_count":0,"coverage":"none"}\n\n',
+  ].join("");
+  const events = await collect(stream);
+  assert.equal(JSON.parse(events.find((event) => event.event === "token")!.data).text, "部分正文");
+  assert.equal(JSON.parse(events.at(-1)!.data).status, "failed");
+});

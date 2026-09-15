@@ -189,6 +189,7 @@ export const events = {
           signal,
         }).then((x) => x.items),
 };
+export const askStream = (payload: unknown, signal?: AbortSignal) => fetch("/api/v1/ask/stream", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify(payload), signal }).then(async (response) => { if (!response.ok || !response.body) { let body: ApiError = { code: "HTTP_" + response.status, message: "研究请求失败", status: response.status }; try { body = { ...body, ...(await response.json()) }; } catch {} throw body; } return response; });
 export const ask = (payload: unknown, signal?: AbortSignal) =>
   api<AskResult>("/api/v1/ask", {
     method: "POST",
@@ -222,6 +223,7 @@ export type Source = { id: string; name: string; feed_url: string; channel_type:
 export type ProbeResult = { ok: boolean; checked_at: string; http_status?: number; message: string; items_found?: number };
 export type Run = { id: string; status: string; started_at: string; finished_at: string | null; found: number; candidates: number; versions: number; kept: number; parser_failures: number; failed_jobs: number; cost: string | number | null; cost_status: "actual" | "estimated" | "unknown"; error_summary: string | null };
 export type ModelSettings = { provider: string; base_url: string; model: string; configured: boolean; enabled: boolean; max_tokens: number };
+export type ModelPreset = { id: string; name: string; base_url: string; model: string; protocol: "openai-compatible" };
 export type ModelTest = { ok: boolean; message: string; model: string; usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number } };
 export type Usage = { items: Array<{ purpose: string; status: string; calls: number; usage_recorded: number | null; input_tokens: number | null; output_tokens: number | null; total_tokens: number | null }>; as_of: string };
 const csrfHeaders = (csrf: string, extra: HeadersInit = {}) => ({ ...extra, "X-CSRF-Token": csrf });
@@ -235,7 +237,8 @@ export const admin = {
   runs: () => api<{ items: Run[] }>("/api/v1/ingest/runs"),
   start: (csrf: string, source_ids: string[], idempotencyKey: string) => api<{ run_id: string; status: string }>("/api/v1/ingest/runs", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey }), body: JSON.stringify({ source_ids }) }),
   model: () => api<ModelSettings>("/api/v1/admin/model"),
-  saveModel: (csrf: string, payload: { api_key?: string; enabled: boolean; max_tokens: number }) => api<ModelSettings>("/api/v1/admin/model", { method: "PUT", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
+  presets: () => api<{ items: ModelPreset[] }>("/api/v1/admin/model/presets"),
+  saveModel: (csrf: string, payload: { api_key?: string; enabled: boolean; max_tokens: number; provider: string; base_url: string; model: string }) => api<ModelSettings>("/api/v1/admin/model", { method: "PUT", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
   testModel: (csrf: string, kind: "connectivity" | "completion") => api<ModelTest>("/api/v1/admin/model/test", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify({ kind }) }),
   usage: () => api<Usage>("/api/v1/admin/model/usage"),
 };
