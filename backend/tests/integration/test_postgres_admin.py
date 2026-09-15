@@ -171,7 +171,7 @@ def test_admin_sources_and_usage_live_postgres(
             "/api/v1/admin/model/test", json={"kind": "connectivity"}, headers=headers
         )
         assert connectivity.json()["ok"] is True
-        assert connectivity.json()["request_messages"]
+        assert connectivity.json()["request_messages"] == []
         completion = client.post(
             "/api/v1/admin/model/test", json={"kind": "completion"}, headers=headers
         )

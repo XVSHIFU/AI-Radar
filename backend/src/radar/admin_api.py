@@ -393,12 +393,13 @@ def _test_result(
     error_code: str | None = None,
     usage: dict[str, int | None] | None = None,
     response_text: str | None = None,
+    include_messages: bool = True,
 ) -> dict[str, object]:
     body: dict[str, object] = {
         "ok": ok,
         "message": message,
         "model": model,
-        "request_messages": TEST_MESSAGES,
+        "request_messages": TEST_MESSAGES if include_messages else [],
     }
     if error_code is not None:
         body["error_code"] = error_code
@@ -433,26 +434,34 @@ async def test_model(payload: ModelTestRequest, request: Request) -> dict[str, o
                         ok=False,
                         message="当前服务不支持模型列表接口",
                         model=config.model,
+                        include_messages=False,
                         error_code="model_list_unsupported",
                     )
                 response.raise_for_status()
                 data = response.json()
                 models = data.get("data", []) if isinstance(data, dict) else []
-                if not any(
+                if not isinstance(models, list) or not any(
                     isinstance(item, dict) and item.get("id") == config.model for item in models
                 ):
                     return _test_result(
                         ok=False,
                         message="模型列表中未找到当前模型",
                         model=config.model,
+                        include_messages=False,
                         error_code="model_not_found",
                     )
-            return _test_result(ok=True, message="连接成功，已找到当前模型", model=config.model)
+            return _test_result(
+                ok=True,
+                message="连接成功，已找到当前模型",
+                model=config.model,
+                include_messages=False,
+            )
         except (httpx.HTTPError, ValueError):
             return _test_result(
                 ok=False,
                 message="模型连接测试失败",
                 model=config.model,
+                include_messages=False,
                 error_code="connectivity_failed",
             )
     sessions = _sessions(request)
@@ -508,7 +517,11 @@ async def test_model(payload: ModelTestRequest, request: Request) -> dict[str, o
         )
         return _test_result(
             ok=False,
-            message=str(exc),
+            message={
+                "authentication_failed": "模型服务鉴权失败，请检查密钥。",
+                "insufficient_balance": "模型服务余额不足。",
+                "unknown_transport_failure": "连接中断，调用结果未知；未自动重试。",
+            }.get(exc.code, "模型未返回有效回答，请检查配置或展开错误信息。"),
             model=config.model,
             error_code=exc.code,
             response_text=exc.completion.content if exc.completion else None,

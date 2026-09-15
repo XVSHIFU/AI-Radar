@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .config import Settings
 from .deepseek_client import Completion, DeepSeekClient, DeepSeekError
+from .ingest.dns import configured_resolver
 from .models import LlmCallRow
 from .repository import EventRepository, EvidenceInvalid, RepositoryUnavailable
 from .schemas import AskRequest, Event, Evidence, QueryPlan
@@ -288,6 +289,8 @@ async def answer_question(
             base_url=settings.llm_base_url,
             model=settings.llm_model,
             max_tokens=settings.llm_max_tokens,
+            provider=settings.llm_provider,
+            resolver=configured_resolver(settings.fetch_dns_mode),
         )
         if settings.llm_api_key
         else None

@@ -598,7 +598,11 @@ async def ask(
     )
 
 
-@app.post("/api/v1/ask/stream")
+@app.post(
+    "/api/v1/ask/stream",
+    response_class=StreamingResponse,
+    responses={200: {"content": {"text/event-stream": {"schema": {"type": "string"}}}}},
+)
 async def ask_stream(
     payload: AskRequest,
     request: Request,

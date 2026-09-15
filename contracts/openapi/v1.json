@@ -1063,6 +1063,19 @@
             ],
             "title": "Api Key"
           },
+          "base_url": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
           "enabled": {
             "title": "Enabled",
             "type": "boolean"
@@ -1072,6 +1085,32 @@
             "minimum": 1.0,
             "title": "Max Tokens",
             "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
           }
         },
         "required": [
@@ -1419,6 +1458,26 @@
         "summary": "Put Model"
       }
     },
+    "/api/v1/admin/model/presets": {
+      "get": {
+        "operationId": "model_presets_api_v1_admin_model_presets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Model Presets Api V1 Admin Model Presets Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Model Presets"
+      }
+    },
     "/api/v1/admin/model/test": {
       "post": {
         "operationId": "test_model_api_v1_admin_model_test_post",
@@ -1728,6 +1787,44 @@
           }
         },
         "summary": "Ask"
+      }
+    },
+    "/api/v1/ask/stream": {
+      "post": {
+        "operationId": "ask_stream_api_v1_ask_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask Stream"
       }
     },
     "/api/v1/events": {
