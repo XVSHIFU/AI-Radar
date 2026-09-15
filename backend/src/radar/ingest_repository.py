@@ -68,7 +68,9 @@ class IngestRepository:
                 (
                     await session.scalars(
                         select(SourceRow.id).where(
-                            SourceRow.id.in_(unique_ids), SourceRow.enabled.is_(True)
+                            SourceRow.id.in_(unique_ids),
+                            SourceRow.enabled.is_(True),
+                            SourceRow.channel_type == "rss",
                         )
                     )
                 ).all()

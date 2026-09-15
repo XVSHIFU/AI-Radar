@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.deepseek.com"
     llm_model: Literal["deepseek-flash"] = "deepseek-flash"
     llm_max_tokens: int = Field(default=1600, ge=1, le=2000)
+    model_config_path: Path = Path.home() / ".config" / "ai-radar" / "model.json"
     cursor_secret: str = Field(default="development-only-change-me", min_length=16)
 
     def sqlalchemy_url(self) -> str | URL | None:

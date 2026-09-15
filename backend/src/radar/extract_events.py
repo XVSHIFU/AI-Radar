@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from .config import get_settings
 from .deepseek_client import DeepSeekClient
 from .extraction_service import ExtractionService
+from .model_config import ModelConfigStore, ModelConfigUnavailable
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -26,20 +27,28 @@ async def _run(date_from: date, date_to: date, limit: int) -> int:
     url = settings.sqlalchemy_url()
     if url is None:
         raise SystemExit("PostgreSQL is not configured")
-    if not settings.llm_api_key:
+    try:
+        model_config = ModelConfigStore(settings).read()
+    except ModelConfigUnavailable as exc:
+        raise SystemExit(str(exc)) from exc
+    if not model_config.enabled:
+        print("claimed=0 published=0 filtered=0 failed=0 stopped=false")
+        return 0
+    if not model_config.api_key:
         raise SystemExit("LLM_API_KEY is not configured")
     engine = create_async_engine(url, pool_pre_ping=True)
     client = DeepSeekClient(
-        settings.llm_api_key,
-        base_url=settings.llm_base_url,
-        model=settings.llm_model,
-        max_tokens=settings.llm_max_tokens,
+        model_config.api_key,
+        base_url="https://api.deepseek.com",
+        model="deepseek-flash",
+        max_tokens=model_config.max_tokens,
     )
     try:
         result = await ExtractionService(
             async_sessionmaker(engine, expire_on_commit=False),
             client,
             timezone=settings.business_timezone,
+            credential_changed_at=model_config.credential_changed_at,
         ).run(date_from, date_to, limit)
     finally:
         await client.close()

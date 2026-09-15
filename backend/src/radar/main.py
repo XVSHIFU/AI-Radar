@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -10,7 +10,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from starlette.responses import Response
 
+from .admin_api import router as admin_router
+from .admin_api import session_router
+from .admin_auth import AdminSessionStore, require_admin
 from .config import get_settings
 from .fixture_repository import FixtureRepository
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
@@ -60,17 +64,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.repository = None
     app.state.engine = None
     app.state.ingest_repository = None
+    app.state.sessions = None
+    app.state.admin_sessions = AdminSessionStore()
     if settings.radar_data_mode == "fixture":
         path = Path(__file__).resolve().parents[3] / "contracts" / "prototype-events.json"
         app.state.repository = FixtureRepository(path, settings.cursor_secret)
     elif (url := settings.sqlalchemy_url()) is not None:
         engine = create_async_engine(url, pool_pre_ping=True)
         app.state.engine = engine
-        app.state.ingest_repository = IngestRepository(
-            async_sessionmaker(engine, expire_on_commit=False)
-        )
+        sessions = async_sessionmaker(engine, expire_on_commit=False)
+        app.state.sessions = sessions
+        app.state.ingest_repository = IngestRepository(sessions)
         app.state.repository = PostgresRepository(
-            async_sessionmaker(engine, expire_on_commit=False),
+            sessions,
             settings.cursor_secret,
             settings.business_timezone,
         )
@@ -80,6 +86,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="AI Radar API", version="0.1.0", lifespan=lifespan)
+app.include_router(session_router)
+app.include_router(admin_router)
+
+
+@app.middleware("http")
+async def no_store_admin(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    response = await call_next(request)
+    if (
+        request.url.path.startswith("/api/v1/admin")
+        or request.url.path.startswith("/api/v1/ingest")
+        or request.url.path == "/api/v1/sources"
+    ):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.exception_handler(HTTPException)
@@ -399,7 +421,7 @@ async def insight_summary(
     )
 
 
-@app.get("/api/v1/sources")
+@app.get("/api/v1/sources", dependencies=[Depends(require_admin)])
 async def sources(
     request: Request, repository: Annotated[EventRepository, Depends(get_repository)]
 ) -> dict[str, object]:
@@ -559,18 +581,6 @@ async def ask(
         503,
         details={"query_plan_public": public_plan},
     )
-
-
-def require_admin(request: Request, authorization: Annotated[str | None, Header()] = None) -> None:
-    token = request.app.state.settings.admin_token
-    if not token:
-        raise api_error(
-            "MANAGEMENT_UNAVAILABLE",
-            "Administrator credentials are not configured",
-            503,
-        )
-    if authorization != f"Bearer {token}":
-        raise api_error("UNAUTHORIZED", "Valid administrator credentials are required", 401)
 
 
 def ingest_repository(request: Request) -> IngestRepository:

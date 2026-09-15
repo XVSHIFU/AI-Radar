@@ -60,10 +60,12 @@ class ExtractionService:
         client: DeepSeekClient,
         *,
         timezone: str = "Asia/Shanghai",
+        credential_changed_at: datetime | None = None,
     ) -> None:
         self._sessions = sessions
         self._client = client
         self._timezone = ZoneInfo(timezone)
+        self._credential_changed_at = credential_changed_at
 
     async def run(self, date_from: date, date_to: date, limit: int) -> BatchResult:
         if date_from > date_to:
@@ -139,15 +141,14 @@ class ExtractionService:
         return result
 
     async def _provider_blocked(self) -> bool:
+        conditions = [
+            LlmCallRow.provider == "deepseek",
+            LlmCallRow.error_code.in_(("authentication_failed", "insufficient_balance")),
+        ]
+        if self._credential_changed_at is not None:
+            conditions.append(LlmCallRow.finished_at >= self._credential_changed_at)
         async with self._sessions() as session:
-            blocked = await session.scalar(
-                select(LlmCallRow.id)
-                .where(
-                    LlmCallRow.provider == "deepseek",
-                    LlmCallRow.error_code.in_(("authentication_failed", "insufficient_balance")),
-                )
-                .limit(1)
-            )
+            blocked = await session.scalar(select(LlmCallRow.id).where(*conditions).limit(1))
             return blocked is not None
 
     async def _eligible_versions(
