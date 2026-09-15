@@ -15,7 +15,9 @@ const write = (csrf: string, body?: unknown): RequestInit => ({
 });
 
 export type AuditEntry = { id: string; action: string; target: string; status_code: number; outcome: string; request_id: string; occurred_at: string };
+export type MergeRecord = { id: string; source_title: string; target_title: string; reason: string; created_at: string; reverted_at: string | null };
 export const maintenance = {
+  merges: (signal?: AbortSignal) => api<{ items: MergeRecord[] }>("/api/v1/admin/event-merges?limit=50", { signal }),
   audit: (signal?: AbortSignal) => api<{ items: AuditEntry[] }>("/api/v1/admin/audit?limit=50", { signal }),
   dates: (signal?: AbortSignal) => api<{ dry_run: boolean; items: DateReview[] }>("/api/v1/admin/event-date-review?limit=1000", { signal }),
   correctDate: (csrf: string, id: string, candidate: DateReview["candidates"][number]) =>

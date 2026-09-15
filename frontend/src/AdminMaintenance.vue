@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { err, events, type Event, type Evidence } from "./api";
-import { maintenance, type AuditEntry, type DateReview } from "./maintenance-api";
+import { maintenance, type AuditEntry, type DateReview, type MergeRecord } from "./maintenance-api";
 import { formatDate, translate as tr } from "./locale";
 
 const props = defineProps<{ csrf: string }>();
 const emit = defineEmits<{ unauthorized: [] }>();
-const rows = ref<DateReview[]>([]), audit = ref<AuditEntry[]>([]);
+const rows = ref<DateReview[]>([]), audit = ref<AuditEntry[]>([]), merges = ref<MergeRecord[]>([]);
 const loading = ref(false), busy = ref(false), message = ref(""), problem = ref("");
 const selected = ref<DateReview>(), detail = ref<Event>(), evidence = ref<Evidence[]>([]);
 const candidateIndex = ref(""), confirmDate = ref(false), filter = ref("");
@@ -28,10 +28,11 @@ function failure(error: unknown) {
 async function refresh() {
   if (loading.value || busy.value) return;
   loading.value = true; problem.value = "";
-  const results = await Promise.allSettled([maintenance.dates(controller.signal), maintenance.audit(controller.signal)]);
+  const results = await Promise.allSettled([maintenance.dates(controller.signal), maintenance.audit(controller.signal), maintenance.merges(controller.signal)]);
   if (!alive) return;
   if (results[0].status === "fulfilled") rows.value = results[0].value.items; else failure(results[0].reason);
   if (results[1].status === "fulfilled") audit.value = results[1].value.items; else failure(results[1].reason);
+  if (results[2].status === "fulfilled") merges.value = results[2].value.items; else failure(results[2].reason);
   loading.value = false;
 }
 async function inspect(row: DateReview) {
@@ -119,6 +120,7 @@ onBeforeUnmount(() => { alive = false; controller.abort(); });
       <form class="maintenance-fields" @submit.prevent="previewMerge"><label>{{ tr('待归并事件编号', 'Source event ID') }}<input v-model="sourceId" class="control" :disabled="busy" @input="pair = []" /></label><label>{{ tr('保留的事件编号', 'Target event ID') }}<input v-model="targetId" class="control" :disabled="busy" @input="pair = []" /></label><button :disabled="busy || !sourceId.trim() || !targetId.trim() || sourceId.trim() === targetId.trim()">{{ tr('对照事件', 'Compare events') }}</button></form>
       <div v-if="pair.length === 2" class="maintenance-pair"><article v-for="(item, index) in pair" :key="index"><p class="meta">{{ index === 0 ? tr('待归并', 'Source') : tr('保留', 'Target') }}</p><h4>{{ item.event.title_zh }}</h4><p>{{ item.event.summary_zh }}</p><details><summary>{{ tr('查看保存证据', 'Read saved evidence') }} ({{ item.evidence.length }})</summary><blockquote v-for="entry in item.evidence" :key="entry.id">{{ entry.quote_text }}</blockquote></details></article></div>
       <div v-if="pair.length === 2"><label>{{ tr('归并依据', 'Reason for merging') }}<textarea v-model="reason" class="control" maxlength="2000" :disabled="busy" /></label><label class="maintenance-confirm"><input v-model="mergeConfirmed" type="checkbox" :disabled="busy" />{{ tr('已核对两侧证据，确认是同一事件。', 'I reviewed both sets of evidence and confirmed the same event.') }}</label><button :disabled="busy || !mergeConfirmed || reason.trim().length < 3" @click="merge">{{ tr('确认归并', 'Confirm merge') }}</button></div>
+      <ol v-if="merges.length" class="maintenance-audit"><li v-for="record in merges" :key="record.id"><strong>{{ record.source_title }} → {{ record.target_title }}</strong><p class="meta">{{ record.reason }}</p><p><time>{{ formatDate(record.created_at, { dateStyle: 'short', timeStyle: 'short' }) }}</time> · {{ record.reverted_at ? tr('已撤销', 'Reverted') : tr('已归并', 'Merged') }}</p><button v-if="!record.reverted_at" :disabled="busy" @click="undoId = record.id">{{ tr('选择此记录以撤销', 'Select this record to undo') }}</button></li></ol>
       <form class="maintenance-fields" @submit.prevent="revert"><label>{{ tr('归并记录编号', 'Merge record ID') }}<input v-model="undoId" class="control" :disabled="busy" /></label><button :disabled="busy || !undoId.trim()">{{ tr('撤销此归并', 'Undo this merge') }}</button></form>
     </details>
     <section class="maintenance-section"><h3>{{ tr('近期操作记录', 'Recent administrative actions') }}</h3><p class="meta">{{ tr('最近 50 次操作，不记录密钥和请求正文。', 'Latest 50 actions. Keys and request bodies are excluded.') }}</p><p v-if="!audit.length && !loading" class="meta">{{ tr('暂无操作记录。', 'No recorded actions.') }}</p><ol class="maintenance-audit"><li v-for="entry in audit" :key="entry.id"><div><strong>{{ entry.action }}</strong><span>{{ entry.outcome === 'success' ? tr('成功', 'Success') : tr('未完成', 'Failed') }} · {{ entry.status_code }}</span></div><time>{{ formatDate(entry.occurred_at, { dateStyle: 'short', timeStyle: 'short' }) }}</time><details><summary>{{ tr('详情', 'Details') }}</summary><p>{{ entry.target }}</p><p>{{ tr('请求编号', 'Request ID') }}: {{ entry.request_id }}</p></details></li></ol></section>

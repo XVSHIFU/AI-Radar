@@ -6,11 +6,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import aliased
 
 from .admin_auth import admin_error, require_admin
 from .date_quality import DateCorrectionRejected, DateQualityService
 from .event_merge_service import EventMergeService, MergeRejected
+from .models import EventMergeLogRow, EventRow
 
 router = APIRouter(prefix="/api/v1/admin", dependencies=[Depends(require_admin)])
 
@@ -46,6 +49,36 @@ def _sessions(request: Request) -> async_sessionmaker[AsyncSession]:
 def _operator(request: Request) -> str:
     client = request.client.host if request.client else "unknown"
     return f"admin:{client}"
+
+
+@router.get("/event-merges")
+async def merge_history(
+    request: Request, limit: Annotated[int, Query(ge=1, le=200)] = 50
+) -> dict[str, object]:
+    source_event, target_event = aliased(EventRow), aliased(EventRow)
+    async with _sessions(request)() as session:
+        records = (
+            await session.execute(
+                select(EventMergeLogRow, source_event.title_zh, target_event.title_zh)
+                .join(source_event, source_event.id == EventMergeLogRow.source_event_id)
+                .join(target_event, target_event.id == EventMergeLogRow.target_event_id)
+                .order_by(EventMergeLogRow.created_at.desc(), EventMergeLogRow.id.desc())
+                .limit(limit)
+            )
+        ).all()
+    return {
+        "items": [
+            {
+                "id": str(log.id),
+                "source_title": source_title,
+                "target_title": target_title,
+                "reason": log.reason,
+                "created_at": log.created_at,
+                "reverted_at": log.reverted_at,
+            }
+            for log, source_title, target_title in records
+        ]
+    }
 
 
 @router.post("/event-merges", status_code=201)
