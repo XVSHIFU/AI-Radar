@@ -1,4 +1,5 @@
 import { reactive } from "vue";
+import { completedPairs, validPreferences, memorySettings, type ReplyPreferences, type MemorySettings } from "./conversation-memory";
 import type { Citation } from "./api";
 import type { ResearchArtifact } from "./research-artifacts";
 
@@ -12,7 +13,7 @@ export type ConversationMessage = {
   filters?: Record<string, unknown>; mode: "demo" | "live"; citations?: Citation[]; artifacts?: ResearchArtifact[];
   status?: "running" | "completed" | "cancelled" | "interrupted" | "error"; attachment?: Attachment; plan?: StoredPlan; metrics?: { scope_total?: number; retrieved_count?: number; summarized_count?: number; citation_count?: number; coverage?: string }; error?: { code: string; message: string };
 };
-export type Conversation = { id: string; title: string; draft: string; attachment?: Attachment; scopeState?: { label:string; snapshot:string; filters:Record<string,unknown> }; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
+export type Conversation = { preferences?: ReplyPreferences; memorySettings?: MemorySettings; id: string; title: string; draft: string; attachment?: Attachment; scopeState?: { label:string; snapshot:string; filters:Record<string,unknown> }; createdAt: number; updatedAt: number; messages: ConversationMessage[] };
 const storeName = "conversations"; const rowsKey = "all"; const activeKey = "active";
 let memory: Conversation[] = []; let writes = Promise.resolve();
 export const storageState = reactive({ failed: false });
@@ -22,12 +23,14 @@ function validMessage(value: unknown): value is ConversationMessage { return !!v
 function valid(value: unknown): value is Conversation[] { return Array.isArray(value) && value.every((row) => row && typeof row === "object" && typeof (row as Conversation).id === "string" && typeof (row as Conversation).title === "string" && typeof (row as Conversation).draft === "string" && Array.isArray((row as Conversation).messages) && (row as Conversation).messages.every(validMessage)); }
 export function restoreConversations(value: unknown): Conversation[] {
   if (!valid(value)) return [];
-  return copy(value).map((conversation) => ({ ...conversation, messages: conversation.messages.map((message) => message.status === "running" ? { ...message, status: "interrupted", text: message.text || "本次请求在页面关闭前中断，未自动重试。" } : message) }));
+  return copy(value).map((conversation) => ({ ...conversation, preferences: validPreferences(conversation.preferences), memorySettings: memorySettings(conversation.memorySettings), messages: conversation.messages.map((message) => message.status === "running" ? { ...message, status: "interrupted", text: message.text || "本次请求在页面关闭前中断，未自动重试。" } : message) }));
 }
 export function boundedHistory(messages: ConversationMessage[], currentUserId: string) {
   const pairs: { user:{ role:"user";content:string;filters?:Record<string,unknown>}; assistant:{role:"assistant";content:string} }[]=[];
-  let user: ConversationMessage | undefined;
-  for (const message of messages) { if(message.id===currentUserId) continue; if(message.role==="user") user=message; else if(user&&message.status==="completed") { pairs.push({user:{role:"user",content:user.text.slice(0,4000),filters:user.filters},assistant:{role:"assistant",content:message.text.slice(0,4000)}});user=undefined; } }
+  for (const {user, assistant} of completedPairs(messages, currentUserId)) {
+    pairs.push({user:{role:"user",content:user.text.slice(0,4000),filters:user.filters},
+      assistant:{role:"assistant",content:assistant.text.slice(0,4000)}});
+  }
   const selected: typeof pairs=[]; let total=0;
   for(const pair of pairs.slice(-3).reverse()){const size=pair.user.content.length+pair.assistant.content.length;if(total+size>12000)continue;selected.unshift(pair);total+=size;}
   return selected.flatMap((pair)=>[pair.user,pair.assistant]);

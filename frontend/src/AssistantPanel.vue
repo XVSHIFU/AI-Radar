@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AssistantMark from "./AssistantMark.vue";
+import AssistantMemory from "./AssistantMemory.vue";
+import { contextMessages, summaryFor, SummarySelection, validPreferences, completedPairs, type ReplyPreferences } from "./conversation-memory";
 import ResearchDataset from "./ResearchDataset.vue";
 import ResearchArtifacts from "./ResearchArtifacts.vue";
 import ResearchAnalysis from "./ResearchAnalysis.vue";
@@ -79,6 +81,18 @@ watch([messageViewport,messageContent],()=>{messageObserver?.disconnect();if(mes
 watch(activeId,()=>{releaseAnchor();anchorMessage.value="";roundSpacer.value=0;previewDraft.value=false;void nextTick(()=>showLatestQuestion())});
 const clone=(x:AssistantScope):AssistantScope=>({label:x.label,snapshot:x.snapshot,filters:{...x.filters}}); const pendingScope=ref(clone(assistantScope)),activeScope=ref(clone(assistantScope)); let controller:AbortController|undefined,generation=0,ruleController:AbortController|undefined,ruleGeneration=0,timers:number[]=[];
 const active=computed(()=>conversations.value.find(x=>x.id===activeId.value));const attachment=computed<Attachment|undefined>({get:()=>active.value?.attachment,set:v=>{if(active.value){active.value.attachment=v;touch(active.value);persist()}}});const messages=computed(()=>active.value?.messages||[]);const draft=computed({get:()=>active.value?.draft||"",set:v=>{if(active.value){active.value.draft=v;touch(active.value);persist()}}});const mode=computed<"demo"|"live">(()=>isDemo()?"demo":"live");
+const memorySelection=new SummarySelection(), memorySelected=ref(false);
+const availableContext=computed(()=>active.value?contextMessages(active.value,mode.value):[]);
+const memorySummary=computed(()=>summaryFor(availableContext.value));
+const recentMemoryTurns=computed(()=>Math.min(3,completedPairs(availableContext.value).length));
+function clearSelection(){memorySelection.clear();memorySelected.value=false}
+function chooseSummary(selected:boolean){clearSelection();if(selected&&active.value){memorySelection.choose(active.value.id,memorySummary.value);memorySelected.value=true}}
+function savePreferences(value:ReplyPreferences){const c=active.value;if(!c)return;c.preferences=validPreferences(value);touch(c);persist()}
+function forgetPreferences(){const c=active.value;if(!c)return;delete c.preferences;touch(c);persist()}
+function clearContext(){const c=active.value;if(!c)return;clearSelection();c.memorySettings={clearedThrough:c.messages.at(-1)?.id};touch(c);persist()}
+watch([activeId,mode],clearSelection);
+watch(()=>messages.value.length,clearSelection);
+
 const canSubmit=computed(()=>Boolean(draft.value.trim())&&!Boolean(scopeIssue.value));const sendHint=computed(()=>running.value?tr("停止生成","Stop generating"):canSubmit.value?tr("发送问题","Send question"):tr("请输入问题后发送","Enter a question before sending"));
 const scopeIssue=computed(()=>{const f=activeScope.value.filters;if(f.date_from&&f.date_to&&f.date_from>f.date_to)return tr("当前范围的起始日期晚于截止日期。","The start date is after the end date in the current scope.");if(f.date_from&&f.date_to&&(Date.parse(f.date_to+"T00:00:00Z")-Date.parse(f.date_from+"T00:00:00Z"))/86400000+1>366)return tr("当前范围超过 366 天，请缩小范围后提问。","The current scope spans more than 366 days; narrow it before asking.");return ""});const scopeChanged=computed(()=>pendingScope.value.snapshot!==activeScope.value.snapshot||JSON.stringify(pendingScope.value.filters)!==JSON.stringify(activeScope.value.filters));
 function statusCopy(value:string){return value.includes("QUERY_UNSUPPORTED")?tr("暂时无法按问题筛选，请改用日期或分类筛选。","This question cannot be filtered yet; use date or category filters."):value.includes("ASK_NOT_IMPLEMENTED")?tr("研究助手的 AI 回答尚未接通。","The research assistant is not connected yet."):value}function errorCopy(code:string){return code==="ASK_QUOTA_EXCEEDED"?tr("该 IP 在过去 48 小时内已发送 20 次问题，请在额度恢复后再试。","This IP has submitted 20 questions in the past 48 hours. Try again when a slot is available."):code==="ASK_DAILY_BUDGET_EXCEEDED"?tr("体验预算已用完，请在额度恢复后再试。","The trial budget has been used. Try again when it is available."):code==="ASK_BUSY"?tr("助手正在处理其他问题，请稍后再试。","The assistant is busy. Please try again shortly."):code==="ASSISTANT_QUOTA_UNAVAILABLE"?tr("助手额度服务暂不可用，请稍后再试。","The question quota service is temporarily unavailable."):code==="QUERY_UNSUPPORTED"?tr("暂时无法解析这个问题，可先用日期和分类筛选。","This question cannot be parsed yet; try date and category filters."):code==="ASK_NOT_IMPLEMENTED"?tr("研究助手的 AI 回答尚未接通。","The research assistant is not connected yet."):code==="MODEL_UNAVAILABLE"?tr("研究助手暂时不可用。","The research assistant is temporarily unavailable."):tr("请求未完成，请查看诊断。","The request was not completed; view details.")}function displayText(m:ConversationMessage){return m.error?(m.text && m.text !== m.error.message ? m.text : errorCopy(m.error.code)):m.text}function id(){return secureUuid()}function restoreScope(id:string){const value=conversations.value.find(x=>x.id===id);if(value?.scopeState)activeScope.value={label:value.scopeState.label,snapshot:value.scopeState.snapshot,filters:{...value.scopeState.filters}}}function activate(id:string){activeId.value=id;restoreScope(id);persist()}function titleFrom(question:string){return question.replace(/\s+/g," ").slice(0,24)||tr("新研究会话","New research conversation")}function touch(c:Conversation){c.updatedAt=Date.now()}function persist(){void saveConversations(conversations.value);void saveActiveConversation(activeId.value)}function create(){cancel();activeScope.value=clone(pendingScope.value);const now=Date.now(),c:Conversation={id:id(),title:tr("新研究会话","New research conversation"),draft:"",createdAt:now,updatedAt:now,messages:[],scopeState:clone(activeScope.value)};conversations.value=[c,...conversations.value];activeId.value=c.id;attachment.value=undefined;status.value="";persist()}function selectConversation(id:string){if(id===activeId.value)return;cancel();activate(id);status.value=tr("已切换会话；旧回答保留其提交时的范围。","Conversation switched; earlier answers retain their submitted scope.");persist()}
@@ -96,6 +110,9 @@ async function submit() {
   const c = active.value, q = draft.value.trim();
   if (!c || !q || running.value || scopeIssue.value) return;
   const current = ++generation, scope = clone(activeScope.value), requestMode = mode.value, target = attachment.value;
+  const optionalMemory = memorySelection.take(c.id);
+  memorySelected.value = false;
+  const preferences = validPreferences(c.preferences);
   const animateQuestion = messages.value.length > 0;
   draft.value = "";
   const u: ConversationMessage = { id: id(), role: "user", text: q, createdAt: Date.now(), scope: scope.snapshot, filters: { ...scope.filters }, mode: requestMode, attachment: target };
@@ -111,8 +128,9 @@ async function submit() {
   controller = new AbortController();
   try {
     const body = requestMode === "demo" ? stream() : (await askStream({
-      question: q, filters: scope.filters, timezone: "Asia/Shanghai", answer_mode: "concise",
-      client_request_id: id(), history: boundedHistory(c.messages, u.id), event_ids: target ? [target.id] : undefined,
+      question: q, filters: scope.filters, timezone: "Asia/Shanghai", answer_mode: preferences?.length || "concise",
+      client_request_id: id(), history: boundedHistory(contextMessages(c,requestMode), u.id), event_ids: target ? [target.id] : undefined,
+      ...(preferences ? {preferences} : {}), ...optionalMemory,
     }, controller.signal)).body!;
     for await (const e of parseSse(body, controller.signal)) {
       if (current !== generation || activeId.value !== c.id) return;
@@ -185,6 +203,7 @@ watch(assistantScope,s=>{pendingScope.value=clone(s);if(!running.value&&messages
 <div v-for="x in conversations" :key="x.id" class="history-row" :class="{active:x.id===activeId}">
 <button class="history-title" data-testid="history-item" :data-conversation-id="x.id" :title="x.title" :aria-current="x.id===activeId?'true':undefined" @click="selectConversation(x.id); compact && (historyOpen=false)">{{x.title}}</button>
 <button class="history-more icon-button quiet-button" data-testid="history-more" :aria-label="tr('{title} 的更多操作', 'More actions for {title}', { title: x.title })" :aria-expanded="menuTarget===x.id" @click="showMenu($event,x.id)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+<AssistantMemory v-if="active" :key="active.id" :summary="memorySummary" :preferences="active.preferences" :selected="memorySelected" :recent-turns="recentMemoryTurns" :busy="running" @select="chooseSummary" @save="savePreferences" @forget="forgetPreferences" @clear="clearContext" />
 <p class="meta history-local-note">{{ tr("会话仅保存在此浏览器", "Conversations are stored only in this browser") }}</p>
 </aside></aside></Transition>
 <Teleport to="body"><div v-if="menuTarget" class="conversation-menu" :style="menuPosition" :aria-label="tr('会话操作', 'Conversation actions')"><button @click="rename(menuTarget)">{{ tr("重命名", "Rename") }}</button><button @click="exportActive(menuTarget)">{{ tr("导出会话", "Export conversation") }}</button><button class="danger" @click="remove(menuTarget)">{{ tr("删除会话", "Delete conversation") }}</button></div>

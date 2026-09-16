@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
+from .research_memory import ConversationMemory, ReplyPreferences
+
 
 class Category(StrEnum):
     MODEL_RELEASE = "model_release"
@@ -168,6 +170,9 @@ class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     filters: Filters = Field(default_factory=Filters)
     history: list[ConversationMessage] = Field(default_factory=list, max_length=6)
+    memory: ConversationMemory | None = None
+    memory_consent: Literal["send_once"] | None = None
+    preferences: ReplyPreferences | None = None
     event_ids: list[UUID] = Field(default_factory=list, max_length=3)
     timezone: str = "Asia/Shanghai"
     answer_mode: str = "concise"
@@ -175,6 +180,8 @@ class AskRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_context(self) -> Self:
+        if (self.memory is None) != (self.memory_consent is None):
+            raise ValueError("a summary requires explicit single-request consent")
         if sum(len(item.content) for item in self.history) > 12000:
             raise ValueError("history content must not exceed 12000 characters")
         self.event_ids = list(dict.fromkeys(self.event_ids))

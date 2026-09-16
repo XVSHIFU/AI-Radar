@@ -23,6 +23,7 @@ from .research_gateway import ResearchSession
 from .research_guard import ResearchGuard, ResearchRejected, canonical
 from .research_http import ResearchSessions
 from .research_ledger import PostgresResearchLedger
+from .research_memory import prompt_memory
 from .research_policy import ANSWER_CONTRACT, ResearchPolicy
 from .research_stream import ResearchModelStream, strict_json
 from .research_tools import ResearchTools, research_scope
@@ -135,29 +136,49 @@ async def runtime_events(
 
 
 def make_research_prompt(payload: AskRequest, plan: QueryPlan, tools: ResearchTools) -> str:
-    # Local bounded context, not a paid auto-summary or a permanent server transcript.
+    # Keep whole user/assistant pairs; truncation must not invent an orphan reply.
+    pairs: list[list[dict[str, Any]]] = []
+    user = None
+    for message in payload.history:
+        if message.role == "user":
+            user = message
+        elif user is not None:
+            pairs.append(
+                [
+                    {
+                        "role": "user",
+                        "content": user.content[:1000],
+                        "filters": user.filters.model_dump(mode="json") if user.filters else None,
+                    },
+                    {"role": "assistant", "content": message.content[:1000], "filters": None},
+                ]
+            )
+            user = None
     history: list[dict[str, Any]] = []
-    for message in reversed(payload.history):
-        item = {
-            "role": message.role,
-            "content": message.content,
-            "filters": message.filters.model_dump(mode="json") if message.filters else None,
-        }
-        if len(canonical([item, *history]).encode("utf-8")) > 4800:
-            break
-        history.insert(0, item)
+    for pair in reversed(pairs[-3:]):
+        while len(canonical([*pair, *history]).encode("utf-8")) > 4800:
+            longest = max(pair, key=lambda item: len(item["content"]))
+            if len(longest["content"]) <= 100:
+                break
+            longest["content"] = longest["content"][: len(longest["content"]) // 2]
+        if len(canonical([*pair, *history]).encode("utf-8")) <= 4800:
+            history = [*pair, *history]
     return canonical(
         {
             "question": payload.question,
             "history_untrusted": history,
             "history_omitted": len(payload.history) - len(history),
+            "memory_untrusted": prompt_memory(payload.memory, payload.memory_consent),
+            "reply_preferences": payload.preferences.model_dump() if payload.preferences else None,
             "scope": {
                 "filters": plan.filters.model_dump(mode="json"),
                 "as_of": tools.as_of,
                 "business_date": plan.business_date.isoformat(),
                 "timezone": plan.timezone,
             },
-            "answer_mode": payload.answer_mode,
+            "answer_mode": payload.preferences.length
+            if payload.preferences
+            else payload.answer_mode,
         }
     )
 
