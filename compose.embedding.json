@@ -1,0 +1,27 @@
+{
+  "services": {
+    "api": {
+      "image": "ai-radar-embedding:${RADAR_RELEASE:?Set a unique release ID}",
+      "build": {
+        "target": "embedding"
+      },
+      "environment": {
+        "EMBEDDING_MODEL_DIR": "/opt/radar-embedding",
+        "EMBEDDING_MODEL_REVISION": "7698c0c30eafe2736771e96d733545270cdec56f"
+      },
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${RADAR_EMBEDDING_MODEL_DIR:-/nonexistent/radar-embedding}",
+          "target": "/opt/radar-embedding",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "mem_limit": "2g",
+      "cpus": 2.0
+    }
+  }
+}

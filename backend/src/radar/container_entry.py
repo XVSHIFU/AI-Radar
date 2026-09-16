@@ -21,6 +21,10 @@ DB_USERS = {
     "quota-cleaner": "radar_api",
     "migrate": "radar_owner",
     "register-sources": "radar_ingest",
+    "history-discover": "radar_ingest",
+    "history-extract": "radar_ingest",
+    "embedding-index": "radar_ingest",
+    "embedding-activate": "radar_ingest",
 }
 API_SECRETS = {
     "ADMIN_TOKEN": "admin_token",
@@ -92,6 +96,21 @@ def environment(role: str, inherited: Mapping[str, str]) -> dict[str, str]:
         result["SANDBOX_CONTROLLER_URL"] = "http://sandbox-controller:8092"
     else:
         result["RESEARCH_AGENT_ENABLED"] = "false"
+    if role in {"history-discover", "history-extract"}:
+        for key in ("RADAR_HISTORY_FROM", "RADAR_HISTORY_TO"):
+            result[key] = inherited[key]
+    if role in {"embedding-index", "embedding-activate"} or (
+        role == "api" and inherited.get("EMBEDDING_MODEL_DIR")
+    ):
+        from .container_model import MODEL_ROOT, REVISION
+
+        if inherited.get("EMBEDDING_MODEL_DIR") != str(MODEL_ROOT):
+            raise ValueError("fixed embedding mount required")
+        if inherited.get("EMBEDDING_MODEL_REVISION") != REVISION:
+            raise ValueError("verified embedding revision required")
+        result["EMBEDDING_MODEL_DIR"] = str(MODEL_ROOT)
+        result["EMBEDDING_MODEL_REVISION"] = REVISION
+        result["EMBEDDING_THREADS"] = "4"
     return result
 
 
@@ -118,6 +137,10 @@ def command(role: str) -> list[str]:
         "migrate": [sys.executable, "-m", "alembic", "upgrade", "head"],
         "register-sources": [sys.executable, "-m", "radar.register_sources"],
     }
+    if role in {"history-discover", "history-extract", "embedding-index"}:
+        return [sys.executable, "-m", "radar.container_maintenance", role]
+    if role == "embedding-activate":
+        return [sys.executable, "-m", "radar.embedding_indexer", "--limit", "500", "--activate"]
     if role not in commands:
         raise ValueError("unsupported container command")
     return commands[role]
@@ -139,7 +162,7 @@ def main() -> None:
     role = parser.parse_args().role
     try:
         values = environment(role, os.environ)
-    except (OSError, ValueError, UnicodeError):
+    except (OSError, ValueError, UnicodeError, KeyError):
         raise SystemExit("container_credentials_invalid") from None
     os.environ.clear()
     os.environ.update(values)
@@ -147,11 +170,19 @@ def main() -> None:
     os.chdir("/app/backend")
     # Same-host stack slots must share this external volume. Restored databases
     # on another host still require deployment-level fencing before promotion.
-    if role in {"api", "worker", "scheduler", "quota-cleaner", "migrate"}:
+    if role != "register-sources":
         from .service_lock import acquire_lock
 
-        lock = acquire_lock(Path("/run/radar-service-locks") / (role + ".lock"))
+        lock_name = "embedding-index" if role == "embedding-activate" else role
+        lock = acquire_lock(Path("/run/radar-service-locks") / (lock_name + ".lock"))
         os.set_inheritable(lock.fileno(), True)
+    if values.get("EMBEDDING_MODEL_DIR"):
+        from .container_model import verify_model
+
+        try:
+            verify_model()
+        except (OSError, ValueError):
+            raise SystemExit("embedding_model_unverified") from None
     if role == "quota-cleaner":
         asyncio.run(quota_loop())
     else:

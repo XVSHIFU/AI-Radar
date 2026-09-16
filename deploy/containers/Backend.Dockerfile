@@ -4,7 +4,7 @@ WORKDIR /app/backend
 COPY deploy/containers/backend-requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt && rm /tmp/requirements.txt
 RUN groupadd -g 10001 radar && useradd -u 10001 -g radar -M -d /nonexistent radar \
-    && install -d -o radar -g radar -m 0700 /var/lib/radar-model /run/radar-service-locks /run/radar-control \
+    && install -d -o radar -g radar -m 0700 /var/lib/radar-model /run/radar-service-locks /run/radar-control /app/.run \
     && install -d -m 0755 /opt/ai-radar/gvisor/20260907.0
 COPY backend/src ./src
 COPY backend/app ./app
@@ -20,3 +20,10 @@ FROM backend AS controller
 COPY --from=docker-cli /usr/local/bin/docker /usr/bin/docker
 ENTRYPOINT ["python", "-m", "radar.sandbox_container"]
 CMD []
+
+FROM backend AS embedding
+USER 0
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 libstdc++6 && rm -rf /var/lib/apt/lists/*
+COPY deploy/containers/embedding-requirements.txt /tmp/embedding-requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r /tmp/embedding-requirements.txt && rm /tmp/embedding-requirements.txt
+USER 10001:10001
