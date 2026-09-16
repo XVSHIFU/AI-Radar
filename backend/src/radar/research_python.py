@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -62,14 +62,18 @@ class ResearchPython:
         self.guard.check(self.guard.capability)
         records = self.artifacts.publish(self.guard.owner_hash, self.guard.run_id, ids, result)
         # Keep the model's tool response within its independent 32 KiB budget.
-        stdout = result.stdout.encode()
+        stdout = result.stdout[:4096]
+        while len(canonical(stdout).encode()) > 16384:
+            stdout = stdout[: len(stdout) // 2]
         return {
-            "stdout": stdout[:16384].decode("utf-8", errors="ignore"),
-            "stdout_truncated": len(stdout) > 16384,
+            "stdout": stdout,
+            "stdout_truncated": stdout != result.stdout,
             "dataset_ids": list(ids),
             "artifacts": [
                 {
                     "id": str(item.id),
+                    "run_id": str(item.run_id),
+                    "expires_at": (datetime.now(UTC) + timedelta(seconds=900)).isoformat(),
                     "name": item.file.name,
                     "mime": item.file.mime,
                     "size_bytes": len(item.file.content),

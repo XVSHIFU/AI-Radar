@@ -21,7 +21,7 @@ export const TOOL_NAMES = [
   "build_chart",
   "load_research_skill",
 ] as const;
-export type ToolName = (typeof TOOL_NAMES)[number];
+export type ToolName = (typeof TOOL_NAMES)[number] | "run_python";
 export type BrokerDelta =
   | { type: "text"; text: string }
   | {
@@ -55,7 +55,7 @@ export type PublicEvent =
       phase: "started" | "finished";
       failed?: boolean;
     };
-export type RunInput = { system: string; prompt: string; maxOutput: number };
+export type RunInput = { system: string; prompt: string; maxOutput: number; pythonEnabled?: boolean };
 const object = (fields: Parameters<typeof Type.Object>[0]) =>
   Type.Object(fields, { additionalProperties: false });
 const date = Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" });
@@ -135,10 +135,18 @@ const definitions = [
         Type.Literal("explain-event"),
         Type.Literal("compare-periods"),
         Type.Literal("verify-evidence"),
+        Type.Literal("analyze-dataset"),
       ]),
     }),
   },
 ] as const;
+
+const pythonDefinition = {
+  name: "run_python" as const,
+  description: "Analyze datasets returned in this run using isolated Python, once per run. No host or network access. Save JSON/CSV/PNG in output_dir and cite the returned citation_index.",
+  parameters: object({ code: Type.String({ minLength: 1, maxLength: 16384 }),
+    dataset_ids: Type.Array(id, { minItems: 1, maxItems: 4, uniqueItems: true }) }),
+};
 
 const MODEL: Model<"openai-completions"> = {
   id: "server-configured",
@@ -197,6 +205,7 @@ export async function runResearch(
     throw new Error("INVALID_ARGUMENT");
   let calls = 0,
     business = 0,
+    python = 0,
     skills = 0,
     inputCharge = 0,
     outputCharge = 0,
@@ -338,7 +347,8 @@ export async function runResearch(
     })();
     return stream;
   };
-  const tools: AgentTool[] = definitions.map((definition) => ({
+  const enabledDefinitions = [...definitions, ...(input.pythonEnabled ? [pythonDefinition] : [])];
+  const tools: AgentTool[] = enabledDefinitions.map((definition) => ({
     ...definition,
     label: definition.name,
     execute: async (callId, args, toolSignal) => {
@@ -349,6 +359,10 @@ export async function runResearch(
       const isSkill = definition.name === "load_research_skill";
       if (calls >= 3 || (isSkill ? skills >= 2 : business >= 4))
         throw new Error("BUDGET_EXCEEDED");
+      if (definition.name === "run_python") {
+        if (python >= 1) throw new Error("BUDGET_EXCEEDED");
+        python++;
+      }
       if (isSkill) skills++;
       else business++;
       try {
@@ -380,7 +394,7 @@ export async function runResearch(
     if (event.type === "tool_execution_start")
       await emit({
         type: "tool",
-        name: TOOL_NAMES.includes(event.toolName as ToolName)
+        name: (TOOL_NAMES as readonly string[]).includes(event.toolName) || event.toolName === "run_python"
           ? event.toolName
           : "unsupported",
         phase: "started",
@@ -388,7 +402,7 @@ export async function runResearch(
     if (event.type === "tool_execution_end")
       await emit({
         type: "tool",
-        name: TOOL_NAMES.includes(event.toolName as ToolName)
+        name: (TOOL_NAMES as readonly string[]).includes(event.toolName) || event.toolName === "run_python"
           ? event.toolName
           : "unsupported",
         phase: "finished",

@@ -221,7 +221,9 @@ export type ResearchDataset = {
   excluded_unverified_dates?: number; zero_baseline?: boolean;
 };
 export type Citation = {
-  kind?: "evidence" | "dataset";
+  kind?: "evidence" | "dataset" | "analysis";
+  datasets?: ResearchDataset[];
+  analysis?: { code?: string; stdout: string; stdout_truncated: boolean };
   dataset?: ResearchDataset;
   index: number;
   source_url: string;

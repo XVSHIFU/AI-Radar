@@ -18,6 +18,7 @@ from .postgres_repository import PostgresRepository
 from .public_assistant import PublicRun
 from .qa_service import QaError
 from .qa_stream_service import sse
+from .research_artifacts import ArtifactStore
 from .research_gateway import ResearchSession
 from .research_guard import ResearchGuard, ResearchRejected, canonical
 from .research_http import ResearchSessions
@@ -25,6 +26,7 @@ from .research_ledger import PostgresResearchLedger
 from .research_policy import ANSWER_CONTRACT, ResearchPolicy
 from .research_stream import ResearchModelStream, strict_json
 from .research_tools import ResearchTools, research_scope
+from .sandbox_client import SandboxClient
 from .schemas import AskRequest, QueryPlan
 
 
@@ -51,7 +53,12 @@ def runtime_client(origin: str, token: str) -> httpx.AsyncClient:
 
 
 async def research_preflight(
-    client: httpx.AsyncClient, plan: QueryPlan, settings: Settings, policy: ResearchPolicy
+    client: httpx.AsyncClient,
+    plan: QueryPlan,
+    settings: Settings,
+    policy: ResearchPolicy,
+    *,
+    sandbox: SandboxClient | None = None,
 ) -> None:
     if plan.requires_clarification:
         raise QaError(
@@ -70,9 +77,14 @@ async def research_preflight(
             or not isinstance(health, dict)
             or health.get("status") != "ready"
             or health.get("policy_digest") != policy.digest
+            or health.get("python", False) is not policy.contract["python"]["enabled"]
         ):
             raise ValueError("runtime not ready")
-    except (httpx.HTTPError, ValueError) as exc:
+        if policy.contract["python"]["enabled"]:
+            if sandbox is None:
+                raise ResearchRejected("SANDBOX_UNAVAILABLE")
+            await sandbox.ready(settings.sandbox_image_id)
+    except (httpx.HTTPError, ValueError, ResearchRejected) as exc:
         raise QaError("MODEL_UNAVAILABLE", "研究服务暂不可用，请稍后再试。", 503) from exc
 
 
@@ -187,8 +199,15 @@ async def research_answer_stream(
     runtime: httpx.AsyncClient,
     *,
     provider_transport: httpx.AsyncBaseTransport | None = None,
+    sandbox: SandboxClient | None = None,
+    artifacts: ArtifactStore | None = None,
 ) -> AsyncGenerator[bytes, None]:
-    guard = ResearchGuard(run.reservation.id, run.owner, run.reservation.deadline)
+    guard = ResearchGuard(
+        run.reservation.id,
+        run.owner,
+        run.reservation.deadline,
+        python_enabled=policy.contract["python"]["enabled"],
+    )
     provider = ResearchModelStream(
         settings.llm_api_key or "",
         base_url=settings.llm_base_url,
@@ -203,12 +222,17 @@ async def research_answer_stream(
     result = None
     try:
         async with research_scope(repository, guard, plan.filters, policy.skills) as tools:
+            if guard.python_enabled:
+                if sandbox is None or artifacts is None:
+                    raise ResearchRejected("SANDBOX_UNAVAILABLE")
+                tools.attach_python(sandbox, artifacts)
             total = await tools._count()
             yield sse(
                 "meta",
                 {
                     "request_id": str(plan.request_id),
                     "protocol_version": 2,
+                    "run_id": str(guard.run_id),
                     "query_plan_public": plan.model_dump(mode="json"),
                     "data_mode": "postgres",
                     "as_of": tools.as_of,
@@ -289,7 +313,20 @@ async def research_answer_stream(
             event_ids = {
                 source["event_id"] for source in sources if source.get("kind") == "evidence"
             }
+            cited_indices = {source["index"] for source in sources}
             yield sse("sources", {"items": sources})
+            if guard.python_enabled:
+                yield sse(
+                    "artifacts",
+                    {
+                        "run_id": str(guard.run_id),
+                        "items": [
+                            item
+                            for item in tools.artifacts
+                            if item["citation_index"] in cited_indices
+                        ],
+                    },
+                )
             yield sse(
                 "done",
                 {

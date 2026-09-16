@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from typing import Any
 from uuid import UUID
 
@@ -29,6 +30,50 @@ class SandboxClient:
         ):
             raise ValueError("sandbox service token required")
         self.client, self.url, self.token = client, url, token
+
+    async def ready(self, image_id: str | None) -> None:
+        if image_id is None or not re.fullmatch(r"sha256:[a-f0-9]{64}", image_id):
+            raise ResearchRejected("SANDBOX_UNAVAILABLE")
+        try:
+            async with asyncio.timeout(3):
+                async with self.client.stream(
+                    "GET",
+                    self.url + "/health",
+                    timeout=3,
+                    follow_redirects=False,
+                    headers={
+                        "Authorization": "Bearer " + self.token,
+                        "Accept-Encoding": "identity",
+                    },
+                ) as response:
+                    if (
+                        response.status_code != 200
+                        or response.headers.get("content-encoding", "identity") != "identity"
+                    ):
+                        raise ResearchRejected("SANDBOX_UNAVAILABLE")
+                    raw = bytearray()
+                    async for chunk in response.aiter_bytes(chunk_size=1024):
+                        if len(raw) + len(chunk) > 4096:
+                            raise ResearchRejected("SANDBOX_UNAVAILABLE")
+                        raw.extend(chunk)
+                    from .research_stream import strict_json
+
+                    health = strict_json(bytes(raw).decode())
+                    if not isinstance(health, dict) or any(
+                        health.get(key) != value
+                        for key, value in {
+                            "status": "ready",
+                            "runtime": "gvisor",
+                            "image_id": image_id,
+                            "runsc_sha256": (
+                                "3e0df2fa28f6ff5430b004f92573b81b75f442f78c780e0c85fdf6c2d572817a"
+                            ),
+                            "watchdog": "ready",
+                        }.items()
+                    ):
+                        raise ResearchRejected("SANDBOX_UNAVAILABLE")
+        except (httpx.HTTPError, ValueError, UnicodeError, RecursionError, TimeoutError) as exc:
+            raise ResearchRejected("SANDBOX_UNAVAILABLE") from exc
 
     async def run(self, job_id: UUID, code: str, datasets: list[dict[str, Any]]) -> SandboxResult:
         sandbox_input(code, datasets)

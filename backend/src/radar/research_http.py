@@ -38,6 +38,7 @@ class _ToolRequest(_Request):
         "compare_periods",
         "build_chart",
         "load_research_skill",
+        "run_python",
     ]
     args: dict[str, Any]
     call_id: str = Field(min_length=1, max_length=128, pattern=r"^[a-zA-Z0-9_-]+$")

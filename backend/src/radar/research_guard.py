@@ -57,7 +57,9 @@ class RequestedTool:
 
 
 class ResearchGuard:
-    def __init__(self, run_id: UUID, owner_hash: str, deadline: datetime) -> None:
+    def __init__(
+        self, run_id: UUID, owner_hash: str, deadline: datetime, *, python_enabled: bool = False
+    ) -> None:
         if not HEX_KEY.fullmatch(owner_hash) or deadline.tzinfo is None:
             raise ValueError("server-owned run identity required")
         self.run_id = run_id
@@ -70,6 +72,8 @@ class ResearchGuard:
         self.model_calls = 0
         self.input_charge = 0
         self.output_charge = 0
+        self.python_enabled = python_enabled
+        self.python_calls = 0
         self.business_calls = 0
         self.skill_calls = 0
         self._pending: dict[str, RequestedTool] = {}
@@ -166,7 +170,7 @@ class ResearchGuard:
             # Consume the provider call even when refused. It cannot be retried under another name.
             del self._pending[call_id]
             self._finished.add(call_id)
-            if name not in ALLOWED_TOOLS:
+            if name not in ALLOWED_TOOLS and not (name == "run_python" and self.python_enabled):
                 raise ResearchRejected("TOOL_UNAVAILABLE")
             is_skill = name == "load_research_skill"
             if self.input_charge > 24000 or self.output_charge > 4800:
@@ -175,6 +179,10 @@ class ResearchGuard:
                 self.skill_calls >= 2 if is_skill else self.business_calls >= 4
             ):
                 raise ResearchRejected("BUDGET_EXCEEDED")
+            if name == "run_python":
+                if self.python_calls >= 1:
+                    raise ResearchRejected("BUDGET_EXCEEDED")
+                self.python_calls += 1
             if is_skill:
                 self.skill_calls += 1
             else:

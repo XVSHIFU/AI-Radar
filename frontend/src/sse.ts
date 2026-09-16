@@ -1,3 +1,5 @@
+import { artifactsFrom } from "./research-artifacts";
+
 export type SseEvent = { event: string; data: string };
 
 export async function* parseSse(
@@ -16,6 +18,9 @@ export async function* parseSse(
   let protocolVersion = 1;
   let turn = 0;
   let tokenSequence = 0;
+  let runId: string | undefined;
+  let citationIndices: number[] = [];
+  let sawArtifacts = false;
   const abort = () => void reader.cancel("aborted");
   signal?.addEventListener("abort", abort, { once: true });
   const emit = (): SseEvent | null => {
@@ -28,7 +33,7 @@ export async function* parseSse(
   const validate = (value: SseEvent) => {
     if (sawDone) throw new Error("done 后收到额外事件");
     if (
-      !["meta", "status", "reset", "token", "sources", "error", "done"].includes(
+      !["meta", "status", "reset", "token", "sources", "artifacts", "error", "done"].includes(
         value.event,
       )
     )
@@ -37,6 +42,7 @@ export async function* parseSse(
       const version = JSON.parse(value.data).protocol_version ?? 1;
       if (![1, 2].includes(version)) throw new Error("不支持的 SSE 协议版本");
       protocolVersion = version;
+      runId = JSON.parse(value.data).run_id;
     }
     if (value.event === "reset") {
       const payload = JSON.parse(value.data);
@@ -54,7 +60,17 @@ export async function* parseSse(
     if (value.event === "token" && sawSources)
       throw new Error("sources 后不能再发送 token");
     if (value.event === "error") sawError = true;
-    if (value.event === "sources") sawSources = true;
+    if (value.event === "sources") {
+      sawSources = true;
+      citationIndices = (JSON.parse(value.data).items || []).map((item: { index: number }) => item.index);
+    }
+    if (value.event === "artifacts") {
+      const payload = JSON.parse(value.data);
+      if (protocolVersion !== 2 || !runId || payload.run_id !== runId || !sawSources || sawError || sawArtifacts)
+        throw new Error("Invalid artifact event order");
+      artifactsFrom(payload.items, runId, citationIndices);
+      sawArtifacts = true;
+    }
     if (value.event === "done") {
       if (sawDone) throw new Error("重复 done 事件");
       const status = JSON.parse(value.data).status;

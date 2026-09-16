@@ -16,7 +16,9 @@ test("runtime refuses relaxed or incorrectly typed permission contracts", async 
     (p: any) => p.limits.model_calls_per_run = 4,
     (p: any) => p.memory.shared_user_memory = true,
     (p: any) => p.memory.ip_is_identity = true,
-    (p: any) => p.python.enabled = true,
+    (p: any) => p.python.enabled = 1,
+    (p: any) => p.python.network = "host",
+    (p: any) => p.python.memory_mib = 512,
     (p: any) => p.tools.push("shell"),
     (p: any) => p.forbidden_capabilities = [],
   ]) {

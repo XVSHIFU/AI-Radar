@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     public_assistant_secret: str | None = Field(default=None, min_length=32)
     research_agent_enabled: bool = False
     research_runtime_url: str = "http://127.0.0.1:8081"
+    sandbox_controller_url: str = "http://127.0.0.1:8092"
+    sandbox_controller_token: str | None = Field(default=None, min_length=43, repr=False)
+    sandbox_image_id: str | None = None
     research_runtime_token: str | None = Field(default=None, min_length=32, repr=False)
     assistant_input_per_day: int = Field(default=200_000, ge=24_000)
     assistant_output_per_day: int = Field(default=32_000, ge=4_800)

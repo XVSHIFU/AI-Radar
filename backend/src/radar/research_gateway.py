@@ -85,10 +85,16 @@ class _Chart(_Arguments):
 
 
 class _Skill(_Arguments):
-    name: Literal["explain-event", "compare-periods", "verify-evidence"]
+    name: Literal["explain-event", "compare-periods", "verify-evidence", "analyze-dataset"]
+
+
+class _Python(_Arguments):
+    code: str = Field(min_length=1, max_length=16384)
+    dataset_ids: list[str] = Field(min_length=1, max_length=4)
 
 
 SCHEMAS: dict[str, type[_Arguments]] = {
+    "run_python": _Python,
     "resolve_entities": _Resolve,
     "search_events": _Search,
     "get_event_evidence": _Evidence,
@@ -98,6 +104,11 @@ SCHEMAS: dict[str, type[_Arguments]] = {
     "load_research_skill": _Skill,
 }
 DESCRIPTIONS = {
+    "run_python": (
+        "Analyze only datasets returned in this run, in isolated Python. Once per run; "
+        "numpy/pandas/matplotlib available. Write JSON/CSV/PNG to output_dir; "
+        "cite the returned citation_index. No network or host access."
+    ),
     "resolve_entities": "Resolve names in the authorized scope; report ambiguity.",
     "search_events": "Search the frozen scope; distinguish exact totals from returned pages.",
     "get_event_evidence": "Read frozen evidence and citation IDs for up to three scoped events.",
@@ -108,7 +119,7 @@ DESCRIPTIONS = {
 }
 
 
-def provider_tools() -> list[dict[str, Any]]:
+def provider_tools(*, python_enabled: bool = False) -> list[dict[str, Any]]:
     return [
         {
             "type": "function",
@@ -119,6 +130,7 @@ def provider_tools() -> list[dict[str, Any]]:
             },
         }
         for name, schema in SCHEMAS.items()
+        if name != "run_python" or python_enabled
     ]
 
 
@@ -214,7 +226,7 @@ class ResearchSession:
             raise ResearchRejected("RUN_EXPIRED")
         request = self.provider.request_body(
             self._messages,
-            provider_tools() if sequence < 3 else [],
+            provider_tools(python_enabled=self.guard.python_enabled) if sequence < 3 else [],
             min(max_output, self.provider.max_tokens),
         )
         lease = await self.guard.reserve_model(capability, sequence, request, max_output)
@@ -247,7 +259,7 @@ class ResearchSession:
             invalid: dict[str, str] = {}
             for call in calls:
                 schema = SCHEMAS.get(call.name)
-                if schema is None:
+                if schema is None or (call.name == "run_python" and not self.guard.python_enabled):
                     invalid[call.id] = "TOOL_UNAVAILABLE"
                 else:
                     try:

@@ -19,6 +19,7 @@ from .qa_service import QaError
 from .qa_stream_service import sse
 from .repository import EventRepository
 from .research_service import research_answer_stream, research_preflight, runtime_client
+from .sandbox_client import SandboxClient
 from .schemas import AskRequest, QueryPlan
 
 
@@ -40,6 +41,7 @@ async def public_research_response(
             },
         )
     runtime = None
+    sandbox = None
     run = None
     admitted = False
     admission = request.app.state.ask_admission.slot(
@@ -52,7 +54,15 @@ async def public_research_response(
         )
         admission.__enter__()
         admitted = True
-        await research_preflight(runtime, plan, settings, request.app.state.research_policy)
+        if request.app.state.research_policy.contract["python"]["enabled"]:
+            sandbox = SandboxClient(
+                runtime, settings.sandbox_controller_url, settings.sandbox_controller_token or ""
+            )
+            await research_preflight(
+                runtime, plan, settings, request.app.state.research_policy, sandbox=sandbox
+            )
+        else:
+            await research_preflight(runtime, plan, settings, request.app.state.research_policy)
         run = await begin_public_run(request, payload, plan)
         if run is None:
             raise QaError("MODEL_UNAVAILABLE", "研究服务需要持久化配额。", 503)
@@ -97,6 +107,8 @@ async def public_research_response(
                     request.app.state.research_sessions,
                     runtime,
                     provider_transport=getattr(request.app.state, "answer_stream_transport", None),
+                    sandbox=sandbox,
+                    artifacts=getattr(request.app.state, "research_artifacts", None),
                 )
                 async with aclosing(stream):
                     async for frame in stream:
@@ -144,6 +156,8 @@ async def public_research_response(
                 result["answer"] += item["text"]
             elif name == "event: sources":
                 result["citations"] = item["items"]
+            elif name == "event: artifacts":
+                result["artifacts"] = item["items"]
             elif name == "event: done":
                 result.update(item)
                 result["execution_status"] = "completed"

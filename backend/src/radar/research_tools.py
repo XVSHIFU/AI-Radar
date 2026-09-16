@@ -23,18 +23,23 @@ from sqlalchemy.orm import aliased, selectinload
 from .models import EntityAliasRow, EntityRow, EventEntityRow, EventRow, EvidenceRow
 from .normalize import normalize_text
 from .postgres_repository import PostgresRepository
+from .research_artifacts import ArtifactStore
 from .research_gateway import SCHEMAS
 from .research_guard import ResearchGuard, ResearchRejected, canonical
+from .research_python import ResearchPython
+from .sandbox_client import SandboxClient
 from .schemas import Category, Evidence, Filters
 
 SKILL_NAMES = ("explain-event", "compare-periods", "verify-evidence")
 
 
-def load_research_skills(packaged_root: Path) -> dict[str, dict[str, str]]:
+def load_research_skills(
+    packaged_root: Path, *, python_enabled: bool = False
+) -> dict[str, dict[str, str]]:
     """Call at startup with a deployment-owned path, never a tool parameter."""
     result = {}
     root = packaged_root.resolve(strict=True)
-    for name in SKILL_NAMES:
+    for name in (*SKILL_NAMES, *(("analyze-dataset",) if python_enabled else ())):
         path = root / "skills" / name / "SKILL.md"
         if path.is_symlink() or not path.resolve(strict=True).is_relative_to(root):
             raise ValueError("skill must be a packaged file")
@@ -102,6 +107,47 @@ class ResearchTools:
         self.sources: dict[int, dict[str, Any]] = {}
         self.retrieved_events: set[str] = set()
         self._closed = False
+        self._python: ResearchPython | None = None
+        self.artifacts: list[dict[str, Any]] = []
+
+    def attach_python(self, client: SandboxClient, artifacts: ArtifactStore) -> None:
+        self._check()
+        if not self.guard.python_enabled or self._python is not None:
+            raise ResearchRejected("TOOL_UNAVAILABLE")
+        self._python = ResearchPython(self.guard, self._datasets, client, artifacts)
+
+    async def _run_python(self, args: dict[str, Any]) -> dict[str, Any]:
+        if self._python is None:
+            raise ResearchRejected("TOOL_UNAVAILABLE")
+        result = await self._python.execute(args)
+        self._check()
+        index = len(self.sources) + 1
+        datasets = [self._datasets[key] for key in args["dataset_ids"]]
+        source = {
+            "index": index,
+            "kind": "analysis",
+            "title": "Python analysis",
+            "source_url": "",
+            "dataset": datasets[0],
+            "datasets": datasets,
+            "input_citation_indices": [item["citation_index"] for item in datasets],
+            "analysis": {
+                "code": args["code"],
+                "stdout": result["stdout"],
+                "stdout_truncated": result["stdout_truncated"],
+            },
+        }
+        self.sources[index] = source
+        self.artifacts = [
+            {
+                **item,
+                "citation_index": index,
+                "dataset_ids": result["dataset_ids"],
+                **self._metadata(),
+            }
+            for item in result["artifacts"]
+        ]
+        return {**result, "citation_index": index, **self._metadata()}
 
     def _check(self) -> None:
         self.guard.check(self.guard.capability)
@@ -123,7 +169,9 @@ class ResearchTools:
         if schema is None:
             raise ResearchRejected("TOOL_UNAVAILABLE")
         args = schema.model_validate(arguments).model_dump(by_alias=True)
-        if name == "search_events":
+        if name == "run_python":
+            result = await self._run_python(args)
+        elif name == "search_events":
             result = await self._search(args)
         elif name == "aggregate_events":
             result = await self._aggregate(args)

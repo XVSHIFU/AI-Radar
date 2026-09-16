@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .research_guard import ALLOWED_TOOLS
+from .research_guard import ALLOWED_TOOLS, canonical
 from .research_tools import load_research_skills
 
 LIMITS = {
@@ -24,6 +24,30 @@ LIMITS = {
     "automatic_paid_retries": 0,
     "global_concurrent_runs": 2,
 }
+PYTHON_LIMITS = {
+    "network": "none",
+    "read_only_rootfs": True,
+    "non_root": True,
+    "drop_all_capabilities": True,
+    "no_new_privileges": True,
+    "host_mounts": False,
+    "docker_socket": False,
+    "cpu_cores": 1,
+    "memory_mib": 256,
+    "pids": 32,
+    "execution_seconds": 10,
+    "job_deadline_seconds": 30,
+    "scratch_mib": 32,
+    "input_bytes": 2097152,
+    "dataset_rows": 10000,
+    "code_bytes": 16384,
+    "stdout_bytes": 65536,
+    "artifact_bytes": 1048576,
+    "artifact_types": ["application/json", "text/csv", "image/png"],
+    "requires_isolation_verification": True,
+    "guest_tasks": 2,
+}
+
 FORBIDDEN = {
     "shell",
     "host_files",
@@ -86,13 +110,20 @@ class ResearchPolicy:
             or type(memory.get("summary_tokens")) is not int
             or not FORBIDDEN.issubset(contract.get("forbidden_capabilities", []))
             or set(contract.get("tools", [])) != ALLOWED_TOOLS | {"run_python"}
-            or contract.get("python", {}).get("enabled") is not False
+            or type(python.get("enabled")) is not bool
+            or canonical({key: value for key, value in python.items() if key != "enabled"})
+            != canonical(PYTHON_LIMITS)
             or contract.get("memory", {}).get("server_persistent_transcripts") is not False
             or contract.get("memory", {}).get("summary_tokens") != 1200
         ):
             raise ValueError("research policy does not match the implemented safety gates")
         digest = hashlib.sha256(raw + b"\0" + system).hexdigest()
-        return cls(system.decode("utf-8"), load_research_skills(root), contract, digest)
+        return cls(
+            system.decode("utf-8"),
+            load_research_skills(root, python_enabled=python["enabled"]),
+            contract,
+            digest,
+        )
 
 
 ANSWER_CONTRACT = """

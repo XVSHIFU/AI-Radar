@@ -15,6 +15,7 @@ type Configuration = {
   token: string;
   system: string;
   policyDigest?: string;
+  pythonEnabled?: boolean;
   broker: (capability: string) => Broker;
   deadlineMs?: number;
 };
@@ -47,7 +48,7 @@ export function createRuntimeServer(config: Configuration) {
   let active = 0;
   return createServer(async (request, response) => {
     if (request.url === "/health" && request.method === "GET") {
-      response.end(JSON.stringify({status: "ready", runtime: "pi-agent-core", python: false,
+      response.end(JSON.stringify({status: "ready", runtime: "pi-agent-core", python: config.pythonEnabled ?? false,
         policy_digest: config.policyDigest}));
       return;
     }
@@ -108,7 +109,7 @@ export function createRuntimeServer(config: Configuration) {
           await once(response, "drain", { signal: controller.signal });
       };
       const result = await runResearch(
-        { system: config.system, prompt: p.prompt, maxOutput: p.max_output },
+        { system: config.system, prompt: p.prompt, maxOutput: p.max_output, pythonEnabled: config.pythonEnabled },
         broker,
         write,
         controller.signal,
@@ -153,6 +154,7 @@ if (
     token,
     system: policy.system,
     policyDigest: policy.digest,
+    pythonEnabled: policy.pythonEnabled,
     broker: (capability) => httpBroker(origin, capability),
   });
   server.requestTimeout = 90000;
