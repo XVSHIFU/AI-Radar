@@ -30,7 +30,13 @@ def service_token(token: str) -> str:
     return token
 
 
-def controller_app(executor: Executor, token: str) -> FastAPI:
+class Readiness(Protocol):
+    def snapshot(self) -> dict[str, Any]: ...
+
+
+def controller_app(
+    executor: Executor, token: str, *, readiness: Readiness | None = None
+) -> FastAPI:
     expected = "Bearer " + service_token(token)
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     # Monotonic tombstones include failed/cancelled jobs; no transparent retries.
@@ -42,10 +48,31 @@ def controller_app(executor: Executor, token: str) -> FastAPI:
         if len(values) != 1 or not hmac.compare_digest(values[0].encode(), expected.encode()):
             raise HTTPException(401, detail={"code": "UNAUTHORIZED"})
 
+    @app.get("/health")
+    async def health(request: Request) -> Response:
+        authenticate(request)
+        try:
+            if readiness is None:
+                raise ResearchRejected("SANDBOX_UNAVAILABLE")
+            from .research_guard import canonical
+
+            return Response(
+                canonical(readiness.snapshot()),
+                media_type="application/json",
+                headers={"Cache-Control": "no-store"},
+            )
+        except ResearchRejected as exc:
+            raise HTTPException(503, detail={"code": "SANDBOX_UNAVAILABLE"}) from exc
+
     @app.post("/v1/execute")
     async def execute(request: Request) -> Response:
         nonlocal active
         authenticate(request)
+        if readiness is not None:
+            try:
+                readiness.snapshot()
+            except ResearchRejected as exc:
+                raise HTTPException(503, detail={"code": "SANDBOX_UNAVAILABLE"}) from exc
         if active >= 2:
             raise HTTPException(429, detail={"code": "RUN_BUSY"})
         active += 1

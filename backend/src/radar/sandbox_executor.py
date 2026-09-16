@@ -111,6 +111,10 @@ class SandboxExecutor:
         self._active = 0
         self._healthy = True
 
+    @property
+    def healthy(self) -> bool:
+        return self._healthy
+
     def _create(self, name: str) -> list[str]:
         return [
             "create",
