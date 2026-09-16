@@ -12,7 +12,6 @@ import os
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import BinaryIO
 
 from fastapi import FastAPI
 
@@ -20,20 +19,7 @@ from .sandbox_credentials import read_service_token
 from .sandbox_executor import DockerCommands, SandboxExecutor
 from .sandbox_health import SandboxHealth
 from .sandbox_http import controller_app, service_token
-
-
-def acquire_lock(path: Path) -> BinaryIO:
-    import fcntl
-
-    # Never unlink: replacing the inode would defeat an existing owner's lock.
-    descriptor = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
-    stream = os.fdopen(descriptor, "r+b")
-    try:
-        fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BaseException:
-        stream.close()
-        raise
-    return stream
+from .service_lock import acquire_lock as acquire_lock
 
 
 def production_app(
