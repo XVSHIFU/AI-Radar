@@ -53,6 +53,7 @@ async def test_code_is_only_stdin_and_creation_has_fixed_isolation_and_limits():
         "--memory=256m",
         "--memory-swap=256m",
         "--pids-limit=32",
+        "--ulimit=nproc=2:2",
         "--ipc=none",
         "--cgroupns=private",
         "--restart=no",

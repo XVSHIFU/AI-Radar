@@ -64,7 +64,8 @@
       "image/png"
     ],
     "enabled": false,
-    "requires_isolation_verification": true
+    "requires_isolation_verification": true,
+    "guest_tasks": 2
   },
   "memory": {
     "shared_user_memory": false,

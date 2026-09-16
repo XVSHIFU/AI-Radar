@@ -129,6 +129,7 @@ class SandboxExecutor:
             "--memory=256m",
             "--memory-swap=256m",
             "--pids-limit=32",
+            "--ulimit=nproc=2:2",
             "--ipc=none",
             "--cgroupns=private",
             "--ulimit=cpu=10:10",
