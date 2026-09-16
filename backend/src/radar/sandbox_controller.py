@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import asyncio
 import os
-import stat
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import BinaryIO
 
 from fastapi import FastAPI
 
+from .sandbox_credentials import read_service_token
 from .sandbox_executor import DockerCommands, SandboxExecutor
 from .sandbox_health import SandboxHealth
 from .sandbox_http import controller_app, service_token
@@ -36,11 +36,21 @@ def acquire_lock(path: Path) -> BinaryIO:
     return stream
 
 
-def production_app(image_id: str, token: str, lock_path: Path) -> FastAPI:
+def production_app(
+    image_id: str,
+    token: str,
+    lock_path: Path,
+    *,
+    watchdog: Callable[[], Awaitable[None]] | None = None,
+) -> FastAPI:
     service_token(token)
     commands = DockerCommands()
     executor = SandboxExecutor(commands, image_id)
-    readiness = SandboxHealth(commands, executor)
+    readiness = (
+        SandboxHealth(commands, executor)
+        if watchdog is None
+        else SandboxHealth(commands, executor, watchdog=watchdog)
+    )
     app = controller_app(executor, token, readiness=readiness)
 
     @asynccontextmanager
@@ -68,19 +78,7 @@ def main() -> None:
     # Operator configuration only. The token file is not an executable config;
     # never put the token on argv, in exception messages or in access logs.
     token_path = Path(os.environ["RADAR_SANDBOX_TOKEN_FILE"])
-    info = token_path.lstat()
-    if (
-        not stat.S_ISREG(info.st_mode)
-        or info.st_uid != os.getuid()
-        or info.st_mode & 0o077
-        or info.st_size > 130
-    ):
-        raise ValueError("service credential must be a private operator-owned file")
-    with token_path.open("r", encoding="ascii") as stream:
-        raw = stream.read(131)
-        if len(raw) > 130:
-            raise ValueError("invalid service credential file")
-        token = service_token(raw.strip())
+    token = read_service_token(token_path)
     app = production_app(
         os.environ["RADAR_SANDBOX_IMAGE_ID"],
         token,
