@@ -1,7 +1,8 @@
 """Prepare a private same-host container deployment from existing settings.
 
 Run with the existing backend's Python/PYTHONPATH. Never prints secret values,
-never overwrites a data directory, and never starts services or calls a model.
+requires new directories unless explicitly resuming preparation, and never
+starts services or calls a model.
 """
 
 import argparse
@@ -16,6 +17,7 @@ import subprocess
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--resume-preparation', action='store_true')
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--data-dir', type=Path, required=True)
     parser.add_argument('--backup-dir', type=Path, required=True)
@@ -32,10 +34,12 @@ def main():
     data = args.data_dir
     backup = args.backup_dir
     for path in (data, backup):
-        if not path.is_absolute() or path != path.resolve() or path.exists():
+        if not path.is_absolute() or path != path.resolve() or (path.exists() and not args.resume_preparation):
             raise SystemExit('New canonical data and backup directories required')
         if not path.parent.is_dir() or path.parent.stat().st_uid != os.getuid():
             raise SystemExit('Deployment-user-owned parent required')
+        if path.exists() and (path.stat().st_uid != os.getuid() or path.stat().st_mode & 0o077):
+            raise SystemExit('Private deployment directory required')
     if data == backup or data.is_relative_to(backup) or backup.is_relative_to(data):
         raise SystemExit('Separate data and backup directories required')
 
@@ -51,19 +55,26 @@ def main():
     if old.embedding_model_dir is None or not old.embedding_model_dir.is_dir():
         raise SystemExit('Existing embedding model directory required')
     os.umask(0o077)
-    data.mkdir(mode=0o700)
-    backup.mkdir(mode=0o700)
+    data.mkdir(mode=0o700, exist_ok=args.resume_preparation)
+    backup.mkdir(mode=0o700, exist_ok=args.resume_preparation)
     names = ('database', 'model_config', 'gateway_data', 'gateway_config',
              'service_locks', 'sandbox_locks', 'archive_reports', 'secrets')
     for name in names:
-        (data / name).mkdir(mode=0o700)
+        (data / name).mkdir(mode=0o700, exist_ok=args.resume_preparation)
     values = {name: secrets.token_urlsafe(48) for name in (
         'db_bootstrap_password', 'db_owner_password', 'db_api_password',
         'db_ingest_password', 'runtime_token', 'sandbox_token', 'watchdog_token',
     )}
     values.update(preserved)
     for name, value in values.items():
-        with (data / 'secrets' / name).open('xb') as output:
+        target = data / 'secrets' / name
+        if target.exists() and args.resume_preparation:
+            if target.is_symlink() or target.stat().st_uid != os.getuid() or target.stat().st_mode & 0o077:
+                raise SystemExit('Unsafe existing credential')
+            if name in preserved and target.read_bytes() != value.encode():
+                raise SystemExit('Existing identity does not match source')
+            continue
+        with target.open('xb') as output:
             output.write(value.encode())
         (data / 'secrets' / name).chmod(0o400)
     shutil.copyfile(old.model_config_path, data / 'model_config/model.json')
@@ -120,7 +131,7 @@ def main():
     gateway = stack['services']['gateway']
     # Validate privately first; publish port 5173 only during the final cutover.
     gateway['ports'] = ['127.0.0.1:15173:8080']
-    gateway['healthcheck']['test'] = ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/health']
+    gateway['healthcheck'] = {'test':['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/health'], 'interval':'15s', 'timeout':'5s', 'retries':5}
     caddy = '''{
     admin off
     auto_https off
