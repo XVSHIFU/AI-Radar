@@ -1,6 +1,6 @@
 # P3 Python 沙箱开发记录
 
-日期：2026-09-16。**候选代码，Python 工具仍关闭，未通过真实隔离验收。**
+日期：2026-09-16。**单任务 gVisor 隔离与独立崩溃回收已通过真机验收；工具网关、产物归属和公开接入仍未完成，Python 工具保持关闭。**
 
 ## 本次实现
 
@@ -18,7 +18,7 @@
 
 本地沙箱协议、执行控制器和进程传输测试 40 项通过；另有真实供应商验证器的输出范围测试 1 项。Ruff 与两个沙箱模块的严格 mypy 通过。测试使用恶意字节输入和替代 Docker/进程对象，**没有在宿主执行模型生成代码，也没有证明 gVisor 实际隔离有效**。
 
-Ubuntu 已有 Docker，但目前无 runsc，当前账号没有免交互 sudo。未借 Docker 权限修改宿主系统。源码运行入口尚未接入公开 API，`policy.json` 的 Python 开关保持 false；只有 `--runtime=runsc` 参数也不能替代对实际运行时路径/版本/隔离效果的验证。
+这一切片开始时 Ubuntu 已有 Docker、尚无 runsc，当前账号没有免交互 sudo；用户随后完成管理员安装，最新结果见文末。未借 Docker 权限修改宿主系统。源码运行入口尚未接入公开 API，`policy.json` 的 Python 开关保持 false；只有 `--runtime=runsc` 参数也不能替代对实际运行时路径/版本/隔离效果的验证。
 
 ## 后续门槛
 
@@ -36,9 +36,9 @@ P3 尚未完成；P4 研究质量与 P5 容器迁移/独立恢复同样保持待
 - 候选补丁 `691b97f`、`dbc3f21` 已同步；沙箱 40 项及验证边界 2 项共 42 项在 Ubuntu 全部通过，全部使用替身 Docker/进程，不触发收费模型。
 - gVisor `20260907.0` x86_64 官方完整包下载、SHA-512 和六个文件结构校验通过，保存在 `.run/gvisor-20260907.0/`，只下载未安装。
 - 基础镜像固定 `python:3.12-slim-bookworm@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254`。Ubuntu 沙箱构建成功，Python 依赖全部通过哈希校验；镜像配置摘要 `sha256:b31ef8f03b4715f362586e3227b56d61093ff2da86badbe54e90972122ac3c73`。未在普通 runc 容器内执行模型代码。
-- 新增运维脚本 `scripts/install-gvisor-runtime.sh`：要求管理员在 Ubuntu 执行，重新校验写入 root 私有目录的固定包，保留原 Docker 配置备份，只添加具名 runsc 运行时、校验配置后 reload；不改变默认运行时。失败时恢复原配置；不自动开放 Python。脚本尚未以 root 执行。
+- 新增运维脚本 `scripts/install-gvisor-runtime.sh`：要求管理员在 Ubuntu 执行，重新校验写入 root 私有目录的固定包，保留原 Docker 配置备份，只添加具名 runsc 运行时、校验配置后 reload；不改变默认运行时。失败时恢复原配置；不自动开放 Python。当时脚本尚未以 root 执行；用户随后已安装，见文末实际版本核对。
 
-需要 Ubuntu 管理员完成的操作（当前 SSH 账号没有免交互 sudo）：
+已由 Ubuntu 管理员完成的操作（当前 SSH 账号没有免交互 sudo）：
 
 ```bash
 sudo bash /home/xvsf/ai-radar/.run/research-validation/scripts/install-gvisor-runtime.sh
@@ -69,3 +69,10 @@ sudo bash /home/xvsf/ai-radar/.run/research-validation/scripts/install-gvisor-ru
 控制器崩溃演练通过：只强制杀死测试控制器（退出 -9），它留下的睡眠容器由独立 timer 在约 32.32 秒回收，而非测试 fallback 删除。回收器另有 11 项归属、时间边界、并发删除、失败不可忽略等测试，当前相关单元回归合计 53 项通过。永久验收入口为 `scripts/verify-python-sandbox.py` 与 `scripts/verify-sandbox-watchdog.py`，不调用真实模型。
 
 这些结果是固定版本、当前宿主下的具体边界测试，不是 Docker/gVisor 绝对无法逃逸的证明。Python 和线上 Agent 仍未启用；P3 还缺独立工具网关、数据集/产物归属与下载控制、公开 SSE 接入及最终组合验收。P4/P5 同样未完成。
+
+
+### 最终复核
+
+正式保留的 `verify-sandbox-watchdog.py` 再次通过故障演练，测试控制器退出 -9，独立回收耗时约 37.03 秒（包含创建、轮询和调度）。两次故障演练分别约 32.32/37.03 秒；不能把五秒 timer 配置误写成无调度偏差的五秒回收保证。最终检查没有残留带本项目沙箱标签的容器，API、前端和采集 worker 均为 active/running，watchdog timer 为 active。没有新增收费模型调用。
+
+最新源码提交：`9a45428`（guest 限额与 15 项真实验收）、`96d256f`（独立回收器与 11 项测试）、`baa43d5`（永久崩溃验收工具）。完整 P0–P5 目标继续未完成，下一步是独立工具网关、授权数据集交接、匿名会话产物下载与公开 SSE 集成。
