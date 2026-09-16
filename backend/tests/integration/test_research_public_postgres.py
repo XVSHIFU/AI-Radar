@@ -191,7 +191,7 @@ async def test_public_pi_answers_and_followups_share_durable_question_quota(data
             base = f"http://127.0.0.1:{sock.getsockname()[1]}"
             assert (await client.get(base + "/api/v1/assistant/session")).json()["quota"][
                 "remaining"
-            ] == 20
+            ] == 5
             first = {"question": "统计分类", "client_request_id": str(uuid4())}
             response = await client.post(base + "/api/v1/ask/stream", json=first)
             assert response.status_code == 200, response.text
@@ -219,7 +219,7 @@ async def test_public_pi_answers_and_followups_share_durable_question_quota(data
             assert response.json()["answer"] == "库内共十条事件[1]。"
             assert (await client.get(base + "/api/v1/assistant/session")).json()["quota"][
                 "remaining"
-            ] == 18
+            ] == 3
             invalid = True
             response = await client.post(
                 base + "/api/v1/ask/stream",
@@ -235,7 +235,7 @@ async def test_public_pi_answers_and_followups_share_durable_question_quota(data
             assert len(paid) == 6  # Two model calls still count as one submitted question.
             assert (await client.get(base + "/api/v1/assistant/session")).json()["quota"][
                 "remaining"
-            ] == 17
+            ] == 2
         async with repository.sessions() as session:
             parents = list(
                 (

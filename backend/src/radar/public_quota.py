@@ -60,7 +60,7 @@ class PublicAskRow(Base):
 
 @dataclass(frozen=True)
 class QuotaPolicy:
-    questions: int = 20
+    questions: int = 5
     max_active: int = 2
     run_seconds: int = 90
     input_per_run: int = 24_000

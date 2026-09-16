@@ -12,7 +12,7 @@ from .research_guard import ALLOWED_TOOLS, canonical
 from .research_tools import load_research_skills
 
 LIMITS = {
-    "ip_questions": 20,
+    "ip_questions": 5,
     "ip_window_seconds": 172800,
     "model_calls_per_run": 3,
     "business_tool_calls_per_run": 4,

@@ -12,7 +12,7 @@ test("anonymous initialization is shared and both paid endpoints wait for it", a
     paths.push(path);
     if (path.endsWith("/session")) {
       await ready;
-      return Response.json({ quota: { remaining: 7, limit: 20, window_hours: 48, next_available_at: null } });
+      return Response.json({ quota: { remaining: 2, limit: 5, window_hours: 48, next_available_at: null } });
     }
     return Response.json({ answer: "" });
   };
@@ -25,7 +25,7 @@ test("anonymous initialization is shared and both paid endpoints wait for it", a
     await refreshAssistantQuota();
     assert.equal(paths.filter(p => p === "/api/v1/ask").length, 1);
     assert.equal(paths.filter(p => p === "/api/v1/ask/stream").length, 1);
-    assert.equal(assistantQuota.value?.remaining, 7);
+    assert.equal(assistantQuota.value?.remaining, 2);
   } finally { globalThis.fetch = original; }
 });
 

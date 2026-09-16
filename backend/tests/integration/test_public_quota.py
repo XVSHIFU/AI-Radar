@@ -27,9 +27,9 @@ async def ledger(postgres_database):
     await engine.dispose()
 
 
-async def test_twenty_questions_are_persistent_and_followups_count(ledger):
+async def test_five_questions_are_persistent_and_followups_count(ledger):
     ip = key("same NAT")
-    for i in range(20):
+    for i in range(5):
         row = await ledger.reserve(key(f"user-{i}"), ip, f"followup-{i}", key("payload"))
         await ledger.settle(row.id, key(f"user-{i}"), started=True, input_tokens=5, output_tokens=2)
     restarted = PostgresPublicQuota(ledger.sessions, ledger.policy)
@@ -38,7 +38,7 @@ async def test_twenty_questions_are_persistent_and_followups_count(ledger):
     assert rejected.value.code == "ASK_QUOTA_EXCEEDED"
     assert rejected.value.retry_after > 172_700
     assert (await restarted.snapshot(ip)).remaining == 0
-    assert (await restarted.snapshot(key("other IP"))).remaining == 20
+    assert (await restarted.snapshot(key("other IP"))).remaining == 5
 
 
 async def test_last_slot_is_shared_across_sessions_and_process_instances(ledger):
@@ -68,10 +68,10 @@ async def test_replay_and_conflict_are_owner_bound_and_do_not_recharge(ledger):
     with pytest.raises(PublicAdmissionError) as rejected:
         await ledger.settle(row.id, key("other owner"), started=False)
     assert rejected.value.code == "RUN_NOT_FOUND"
-    assert (await ledger.snapshot(ip)).remaining == 19
+    assert (await ledger.snapshot(ip)).remaining == 4
     # Same identifier in a different anonymous session is a separate question, not a read.
     other = await ledger.reserve(key("other owner"), ip, "same-request", key("first"))
-    assert other.id != row.id and other.quota.remaining == 18
+    assert other.id != row.id and other.quota.remaining == 3
 
 
 async def test_rolling_window_and_preflight_rejection(ledger):
@@ -86,10 +86,10 @@ async def test_rolling_window_and_preflight_rejection(ledger):
             ),
             {"id": row.id},
         )
-    assert (await ledger.snapshot(ip)).remaining == 20
+    assert (await ledger.snapshot(ip)).remaining == 5
     rejected = await ledger.reserve(owner, ip, "preflight", key("b"))
     await ledger.settle(rejected.id, owner, started=False)
-    assert (await ledger.snapshot(ip)).remaining == 20
+    assert (await ledger.snapshot(ip)).remaining == 5
     with pytest.raises(PublicAdmissionError) as replay:
         await ledger.reserve(owner, ip, "preflight", key("b"))
     assert replay.value.code == "IDEMPOTENCY_REPLAY"
@@ -109,7 +109,7 @@ async def test_global_budget_retains_unknown_usage_and_releases_known_unused(led
         assert persisted.input_charge == 24_000 and persisted.output_charge == 4_800
     # Settlement is immutable: a replay cannot turn unknown consumed work into zero.
     await constrained.settle(first.id, owner, started=False)
-    assert (await constrained.snapshot(key("ip"))).remaining == 19
+    assert (await constrained.snapshot(key("ip"))).remaining == 4
 
 
 async def test_concurrency_reservation_and_known_zero_settlement(ledger):
@@ -162,7 +162,7 @@ async def test_both_http_endpoints_share_quota_and_owner_bound_replay(ledger, cl
     transport = httpx.ASGITransport(app=app, client=("192.0.2.4", 4321))
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as http:
         assert (await http.get("/api/v1/assistant/session")).status_code == 200
-        for i in range(20):
+        for i in range(5):
             path = "/api/v1/ask" + ("/stream" if i % 2 else "")
             response = await http.post(path, json={"question": "总结", "client_request_id": str(i)})
             assert response.status_code == 200, response.text
@@ -208,4 +208,4 @@ async def test_controller_settles_usage_and_keeps_cancelled_unknown_charge(ledge
         async with ledger.sessions() as session:
             row = await session.get(PublicAskRow, reservation.id)
             assert row.charged and (row.input_charge, row.output_charge) == expected
-    assert (await ledger.snapshot(ip)).remaining == 18
+    assert (await ledger.snapshot(ip)).remaining == 3

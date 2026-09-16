@@ -17,7 +17,7 @@ router = APIRouter()
 COOKIE = "radar_assistant_session"
 logger = logging.getLogger(__name__)
 MESSAGES = {
-    "ASK_QUOTA_EXCEEDED": "该 IP 在过去 48 小时内已发送 20 次问题，请在额度恢复后再试。",
+    "ASK_QUOTA_EXCEEDED": "该 IP 在过去 48 小时内已发送 5 次问题，请在额度恢复后再试。",
     "ASK_BUSY": "助手正在处理其他问题，请稍后再试。",
     "ASK_DAILY_BUDGET_EXCEEDED": "体验预算已用完，请在额度恢复后再试。",
     "IDEMPOTENCY_REPLAY": "该问题已提交，请查看原会话；未重复扣除额度。",

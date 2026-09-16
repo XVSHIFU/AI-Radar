@@ -3,7 +3,7 @@ import { readFile, lstat } from "node:fs/promises";
 import { TOOL_NAMES } from "./runner.ts";
 
 const limits = {
-  ip_questions: 20, ip_window_seconds: 172800, model_calls_per_run: 3,
+  ip_questions: 5, ip_window_seconds: 172800, model_calls_per_run: 3,
   business_tool_calls_per_run: 4, skill_loads_per_run: 2, python_calls_per_run: 1,
   input_tokens_per_run: 24000, output_tokens_per_run: 4800,
   run_deadline_seconds: 90, automatic_paid_retries: 0, global_concurrent_runs: 2,

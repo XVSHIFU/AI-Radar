@@ -45,7 +45,7 @@ async def test_three_call_totals_persist_and_unknown_usage_keeps_its_reservation
     async with sessions() as session:
         row = await session.get(PublicAskRow, run.id)
         assert row.input_charge == 9000 and row.output_charge == 2800 and row.charged
-    assert (await quota.snapshot(ip)).remaining == 19
+    assert (await quota.snapshot(ip)).remaining == 4
     with pytest.raises(ResearchRejected, match="RUN_EXPIRED"):
         await ledger.claim(run.id, ModelLease(3, 10, 10))
 

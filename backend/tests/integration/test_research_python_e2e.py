@@ -313,7 +313,7 @@ async def test_public_python_chain(data, monkeypatch, tmp_path):  # noqa: F811
                     **extra,
                 }
 
-            assert await quota() == 20
+            assert await quota() == 5
             first = question()
             response = await client.post("/api/v1/ask/stream", json=first)
             stream = frames(response)
@@ -324,9 +324,9 @@ async def test_public_python_chain(data, monkeypatch, tmp_path):  # noqa: F811
             assert analysis["analysis"]["code"] == CODE
             artifacts = next(v["items"] for k, v in stream if k == "artifacts")
             assert len(artifacts) == 3
-            assert len(calls) == 3 and await quota() == 19
+            assert len(calls) == 3 and await quota() == 4
             assert (await client.post("/api/v1/ask", json=first)).status_code == 409
-            assert len(calls) == 3 and await quota() == 19
+            assert len(calls) == 3 and await quota() == 4
             for item in artifacts:
                 assert item["citation_index"] == analysis["index"]
                 download = await client.get(item["download_url"])
@@ -356,25 +356,25 @@ async def test_public_python_chain(data, monkeypatch, tmp_path):  # noqa: F811
             assert second.status_code == 200, second.text
             assert second.json()["status"] == "completed" and len(second.json()["artifacts"]) == 3
             assert datasets[0]["dataset_id"] != datasets[1]["dataset_id"]
-            assert await quota() == 18 and len(calls) == 6
+            assert await quota() == 3 and len(calls) == 6
             mode = "invalid_citation"
             failed = frames(await client.post("/api/v1/ask/stream", json=question()))
             assert failed[-1] == ("done", {"status": "failed"})
             assert ("sources", {"items": []}) in failed
             assert not any(k == "artifacts" for k, _ in failed)
-            assert await quota() == 17 and not await tasks()
+            assert await quota() == 2 and not await tasks()
             mode = "foreign"
             failed = frames(await client.post("/api/v1/ask/stream", json=question()))
             assert failed[-1] == ("done", {"status": "failed"})
             assert not any(k == "artifacts" for k, _ in failed)
-            assert await quota() == 16 and not await tasks()
+            assert await quota() == 1 and not await tasks()
             artifact_clock[0] += 901
             assert (await client.get(artifacts[0]["download_url"])).status_code == 404
             # Controller unavailable must reject before a fifth quota charge/model call.
             await stop(controller)
             before = len(calls)
             assert (await client.post("/api/v1/ask/stream", json=question())).status_code == 503
-            assert await quota() == 16 and len(calls) == before
+            assert await quota() == 1 and len(calls) == before
             async with repository.sessions() as session:
                 parents = list(
                     (
