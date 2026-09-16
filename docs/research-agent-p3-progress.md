@@ -1,6 +1,6 @@
 # P3 Python 沙箱开发记录
 
-日期：2026-09-16。**单任务 gVisor 隔离与独立崩溃回收已通过真机验收；工具网关、产物归属和公开接入仍未完成，Python 工具保持关闭。**
+日期：2026-09-16。**单任务 gVisor 隔离、独立崩溃回收，以及独立 HTTP 网关→授权数据集→产物下载链路均已通过真机验收；生产启动门槛、pi/SSE 与公开接入仍未完成，Python 工具保持关闭。**
 
 ## 本次实现
 
@@ -89,3 +89,16 @@ sudo bash /home/xvsf/ai-radar/.run/research-validation/scripts/install-gvisor-ru
 - `scripts/verify-sandbox-gateway.py` 准备独立控制器进程、loopback HTTP、真实 runsc、分析产物与下载归属验收，只发送合成分类计数；随机服务凭证仅通过子进程 stdin 传递，不进入 argv、报告或模型。
 
 本切片仍不改变 `policy.json` 的 Python=false。剩余 P3 工作包括生产启动健康/孤儿清理门槛、pi 工具与模型预算/技能/SSE/图表来源接入，以及公开链路综合验收；P4/P5 保持待完成。
+
+
+### Ubuntu 网关真实链路结果
+
+候选源码补丁 `c5b81d3` 已同步到 `/home/xvsf/ai-radar/.run/research-validation`。验收报告 `/home/xvsf/ai-radar/.run/sandbox-gateway-20260916-01.json` 全部通过：
+
+- 控制器是独立子进程，凭证只经 stdin；私有 HTTP 监听仅绑定 127.0.0.1:8092，测试结束进程和端口均退出。使用已经审核的 runsc 实际路径/哈希、systrap 配置及固定镜像 ID。
+- 授权适配器→真实 HTTP→runsc→重新校验产物→所有者下载，共生成 3 个 JSON/CSV/PNG 产物，求和 5、均值 2.5 正确，分析 1,661 ms。
+- 未认证请求、其他运行的数据集 ID、跨签名会话下载、重复 job ID 均拒绝。下载响应检查附件和 nosniff；不依赖“链接不可猜测”作为权限控制。
+- CPU 无限循环在客户端主动断连后 104 ms 完成容器清理；独立控制器内检查实际 Docker 隔离参数与两个任务均已删除。
+- 模型调用 0；未发送真实事件正文或用户会话。Ubuntu 同一组 138 项回归通过，API、前端、worker 和 watchdog timer 均 active，任务标签下没有遗留容器。
+
+这证明了候选网关及授权适配器的真实执行链路，不代表公开助手已经可以调用 Python。实际模型工具注册、研究工具预算、分析技能加载、SSE 产物/图表来源显示与生产健康门槛仍待接入。未迁移线上数据库、未改变公开 Agent/Python 开关。
