@@ -208,3 +208,16 @@ def sandbox_result(raw: bytes) -> SandboxResult:
         zlib.error,
     ) as exc:
         raise ResearchRejected("EXECUTION_FAILED") from exc
+
+
+def sandbox_wire(result: SandboxResult) -> bytes:
+    return canonical(
+        {
+            "status": "completed",
+            "stdout": result.stdout,
+            "artifacts": [
+                {"name": item.name, "data": base64.b64encode(item.content).decode("ascii")}
+                for item in result.artifacts
+            ],
+        }
+    ).encode()

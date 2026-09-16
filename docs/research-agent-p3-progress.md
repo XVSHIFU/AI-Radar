@@ -76,3 +76,16 @@ sudo bash /home/xvsf/ai-radar/.run/research-validation/scripts/install-gvisor-ru
 正式保留的 `verify-sandbox-watchdog.py` 再次通过故障演练，测试控制器退出 -9，独立回收耗时约 37.03 秒（包含创建、轮询和调度）。两次故障演练分别约 32.32/37.03 秒；不能把五秒 timer 配置误写成无调度偏差的五秒回收保证。最终检查没有残留带本项目沙箱标签的容器，API、前端和采集 worker 均为 active/running，watchdog timer 为 active。没有新增收费模型调用。
 
 最新源码提交：`9a45428`（guest 限额与 15 项真实验收）、`96d256f`（独立回收器与 11 项测试）、`baa43d5`（永久崩溃验收工具）。完整 P0–P5 目标继续未完成，下一步是独立工具网关、授权数据集交接、匿名会话产物下载与公开 SSE 集成。
+
+
+## 工具网关与产物归属切片（候选，2026-09-16）
+
+- 新增独立 `sandbox_http.py`，进程内最多两个请求（含读入阶段）；服务凭证与模型 capability 分离。仅接受固定字段 job_id/code/datasets，不接受镜像、挂载、shell、网络参数或 owner。请求体有大小与读入时限，任务标识保留十分钟且有总量上限，失败和取消也不允许自动重跑。此注册表仅在本进程有效，公开问题的持久去重仍由已有数据库账本负责。
+- API 侧 `sandbox_client.py` 只通过两个运维允许的私有地址访问控制器，无 Docker 导入/权限；不跟随重定向、不自动重试、拒绝压缩响应并限制实际返回字节，重新验证 JSON/CSV/PNG。运行时和独立 watchdog 的启动健康门槛尚待与部署入口连接，不能单独运行这个工厂就宣称生产就绪。
+- `research_python.py` 只接收模型的代码和当前运行登记的数据集 ID；拒绝额外权限字段、未知/重复数据集，复制服务器登记的数据快照，执行前后检查本轮 capability/deadline。每轮最多一次 Python，失败也消耗此次数；执行取消或轮次关闭后不发布结果。该适配器尚未注册到公开 pi 工具集。
+- `research_artifacts.py` 将产物绑定 signed-cookie owner、run 和 dataset IDs。全局最多 32 MiB、1,024 个文件/轮次标识；容量满时原子拒绝，不挤掉其他用户产物。下载逻辑到期十五分钟立即失效，后台每三十秒清理过期内存，重启后链接失效。当前设计要求单 API worker，P5 多实例必须共享存储或固定所有者路由，不能直接横向扩容。
+- 下载路径使用服务端 UUID，重新校验文件名/内容，跨 owner、跨 run、匿名或过期访问统一 404，返回附件、正确 MIME、no-store、nosniff、同源资源策略和禁脚本 CSP。路由已接入，当前公开 Python 无法生成文件。
+- 本地针对认证、并发、跨用户下载、重复执行、授权数据集、真实 ASGI 断连以及现有沙箱/API 的 138 项回归通过；四个新模块严格 mypy 通过。取消回归发现旧 is_disconnected 轮询可能拖到三十二秒截止，改为完整读入请求体后独立监听 ASGI disconnect，新增两秒清理断言通过。
+- `scripts/verify-sandbox-gateway.py` 准备独立控制器进程、loopback HTTP、真实 runsc、分析产物与下载归属验收，只发送合成分类计数；随机服务凭证仅通过子进程 stdin 传递，不进入 argv、报告或模型。
+
+本切片仍不改变 `policy.json` 的 Python=false。剩余 P3 工作包括生产启动健康/孤儿清理门槛、pi 工具与模型预算/技能/SSE/图表来源接入，以及公开链路综合验收；P4/P5 保持待完成。

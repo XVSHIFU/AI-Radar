@@ -41,6 +41,8 @@ from .qa_service import QaError, answer_question
 from .qa_stream_service import StreamContext, prepare_stream, sse, stream_answer
 from .queryplanner import InvalidTimezone, QueryPlanner
 from .repository import EventRepository, EvidenceInvalid, InvalidCursor, RepositoryUnavailable
+from .research_artifacts import ArtifactStore
+from .research_artifacts import router as research_artifact_router
 from .research_endpoints import public_research_response
 from .research_http import ResearchSessions, research_router
 from .research_policy import ResearchPolicy
@@ -93,6 +95,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.ask_admission = AskAdmission()
     app.state.public_identity = None
     app.state.public_quota = None
+    app.state.research_artifacts = ArtifactStore()
     app.state.research_sessions = research_sessions
     app.state.research_policy = (
         ResearchPolicy.load(REPO_ROOT / "agent/research")
@@ -131,15 +134,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             settings.business_timezone,
             embedding_provider=embedding_provider,
         )
-    yield
-    if app.state.engine is not None:
-        await app.state.engine.dispose()
+    artifact_reaper = asyncio.create_task(app.state.research_artifacts.reap_forever())
+    try:
+        yield
+    finally:
+        artifact_reaper.cancel()
+        await asyncio.gather(artifact_reaper, return_exceptions=True)
+        if app.state.engine is not None:
+            await app.state.engine.dispose()
 
 
 research_sessions = ResearchSessions()
 
 app = FastAPI(title="AI Radar API", version="0.1.0", lifespan=lifespan)
 app.include_router(public_assistant_router)
+app.include_router(research_artifact_router)
 app.include_router(research_router(research_sessions))
 app.include_router(session_router)
 app.include_router(admin_router)
