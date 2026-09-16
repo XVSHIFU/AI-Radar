@@ -58,3 +58,21 @@
 @media (max-width: 900px) {
   .drawer-surface--event button.drawer-source__open { min-height: 44px; }
 }
+/* Public reading actions: visible at rest, without changing unrelated controls. */
+.drawer-surface button.drawer-attach {
+  background: var(--blue-soft);
+  color: var(--blue);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 7px 12px;
+  margin: 10px 0 4px;
+}
+.drawer-surface button.drawer-attach:hover { border-color: var(--blue); }
+.drawer-event-summary { padding-bottom: 22px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+.ask-chart-heading { margin: 32px 0 20px; }
+.app-shell .ask-overview .chart-tabs button,
+.app-shell .ask-overview .ask-range-buttons button { cursor: pointer; }
+.app-shell .ask-overview .chart-tabs button[aria-pressed="true"],
+.app-shell .ask-overview .ask-range-buttons button[aria-pressed="true"] {
+  background: var(--blue-soft); color: var(--blue); font-weight: 600;
+}

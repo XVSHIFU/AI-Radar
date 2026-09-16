@@ -184,10 +184,10 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
     <section class="ask-controls" :aria-label="tr('统计范围', 'Statistics scope')">
       <div class="ask-range-toolbar"><DateRangePicker :from="from" :to="to" @change="applyDates" />
       <div class="ask-range-buttons">
-        <button :aria-pressed="rangeMode === 'today'" @click="setRange('today')">{{ tr("今天", "Today") }}</button>
-        <button :aria-pressed="rangeMode === 'week'" @click="setRange('week')">{{ tr("近7天", "Last 7 days") }}</button>
-        <button :aria-pressed="rangeMode === 'month30'" @click="setRange('month30')">{{ tr("近30天", "Last 30 days") }}</button>
-        <button :aria-pressed="rangeMode === 'month'" @click="setRange('month')">{{ tr("本月", "This month") }}</button>
+        <button type="button" :aria-pressed="rangeMode === 'today'" @click="setRange('today')">{{ tr("今天", "Today") }}</button>
+        <button type="button" :aria-pressed="rangeMode === 'week'" @click="setRange('week')">{{ tr("近7天", "Last 7 days") }}</button>
+        <button type="button" :aria-pressed="rangeMode === 'month30'" @click="setRange('month30')">{{ tr("近30天", "Last 30 days") }}</button>
+        <button type="button" :aria-pressed="rangeMode === 'month'" @click="setRange('month')">{{ tr("本月", "This month") }}</button>
       </div></div>
       <details class="ask-more">
         <summary>{{ tr("更多筛选", "More filters") }}</summary>
@@ -206,18 +206,19 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
       <span v-if="filterLabel"> · {{ filterLabel }}</span>
     </p>
     <p v-if="!missingDates && !invalid" class="meta">{{ tr("按已核验的事件日期统计，不含未核验报道日期和冲突日期。", "Counts use verified event dates and exclude unverified report dates or date conflicts.") }}</p>
+    <div class="ask-chart-heading"><h2>{{ tr("统计视图", "Statistics view") }}</h2>
+          <div class="chart-tabs" role="group" :aria-label="tr('统计图表类型', 'Chart type')">
+            <button type="button" data-view="A" :aria-pressed="chartView === 'A'" @click="chartView = 'A'">{{ tr("A 分类排行", "A Category ranking") }}</button>
+            <button type="button" data-view="B" :aria-pressed="chartView === 'B'" @click="chartView = 'B'">{{ tr("B 每日数量", "B Daily count") }}</button>
+            <button type="button" data-view="C" :aria-pressed="chartView === 'C'" @click="chartView = 'C'">{{ tr("C 日期×分类", "C Date × category") }}</button>
+          </div>
+    </div>
     <div v-if="overviewError" class="card error" data-testid="insights-error" role="alert">{{ overviewError }} <button @click="loadOverview()">{{ tr("重试", "Retry") }}</button></div>
     <template v-else-if="overview">
       <p v-if="!overview.total_events" class="ask-empty">{{ tr("当前范围暂无已收录事件。", "No recorded events in this scope.") }}<button v-if="rangeMode === 'today'" @click="setRange('week')">{{ tr("查看近7天", "View last 7 days") }}</button></p>
       <div v-else class="ask-charts">
         <section class="ask-chart" data-testid="insights-visual" :data-view="chartView">
-          <h2>{{ tr("统计视图", "Statistics view") }}</h2>
           <p class="meta">{{ factSummary }}</p>
-          <div class="chart-tabs" role="group" :aria-label="tr('统计图表类型', 'Chart type')">
-            <button data-view="A" :aria-pressed="chartView === 'A'" @click="chartView = 'A'">{{ tr("A 分类排行", "A Category ranking") }}</button>
-            <button data-view="B" :aria-pressed="chartView === 'B'" @click="chartView = 'B'">{{ tr("B 每日数量", "B Daily count") }}</button>
-            <button data-view="C" :aria-pressed="chartView === 'C'" @click="chartView = 'C'">{{ tr("C 日期×分类", "C Date × category") }}</button>
-          </div>
           <div v-if="chartView === 'A'" class="rank-chart">
             <button v-for="row in rankedCategories" :key="row.category" class="rank-row" :data-category="row.category" @click="selectCategory(row.category)"><span>{{ categoryName(row.category) }}</span><i :style="{ width: (row.count / rankMax * 100) + '%' }"></i><b>{{ row.count }} · {{ row.share }}%</b></button>
           </div>

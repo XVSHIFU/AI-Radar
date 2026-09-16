@@ -75,8 +75,6 @@ const sourceInactive = computed(() => Boolean(evidenceId.value));
 const safeUrl = (url: string) => /^https?:\/\//i.test(url);
 const readingUrl = (url: string) => locale.value === "en" ? url : preferredReadingUrl(url);
 const categoryLabels = (category: Category) => categoryLabel(category);
-const verificationLabel = (status: string) =>
-  status === "synthetic_verified" ? tr("合成回归：已核对", "Synthetic regression: verified") : status || tr("未提供", "Not provided");
 
 const sources = computed<SourceChoice[]>(() => {
   const rows: SourceChoice[] = [];
@@ -375,7 +373,7 @@ onBeforeUnmount(() => {
             <button @click="loadEvent">{{ tr("重试", "Retry") }}</button>
           </div>
           <template v-else-if="item">
-            <h3 class="drawer-event-title">{{ item.title_zh }}</h3><button data-testid="attach-event" @click="attachToConversation(item)">{{ tr("加入当前对话", "Add to current conversation") }}</button>
+            <section class="drawer-event-summary"><h3 class="drawer-event-title">{{ item.title_zh }}</h3><button class="drawer-attach" type="button" data-testid="attach-event" @click="attachToConversation(item)">{{ tr("加入当前对话", "Add to current conversation") }}</button>
             <p class="muted">{{ item.summary_zh }}</p>
             <p class="drawer-event-facts">
               <span class="pill">{{ categoryLabels(item.category) }}</span>
@@ -392,7 +390,7 @@ onBeforeUnmount(() => {
             <p class="meta tabular">
               {{ item.event_date ? formatDate(item.event_date) : tr("日期未知", "Date unknown") }}<span v-if="item.date_conflict"> · {{ tr("日期有冲突，待核验", "Conflicting dates, pending review") }}</span><span v-else-if="item.date_basis === 'report_date_unverified'"> · {{ tr("报道日期，事件日期待核验", "Report date; event date unverified") }}</span> · {{ countLabel(item.source_count, "个来源", "source") }} · {{ countLabel(item.evidence_count, "条关联证据", "linked evidence item", "linked evidence items") }}
             </p>
-            <h3>{{ tr("来源与保存证据", "Sources & saved evidence") }}</h3>
+            </section><h3>{{ tr("出处与原文摘录", "Sources & excerpts") }}</h3>
             <p v-if="evidenceError" class="drawer-error" role="alert">
               {{ tr("证据暂时无法读取：{message}", "Evidence is temporarily unavailable: {message}", { message: evidenceError.message }) }}
               <button @click="loadEvent">{{ tr("重试", "Retry") }}</button>
@@ -403,16 +401,16 @@ onBeforeUnmount(() => {
             <section v-for="source in sources" :key="source.key" class="drawer-source">
               <div class="drawer-source__heading">
                 <h4 class="drawer-source__name">{{ source.title }}</h4>
-                <button class="drawer-source__open" type="button" data-testid="source-open" :aria-label="tr('查看 {title} 的来源详情', 'View source details for {title}', { title: source.title })" @click="openSource(source)">
+                <button class="drawer-source__open" type="button" data-testid="source-open" :aria-label="tr('阅读 {title} 的相关摘录', 'Read excerpts from {title}', { title: source.title })" @click="openSource(source)">
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M11.5 2.5H5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9zM11.5 2.5v5H16M7 11h6M7 14h4" /></svg>
-                  <span>{{ tr("来源详情", "Source details") }}</span>
+                  <span>{{ tr("阅读摘录", "Read excerpts") }}</span>
                   <svg class="drawer-source__chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
                 </button>
               </div>
-              <p v-if="safeUrl(source.sourceUrl)" class="row"><a :href="readingUrl(source.sourceUrl)" target="_blank" rel="noopener">{{ readingUrl(source.sourceUrl) === source.sourceUrl ? tr("打开原始来源", "Open original source") : tr("打开中文页面", "Open Chinese page") }}</a><a v-if="readingUrl(source.sourceUrl) !== source.sourceUrl" :href="source.sourceUrl" target="_blank" rel="noopener">{{ tr("查看采集原文（英文摘录核验）", "View collected original (verify English excerpt)") }}</a></p>
+              <p v-if="safeUrl(source.sourceUrl)" class="row"><a :href="readingUrl(source.sourceUrl)" target="_blank" rel="noopener">{{ readingUrl(source.sourceUrl) === source.sourceUrl ? tr("阅读原文", "Read full article") : tr("打开中文页面", "Open Chinese page") }}</a><a v-if="readingUrl(source.sourceUrl) !== source.sourceUrl" :href="source.sourceUrl" target="_blank" rel="noopener">{{ tr("阅读英文原文", "Read original article") }}</a></p>
               <p v-else class="drawer-status">{{ tr("该来源未提供可安全打开的链接。", "This source does not provide a safely accessible link.") }}</p>
               <p v-if="!source.evidence.length" class="drawer-status">{{ tr("该来源没有已保存的段落证据。", "This source has no saved paragraph evidence.") }}</p>
-              <section v-for="row in source.evidence" :key="row.id" class="drawer-evidence">
+              <section v-for="row in source.evidence.slice(0, 1)" :key="row.id" class="drawer-evidence">
                 <blockquote class="drawer-quote">{{ row.quote_text || tr("未保存段落摘录。", "No paragraph excerpt was saved.") }}</blockquote>
 
               </section>
@@ -467,12 +465,12 @@ onBeforeUnmount(() => {
             <p v-if="selectedSource.language" class="meta">
               {{ tr("语言：{language}", "Language: {language}", { language: selectedSource.language }) }}
             </p>
-            <p v-if="safeUrl(selectedSource.sourceUrl)" class="row"><a :href="readingUrl(selectedSource.sourceUrl)" target="_blank" rel="noopener">{{ readingUrl(selectedSource.sourceUrl) === selectedSource.sourceUrl ? tr("打开原始来源", "Open original source") : tr("打开中文页面", "Open Chinese page") }}</a><a v-if="readingUrl(selectedSource.sourceUrl) !== selectedSource.sourceUrl" :href="selectedSource.sourceUrl" target="_blank" rel="noopener">{{ tr("查看采集原文（英文摘录核验）", "View collected original (verify English excerpt)") }}</a></p>
+            <p v-if="safeUrl(selectedSource.sourceUrl)" class="row"><a :href="readingUrl(selectedSource.sourceUrl)" target="_blank" rel="noopener">{{ readingUrl(selectedSource.sourceUrl) === selectedSource.sourceUrl ? tr("阅读原文", "Read full article") : tr("打开中文页面", "Open Chinese page") }}</a><a v-if="readingUrl(selectedSource.sourceUrl) !== selectedSource.sourceUrl" :href="selectedSource.sourceUrl" target="_blank" rel="noopener">{{ tr("阅读英文原文", "Read original article") }}</a></p>
             <p v-else class="drawer-status">{{ tr("该来源未提供可安全打开的链接。", "This source does not provide a safely accessible link.") }}</p>
-            <h3>{{ tr("保存版本与核验", "Saved version & verification") }}</h3>
+            <h3>{{ tr("相关原文摘录", "Related excerpts") }}</h3><p class="meta">{{ tr("以下摘录与这条事件相关。阅读完整文章，可查看上下文与更多细节。", "These excerpts relate to this event. Read the full article for context and further details.") }}</p>
             <p v-if="!selectedSource.evidence.length" class="drawer-status">{{ tr("该来源没有已保存的段落证据。", "This source has no saved paragraph evidence.") }}</p>
             <section v-for="(row, index) in selectedSource.evidence" :key="row.id" class="drawer-evidence">
-              <p class="drawer-source__name">{{ tr("引用段落 {index}", "Cited paragraph {index}", { index: index + 1 }) }}</p><p>{{ tr("不可变版本：{value}", "Immutable version: {value}", { value: row.article_version_id || tr("未提供", "Not provided") }) }}</p><p>{{ tr("段落：{value}", "Paragraph: {value}", { value: row.paragraph_id || tr("未提供", "Not provided") }) }}</p><p>{{ tr("核验状态：{value}", "Verification status: {value}", { value: verificationLabel(row.verification_status) }) }}</p>
+              <p class="meta">{{ tr("摘录 {index}", "Excerpt {index}", { index: index + 1 }) }}</p><blockquote class="drawer-quote">{{ row.quote_text || tr("暂无摘录，请阅读原文。", "No excerpt available. Read the full article.") }}</blockquote>
             </section>          </template>
           <p v-else class="drawer-status">{{ tr("正在读取来源…", "Loading source…") }}</p>
         </div>
@@ -524,19 +522,12 @@ onBeforeUnmount(() => {
             <blockquote class="drawer-quote">
               {{ selectedEvidence.quote_text }}
             </blockquote>
-            <p class="meta">
-              {{ tr("不可变版本：{value}", "Immutable version: {value}", { value: selectedEvidence.article_version_id }) }}
-            </p>
-            <p class="meta">{{ tr("段落：{value}", "Paragraph: {value}", { value: selectedEvidence.paragraph_id }) }}</p>
-            <p class="meta">
-              {{ tr("核验状态：{value}", "Verification status: {value}", { value: verificationLabel(selectedEvidence.verification_status) }) }}
-            </p>
             <p v-if="safeUrl(selectedEvidence.source_url)">
               <a
                 :href="selectedEvidence.source_url"
                 target="_blank"
                 rel="noopener"
-                >{{ tr("打开原始来源", "Open original source") }}</a
+                >{{ tr("阅读原文", "Read full article") }}</a
               >
             </p>
             <p v-else class="drawer-status">
