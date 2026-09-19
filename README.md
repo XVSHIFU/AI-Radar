@@ -1,6 +1,6 @@
 # AI 革新雷达
 
-> 最新进度与下一阶段任务见 [2026-09-19 内容生产整合方案](docs/content-pipeline-plan.md)，上线与恢复见 [容器部署记录](docs/personal-container-deployment.md)。当前新研究 Agent 已上线、付费提取暂停；手动导入与可选内容 Agent 自动模式尚待开发。下文早期阶段记录不代表当前状态。
+> 最新进度见 [内容生产整合方案](docs/content-pipeline-plan.md)，操作接口见 [内容工作台 API](docs/content-workbench-api.md)，参考数据受控接入见 [说明](docs/content-reference-import.md)，上线与恢复见 [容器部署记录](docs/personal-container-deployment.md)。双模式内容工作台已实现并在隔离环境验证，生产部署尚在进行；自动模式默认关闭，历史付费提取与免费采集仍停用。下文早期阶段记录不代表当前状态。
 
 本仓库正在按实施规格 v1.0 落地。当前工作区是 `E:\AI-AGENT\AI-Radar-Implementation-Spec\codex`，覆盖旧方案中的 C 盘示例路径。
 
