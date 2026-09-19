@@ -1,0 +1,15 @@
+entity_id,canonical_name,name_zh,entity_type,aliases_en,aliases_zh,wikidata_id,wikidata_desc,github_org,huggingface_org,official_domain,ambiguity,source,quarantine_reason
+,JAX,JAX,framework,,,Q1111626,"commune in Haute-Loire, France",google/jax,,jax.readthedocs.io,false,curated,documented_wrong_wikidata_identity_and_derived_aliases
+,Claude,Claude,model_family,Claude (first name)|Claude (name)|Claude (given name),克洛德 (法语)|克劳德 (英、西、罗),Q17523984,unisex given name,anthropics,anthropics,,false,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,ERNIE,文心,model_family,Ernie (given name)|Ernie (first name),Ernie,Q19816583,male given name,PaddlePaddle,,yiyan.baidu.com,false,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,GLM,GLM,model_family,GLM,廣義線性模型,Q1501882,class of statistical models,zhipu-ai,THUDM,,false,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,Gemini,Gemini,model_family,♊|Gem|Geminorum|Gemini (constellation),,Q8923,zodiac constellation in the northern hemisphere,,,deepmind.google,true,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,Gemma,Gemma,model_family,Gemma (first name)|Gemma (given name),盖玛,Q19689422,female given name,,google,,false,curated,documented_wrong_wikidata_identity_and_derived_aliases
+,Hunyuan,腾讯混元,model_family,Hunyuan Zhou|Hunyuan,浑源,Q113492466,historical administrative division of China,,,hunyuan.tencent.com,true,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,Llama,Llama,model_family,,Llama,Q37126053,family name,,meta-llama,,true,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,BAAI,智源研究院,organization,embayment,,Q39594,"body of water connected to an ocean or lake, formed by an indentation of the shoreline",,,baai.ac.cn,false,智源社区,documented_wrong_wikidata_identity_and_derived_aliases
+,Huawei Ascend,华为昇腾,organization,Ascend,Mediapad,Q5926364,mobile phone series by Huawei,,,ascend.huawei.com,false,curated,documented_wrong_wikidata_identity_and_derived_aliases
+,MiniMax,稀宇科技,organization,,,Q1058962,Central European children's television channel,MiniMax-AI,MiniMax-AI,minimaxi.com,false,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,Perplexity,Perplexity,organization,,,Q7169579,1990 video game,,,perplexity.ai,false,sources.csv,documented_wrong_wikidata_identity_and_derived_aliases
+,Runway,Runway,organization,Runway,,Q113486067,"International News Media - Fashion Expertise, Marketing Analysis, Lifestyle",,,runwayml.com,true,curated,documented_wrong_wikidata_identity_and_derived_aliases
+,xAI,xAI,organization,xAI|explainable artificial intelligence|XAI,可解释人工智能,Q40890078,AI whose processes can be understood by humans,,,x.ai,true,curated,documented_wrong_wikidata_identity_and_derived_aliases

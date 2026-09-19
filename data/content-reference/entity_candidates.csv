@@ -1,0 +1,54 @@
+entity_id,canonical_name,name_zh,entity_type,aliases_en,aliases_zh,wikidata_id,wikidata_desc,github_org,huggingface_org,official_domain,ambiguity,source,contract_entity_type,identity_status,approved_aliases,wikidata_verified_this_review
+,GSM8K,GSM8K,benchmark,,,Q121360456,grade school math question-answering dataset,,,,false,curated,,needs_review,,false
+,LMArena,LMArena,benchmark,,,Q130370820,website that allows you to test various large language models,,,lmarena.ai,true,FOFA点3,,needs_review,,false
+,MMLU,MMLU,benchmark,MMLU,,Q123721276,language understanding across multiple domains,,,,false,curated,,needs_review,,false
+,Hugging Face Transformers,Transformers,framework,Huggingface Transformers|Huggingface Transformers Library|Hugging Face Transformers,,Q107382298,Python library from Hugging Face containing Transformers,huggingface/transformers,transformers,,false,curated,technology,candidate_unverified,,false
+,LangGraph,LangGraph,framework,,,Q132393291,Python library,langchain-ai/langgraph,,,false,curated,technology,candidate_unverified,,false
+,LlamaIndex,LlamaIndex,framework,,,Q125446413,large language model company,run-llama/llama_index,,llamaindex.ai,false,curated,technology,needs_review,,false
+,ONNX,ONNX,framework,Open Neural Network Exchange|Toffee|onnx,,Q55080116,Open Neural Network Exchange,onnx,,onnx.ai,false,curated,technology,candidate_unverified,,false
+,PyTorch,PyTorch,framework,torch,,Q47509047,"open source machine learning library for Python, based on Torch",pytorch,pytorch,pytorch.org,false,curated,technology,candidate_unverified,,false
+,TensorFlow,TensorFlow,framework,,张量流,Q21447895,machine learning software framework,tensorflow,,tensorflow.org,false,curated,technology,candidate_unverified,,false
+,TensorRT,TensorRT,framework,,,Q139964666,nvidia software development kit for deep learning inference,NVIDIA/TensorRT,,,false,curated,technology,candidate_unverified,,false
+,vLLM,vLLM,framework,,,Q132956646,Python library,vllm-project,,,false,curated,technology,candidate_unverified,,false
+,DeepSeek-R1,DeepSeek-R1,model,DeepSeek R1|DeepThink (R1),深度思考 (R1),Q131914874,large language model,deepseek-ai,deepseek-ai,,false,spec案例,model,candidate_unverified,,false
+,Mistral 7B,Mistral 7B,model,,,Q126093447,large language model developed by Mistral AI,,mistralai,,false,curated,model,candidate_unverified,,false
+,GPT-4,GPT-4,model_family,,,Q116709136,OpenAI multimodal large language model,openai,openai,,false,curated,model,candidate_unverified,,false
+,Grok,Grok,model_family,Grok chatbot|Grok 3,Grok机器人,Q123361035,chatbot developed by SpaceXAI,,,,true,curated,model,needs_review,,false
+,Qwen,通义千问,model_family,Tongyi|Tongyi Qianwen|qianwen.com|qwen.ai,通义|千问|千問|通義千問,Q130234299,artificial intelligence chatbot developed by Alibaba Cloud,QwenLM,QwenLM,qwenlm.github.io,false,sources.csv,model,candidate_unverified,,false
+,Alibaba Cloud,阿里云,organization,Aliyun|AliCloud|Alibaba Cloud Computing,阿里云计算有限公司|阿里雲|阿里巴巴雲|云服务器|对象存储服务|阿里云计算,Q17062154,Chinese cloud computing company,,,aliyun.com,false,sources.csv,organization,candidate_unverified,,false
+,Anthropic,Anthropic,organization,,安特罗匹克,Q116758847,American artificial intelligence corporation,anthropics,anthropics,anthropic.com,false,sources.csv,organization,candidate_unverified,,false
+,Baidu,百度,organization,"Bǎidù|Baidu, Inc.|baidu.com|BIDU|BEIJING BAIDU NETCOM SCIENCE AND TECHNOLOGY CO., LTD. (Beijing)|Baidu Group",百度搜索|北京百度网讯科技有限公司,Q14772,Chinese web services company,,,baidu.com,false,sources.csv,organization,candidate_unverified,,false
+,Biren Technology,壁仞科技,organization,Biren|Shanghai Biren Intelligent Technology Co.,,Q116741527,Chinese semiconductor company,,,birentech.com,false,curated,organization,candidate_unverified,,false
+,ByteDance,字节跳动,organization,"Beijing ByteDance Technology Co., Ltd.|Douyin Group|Douyin Limited.|Douyin Company Limited|Douyin Co., Ltd.",北京字節跳動科技有限公司|北京字节跳动科技有限公司|字节跳动|抖音有限公司|字节跳动有限公司|抖音集团,Q55606242,Chinese Internet and technology company,,,bytedance.com,false,sources.csv,organization,candidate_unverified,,false
+,Cambricon,寒武纪,organization,,,Q140377560,,,,cambricon.com,false,curated,organization,candidate_unverified,,false
+,Cohere,Cohere,organization,Cohere AI|co:here,,Q110363143,Canadian artificial intelligence company building foundational models,cohere-ai,CohereForAI,cohere.com,false,sources.csv,organization,candidate_unverified,,false
+,Databricks,Databricks,organization,databricks.com,,Q18350420,American technology company,databricks,databricks,databricks.com,false,sources.csv,organization,candidate_unverified,,false
+,DeepSeek,深度求索,organization,"deepseek.com|Hangzhou DeepSeek Artificial Intelligence Basic Technology Research Co., Ltd.",杭州深度求索人工智能基础技术研究有限公司|杭州深度求索人工智慧基礎技術研究有限公司|DeepSeek,Q131577453,Chinese artificial intelligence company,deepseek-ai,deepseek-ai,deepseek.com,false,sources.csv+spec,organization,candidate_unverified,,false
+,Google,谷歌,organization,,,Q95,"American multinational technology company, a subsidiary of Alphabet Inc.",,,google.com,false,sources.csv,organization,candidate_unverified,,false
+,Groq,Groq,organization,"Groq, Inc.",,Q126050137,American artificial intelligence company,groq,,groq.com,true,sources.csv,organization,needs_review,,false
+,Hugging Face,Hugging Face,organization,,抱抱脸,Q108943604,American company,,,huggingface.co,true,sources.csv,organization,needs_review,,false
+,LangChain,LangChain,organization,,,Q117340550,language model application development framework,langchain-ai,langchain-ai,langchain.com,false,sources.csv,organization,needs_review,,false
+,Megvii,旷视科技,organization,,,Q67158557,Chinese technology company,,,megvii.com,false,curated,organization,candidate_unverified,,false
+,Meta AI,Meta AI,organization,AI at Meta,,Q112114913,artificial intelligence laboratory owned by Meta,facebookresearch,meta-llama,ai.meta.com,false,sources.csv,organization,candidate_unverified,,false
+,Mistral AI,Mistral,organization,Mistral,,Q119718658,French AI company,mistralai,mistralai,mistral.ai,false,sources.csv,organization,candidate_unverified,,false
+,Moonshot AI,月之暗面,organization,moonshot.cn,,Q130270266,multinational artificial intelligence company,MoonshotAI,MoonshotAI,moonshot.cn,false,sources.csv,organization,candidate_unverified,,false
+,OpenAI,OpenAI,organization,openai.com,,Q21708200,American artificial intelligence research organization,openai,openai,openai.com,false,sources.csv,organization,candidate_unverified,,false
+,SenseTime,商汤科技,organization,Sense Time,,Q55716258,Chinese AI company,,,sensetime.com,false,curated,organization,candidate_unverified,,false
+,Shanghai AI Lab,上海人工智能实验室,organization,Shanghai AI Laboratory|Shanghai AI Lab,,Q124251933,"facility in Shanghai, China",OpenGVLab,OpenGVLab,,false,curated,organization,candidate_unverified,,false
+,Stability AI,Stability AI,organization,Stability AI Ltd.,,Q123592234,British multinational artificial intelligence company,,,stability.ai,true,sources.csv,organization,needs_review,,false
+,StepFun,阶跃星辰,organization,StepFun AI,,Q137204546,"company in Shanghai, China",stepfun-ai,stepfun-ai,stepfun.com,false,sources.csv,organization,candidate_unverified,,false
+,Tencent,腾讯,organization,Téngxùn Kònggǔ Yǒuxiàn Gōngsī|AdvanceDataServices Limited|Tencent Holdings Limited|Tencent Holdings Ltd.|Tencent Group|Tencent Holdings|Shenzhen Tencent Computer Systems Company Limited|Tengxun|Téngxùn|Teng Xun (firma),深圳市腾讯计算机系统有限公司|深圳市騰訊計算機系統有限公司|騰訊控股有限公司|腾讯控股有限公司|腾讯计算机通讯公司|腾讯公司|騰訊公司|腾讯集团|腾讯控股|腾讯科技,Q860580,Chinese multinational investment holding conglomerate,,,tencent.com,false,sources.csv,organization,candidate_unverified,,false
+,Weaviate,Weaviate,organization,vector search engine|vector database,,Q106201926,"cloud-native, modular, real-time vector search engine",weaviate,weaviate,weaviate.io,false,sources.csv,organization,needs_review,,false
+,Xiaomi,小米,organization,"Xiaomi (China)|Xiaomi Tech|Xiaomi Technology Co., Ltd|Beijing Xiaomi Technology Co., Ltd",北京小米科技有限责任公司|小米科技|小米,Q1636958,Chinese electronics company,XiaomiMiMo,,mi.com,false,sources.csv,organization,candidate_unverified,,false
+,Zhipu AI,智谱,organization,Beijing Knowledge Atlas Technology Co Ltd|Beijing Zhipu Huazhang Technology Co.,智谱ai,Q129572031,Chinese technology company based in Beijing,zhipu-ai,THUDM,zhipuai.cn,false,sources.csv,organization,candidate_unverified,,false
+,iFlytek,科大讯飞,organization,Anhui USTC iFlytek Co.|USTC iFlytek|Keda Xufei|Xunfei|Iflytek Co Ltd|Anhui USTC iFLYTEK Science and Technology Co. Ltd.|Keda Xunfei|iflytek.com,讯飞|科大訊飛|訊飛|讯飞听见|訊飛聽見,Q4764375,Chinese technology company,,,iflytek.com,false,curated,organization,candidate_unverified,,false
+,Model Context Protocol,模型上下文协议,protocol,MCP,模型上下文協議,Q133436854,protocol for applications to provide context to LLMs,modelcontextprotocol,,modelcontextprotocol.io,false,sources.csv,technology,candidate_unverified,,false
+bench_opencompass,OpenCompass,OpenCompass,benchmark,OpenCompass|CompassBench,,,,open-compass,opencompass,opencompass.org,false,GitHub源,,needs_review,,false
+model_deepseek_v3,DeepSeek-V3,DeepSeek-V3,model,DeepSeek-V3|V3,,,,,deepseek-ai,,false,,model,candidate_unverified,,false
+model_gpt4o,GPT-4o,GPT-4o,model,GPT-4o|gpt-4o,,,,,openai,,false,,model,candidate_unverified,,false
+model_qwen3,Qwen3,Qwen3,model,Qwen3|Qwen3-Coder|Qwen3-Max,,,,,QwenLM,,false,,model,candidate_unverified,,false
+org_internlm,InternLM,InternLM,model_family,InternLM|InternLM2|InternVL,书生,,,InternLM,internlm,internlm.org,false,GitHub源,model,candidate_unverified,,false
+model_kimi,Kimi,月之暗面,model_family,Kimi|Moonshot AI|Moonshot|K2,月之暗面,,,MoonshotAI,MoonshotAI,moonshot.cn,false,厂商官网,model,candidate_unverified,,false
+org_minicpm,MiniCPM,MiniCPM,model_family,MiniCPM|MiniCPM-V|OpenBMB,,,,OpenBMB,openbmb,,,,model,needs_review,,false
+org_byte_seed,Seed,字节Seed,model_family,Seed|Doubao,字节Seed|豆包|字节跳动Seed,,,,,,,false,model,needs_review,,false
+org_meta,Meta,Meta,organization,Meta|Meta AI|Meta FAIR,,,,facebookresearch,meta-llama,ai.meta.com,false,官方源,organization,candidate_unverified,,false

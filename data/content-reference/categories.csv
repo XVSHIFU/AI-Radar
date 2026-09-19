@@ -1,0 +1,7 @@
+category_code,category_zh,aliases,source_notes
+model_release,新模型发布,"发布,上新,正式商用,开源模型,权重发布,全新模型,大模型发布",厂商官网/公众号第一手;D类最重要
+agent_tool,Agent工具,"Agent,智能体,Agent工具,Agent平台,MCP工具,智能体工作流",LangChain/Dify/MCP生态
+framework_sdk,框架SDK,"框架,SDK,开发框架,开发工具,API,协议,标准",GitHub Release/PyPI;protocol例如MCP
+research,研究,"论文,研究,技术报告,benchmark,数据集,预印本,技术博客",arXiv/HF Daily Papers/Paper Pulse
+product,产品,"产品,功能,更新,Changelog,新能力,客户端,GUI",产品博客/Changelog
+industry,行业,"融资,收购,上市,合作,人事,价格,监管,公司动态",融资/收购/价格调整归industry;媒体交叉核对

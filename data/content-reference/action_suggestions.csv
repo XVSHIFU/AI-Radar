@@ -1,0 +1,22 @@
+action_group,action_code,zh_aliases,ambiguous,notes,suggested_category,requires_context
+release,model_release,"发布权重,发布模型,全新模型,发布大模型,重磅发布",false,模型本体发布,model_release,true
+release,product_launch,"正式上线,上线,发布产品,推出产品,发布(产品)",true,上线/推出需结合宾体判断,product,true
+release,feature_release,"新增功能,功能更新,支持,引入新能力",false,,product,true
+release,api_release,"发布API,开放API,对外开放接口",false,,product,true
+release,open_source_release,"开源,开放权重,开源模型,宣布开源",false,,,true
+release,general_availability,"正式商用,全面开放,GA,正式可用,开放使用",false,,,true
+commercial,price_increase,"涨价,价格上调,调整价格(上)",false,,industry,true
+commercial,price_decrease,"降价,价格下调,价格调整(下),限时优惠",false,,industry,true
+commercial,pricing_change,"调价,价格调整,计价变更",true,方向需上下文,industry,true
+commercial,free_tier_change,"免费额度调整,免费层变更,额度变化",false,,industry,true
+corporate,funding,"完成融资,融资,获投,新一轮融资",false,,industry,true
+corporate,acquisition,"收购,并购,被收购,控股",false,,industry,true
+corporate,merger,"合并,并购(合并)",false,,industry,true
+corporate,partnership,"合作,战略合作,结盟,联手",false,,industry,true
+corporate,investment,"投资,领投,参投",false,,industry,true
+corporate,personnel,"人事变动,离职,入职,任命,加入",true,,industry,true
+research,paper_release,"发布论文,论文发布,发表,预印本,technical report",false,,research,true
+research,benchmark_result,"基准测试,跑分,benchmark,排名,榜单",false,,research,true
+research,dataset_release,"数据集发布,开源数据集,发布数据集",false,,research,true
+industry,regulation,"监管,合规,禁令,调查,政策",false,,industry,true
+industry,milestone,"里程碑,达成,突破,达到X用户",false,,industry,true

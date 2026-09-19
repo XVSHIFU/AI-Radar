@@ -1,0 +1,38 @@
+{
+  "source": "AI-Radar-参考/data (read-only)",
+  "review": "docs/reference-review-20260919.md",
+  "input_sha256": {
+    "category_taxonomy.csv": "c938d0501c177efd55717a147e5bbef24433f41d62a4e5f8c3e17417124210aa",
+    "action_taxonomy.csv": "560ad6cdee322fe6f7801c28eeece0330d265ae28319156db843e1d8de4db952",
+    "source_fetch_policies.csv": "ae1a754f0ef416efae1a3817bc6645f1e3ec7e30e7180f4cfbeca2fa5f27d2c4",
+    "first_party_monitors.csv": "e433e5c437ec3f78f1354c06ef81e0bc911b40078d46369cf940e43e5505981d",
+    "entities_seed.csv": "fb82a1ca2b9eb7f325a066d21fe626cd9b9545d3d0e5c5d73ede54d221f6390c",
+    "sources.csv": "31d45adc8d923d6dfa3728707be2924ff83ed41662f800493d6530cb405a2eb1"
+  },
+  "row_counts": {
+    "categories": 6,
+    "workflow_status": 1,
+    "actions": 21,
+    "fetch_policies_advisory": 8,
+    "monitors_advisory": 10,
+    "entity_candidates": 53,
+    "entity_quarantine": 14,
+    "disabled_feed_seeds": 2
+  },
+  "repaired_row_widths": {
+    "category_taxonomy.csv": 1,
+    "source_fetch_policies.csv": 5,
+    "first_party_monitors.csv": 2
+  },
+  "publication_status": "reference_only",
+  "output_sha256": {
+    "categories.csv": "71055b9c2f608233a1aa63ab85849022b5b170ca5d4fc98ec6ae4e2b318a018a",
+    "workflow_status.csv": "ef28a02cb53bd95629b41c304b5458919503fb30b0499632cc8932421ed7937a",
+    "action_suggestions.csv": "542b4a49a44537a49965c37414364175f22d80a0a4e383c9f96294f0aa1d1342",
+    "fetch_policies_advisory.csv": "600c775ddf5bd212080a01e6627b4a2f1c5cf077fe175079525d08618bfa8078",
+    "monitors_advisory.csv": "afdfe91aae0bce9efd4172fba4673a9deb98009f89cdf9dd53a73ca299c3f055",
+    "entity_candidates.csv": "6bd6e43bfc7bfaae7a3af9c21164ab57516dce08fa580fd54a3969eb2dfbeead",
+    "entity_quarantine.csv": "1b0436fe2e3260ade747e98b466cb82dc6bca89fdb1e192bfd6d3c578996dfe6",
+    "disabled_feed_seeds.json": "55bd6f2ec0398009823e83054f5f6ad57a388bd062ce8f2e056cb96e4d7fd0f7"
+  }
+}

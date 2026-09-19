@@ -1,0 +1,20 @@
+[
+  {
+    "source_ref": "S008",
+    "name": "Hugging Face",
+    "feed_url": "https://huggingface.co/blog/feed.xml",
+    "channel_type": "rss",
+    "enabled": false,
+    "health": "unverified",
+    "review_basis": "reference-review-20260919 XML snapshot; existing built-in candidate"
+  },
+  {
+    "source_ref": "new-official-groq",
+    "name": "Groq Official Changelog",
+    "feed_url": "https://github.com/groq/groq-changelog/commits/main.atom",
+    "channel_type": "rss",
+    "enabled": false,
+    "health": "unverified",
+    "review_basis": "reference-review-20260919 XML snapshot; commit feed needs article validation"
+  }
+]

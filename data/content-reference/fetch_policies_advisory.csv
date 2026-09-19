@@ -1,0 +1,9 @@
+source_ref,collection_mode,requires_ua,requires_js,rate_limit,concurrency,timeout_s,retry_policy,anti_bot_level,max_poll_min,notes,source_label,operational_status
+S001-S014;S019-S033;S039-S064,rss,false,false,每源合理限流,2,20,3次退避,low,15-30,官方/社区feed直接轮询,,advisory_only
+S015,rss,true,false,低频,1,20,3次退避+尊重Retry-After,medium,30,无UA会403;带浏览器UA+Accept xml头,Microsoft Research,advisory_only
+S034-S036,link_aggregator,false,false,低频,1,20,尊重频率限制,medium,30,聚合源正文需抓原站;注意429限流退避,Reddit/HN/Lobsters,advisory_only
+S034,link_aggregator,false,false,低频,1,20,限流退避,medium,30,r/MachineLearning当前429需更宽松策略,Reddit r/LocalLLaMA,advisory_only
+S042,rss,false,false,低频,1,20,限流退避,medium,30,本网络被限流,VentureBeat AI,advisory_only
+P-MON-01~10,page_monitor,true,不一定,中各厂商页面高频,1,20,失败退避,medium,P-MON-01/02高其余中,首屏变化检测;变化后重新提取条幅/公告,,advisory_only
+wechat2rss 全部,rss(wechat2rss),false,false,低频,1,20,3次退避,low,20,摘要需再抓原站;delayed=true,,advisory_only
+github_release 全部,github_release,false,false,官方限制内,1,20,尊重API限流,low,30,GitHub原生日程/release.atom,,advisory_only
