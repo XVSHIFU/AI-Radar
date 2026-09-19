@@ -25,6 +25,9 @@ from .admin_persistence import (
     append_admin_audit,
 )
 from .config import REPO_ROOT, get_settings
+from .content_api import router as content_router
+from .content_gateway import router as content_gateway_router
+from .content_runner import recover_abandoned
 from .data_quality_api import router as data_quality_router
 from .fixture_repository import FixtureRepository
 from .ingest.dns import configured_resolver
@@ -96,6 +99,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.public_identity = None
     app.state.public_quota = None
     app.state.research_artifacts = ArtifactStore()
+    app.state.content_jobs = set()
     app.state.research_sessions = research_sessions
     app.state.research_policy = (
         ResearchPolicy.load(REPO_ROOT / "agent/research")
@@ -110,6 +114,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.engine = engine
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         app.state.sessions = sessions
+        await recover_abandoned(sessions)
         if settings.public_assistant_secret:
             app.state.public_identity = PublicIdentity(settings.public_assistant_secret)
             app.state.public_quota = PostgresPublicQuota(
@@ -138,6 +143,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        for job in tuple(app.state.content_jobs):
+            job.cancel()
+        await asyncio.gather(*app.state.content_jobs, return_exceptions=True)
         artifact_reaper.cancel()
         await asyncio.gather(artifact_reaper, return_exceptions=True)
         if app.state.engine is not None:
@@ -153,6 +161,8 @@ app.include_router(research_router(research_sessions))
 app.include_router(session_router)
 app.include_router(admin_router)
 app.include_router(data_quality_router)
+app.include_router(content_router)
+app.include_router(content_gateway_router)
 
 
 logger = logging.getLogger(__name__)
@@ -179,6 +189,15 @@ def _admin_audit_target(request: Request) -> tuple[str, str] | None:
         ("POST", "/api/v1/ingest/runs"): ("ingest.start", "ingest-runs"),
         ("POST", "/api/v1/admin/event-merges"): ("event_merge.create", "event-merges"),
     }
+    fixed.update(
+        {
+            ("POST", "/api/v1/admin/content/tasks"): ("content.task.create", "content-tasks"),
+            ("POST", "/api/v1/admin/content/export"): ("content.export", "content-tasks"),
+            ("POST", "/api/v1/admin/content/import"): ("content.import", "content-drafts"),
+            ("PATCH", "/api/v1/admin/content/settings"): ("content.settings", "content-settings"),
+            ("POST", "/api/v1/admin/content/batches"): ("content.batch.start", "content-batches"),
+        }
+    )
     if result := fixed.get((method, path)):
         return result
     match = _SOURCE_ROUTE.fullmatch(path)
@@ -205,6 +224,24 @@ def _admin_audit_target(request: Request) -> tuple[str, str] | None:
         except ValueError:
             return None
         return "event_date.correct", f"event:{event_id}"
+    content_match = re.fullmatch(
+        r"/api/v1/admin/content/(drafts|batches|tasks)/([0-9a-fA-F-]{36})(?:/(publish|pause|manual|skip))?",
+        path,
+    )
+    if content_match and method in {"POST", "PATCH"}:
+        action = {
+            ("drafts", "PATCH", None): "content.draft.edit",
+            ("drafts", "POST", "publish"): "content.publish",
+            ("batches", "POST", "pause"): "content.batch.pause",
+            ("tasks", "POST", "manual"): "content.task.manual",
+            ("tasks", "POST", "skip"): "content.task.skip",
+        }.get((content_match.group(1), method, content_match.group(3)))
+        if action:
+            try:
+                target_id = str(UUID(content_match.group(2)))
+            except ValueError:
+                return None
+            return action, f"content:{target_id}"
     return None
 
 

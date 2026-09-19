@@ -343,3 +343,74 @@ class EventDateAuditLogRow(Base):
     after_basis: Mapped[str] = mapped_column(String(32))
     operator: Mapped[str] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ContentTaskRow(Base):
+    __tablename__ = "content_tasks"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    article_version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("article_versions.id"))
+    content_hash: Mapped[str] = mapped_column(String(64))
+    export_scope: Mapped[dict[str, str] | None] = mapped_column(JSONB)
+    prompt_version: Mapped[str] = mapped_column(String(32), default="content-v1")
+    schema_version: Mapped[str] = mapped_column(String(32), default="extraction-v1")
+    status: Mapped[str] = mapped_column(String(32), default="pending")
+    mode: Mapped[str] = mapped_column(String(16), default="manual")
+    draft_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    batch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    __table_args__ = (UniqueConstraint("article_version_id", name="uq_content_task_version"),)
+
+
+class ContentDraftRow(Base):
+    __tablename__ = "content_drafts"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    task_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("content_tasks.id"), unique=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    validation_errors: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    status: Mapped[str] = mapped_column(String(24), default="needs_review")
+    event_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("events.id"))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class ContentSettingsRow(Base):
+    __tablename__ = "content_settings"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    auto_publish: Mapped[bool] = mapped_column(Boolean, default=False)
+    batch_limit: Mapped[int] = mapped_column(Integer, default=5)
+    daily_article_limit: Mapped[int] = mapped_column(Integer, default=0)
+    daily_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    daily_output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    article_max_calls: Mapped[int] = mapped_column(Integer, default=1)
+    max_output_tokens: Mapped[int] = mapped_column(Integer, default=1600)
+    concurrency: Mapped[int] = mapped_column(Integer, default=1)
+    profile: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    profile_version: Mapped[int] = mapped_column(Integer, default=1)
+
+
+class ContentBatchRow(Base):
+    __tablename__ = "content_batches"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    status: Mapped[str] = mapped_column(String(24), default="queued")
+    profile: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    profile_version: Mapped[int] = mapped_column(Integer)
+    auto_publish: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ContentUsageRow(Base):
+    __tablename__ = "content_usage"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    task_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("content_tasks.id"), unique=True)
+    batch_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("content_batches.id"))
+    usage_day: Mapped[date] = mapped_column(Date)
+    reserved_input_tokens: Mapped[int] = mapped_column(Integer)
+    reserved_output_tokens: Mapped[int] = mapped_column(Integer)
+    actual_input_tokens: Mapped[int | None] = mapped_column(Integer)
+    actual_output_tokens: Mapped[int | None] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(24), default="reserved")
+    error_code: Mapped[str | None] = mapped_column(String(64))
