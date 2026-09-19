@@ -66,12 +66,20 @@ RADAR_DOMAIN=radar.example.com python3 scripts/release.py https-up \
 ```bash
 python3 scripts/release.py backup --data-root "$PWD/.local-data" \
   --output /absolute/path/radar-backup
-# 恢复到新目录；停止原服务或使用不同 RADAR_STACK，避免两套服务冲突。
-RADAR_STACK=ai-radar-restored python3 scripts/release.py restore \
+# 恢复到新目录；并行运行时为副本选择独立项目名、端口和未占用的前端子网/IP。
+RADAR_STACK=ai-radar-restored \
+RADAR_HTTP_PORT=8081 \
+RADAR_FRONT_SUBNET=172.31.250.0/29 \
+RADAR_GATEWAY_IP=172.31.250.2 \
+RADAR_API_IP=172.31.250.3 \
+python3 scripts/release.py restore \
   --data-root "$PWD/.restored-data" --snapshot /absolute/path/radar-backup
+python3 scripts/release.py up --data-root "$PWD/.restored-data"
 ```
 
 备份含数据库、私有配置和凭据，只保存在你指定的位置。恢复命令校验摘要并启动数据库，应用需另行执行 `up`。升级前先备份，再加载新镜像并运行 `up`；涉及数据库变化时，不能仅换回旧镜像就认为已完成回退。同机副本不能应对整块磁盘损坏。
+
+运行时可用 `docker ps` 查看容器健康状态、`docker logs --tail 100 <容器名>` 查看故障，使用 `docker system df` 和 `df -h <数据目录>` 检查空间。容器日志已限制为每份 10 MB、最多 3 份；采集失败在后台查看。
 
 ## 开发与反馈
 

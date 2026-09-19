@@ -202,7 +202,9 @@ def restore(root: Path, snapshot: Path) -> None:
             if member is None:
                 raise SystemExit("Backup is missing a secret")
             saved[name] = member.read()
-    stack = os.environ.get("RADAR_STACK", "ai-radar-release")
+    stack = os.environ.get("RADAR_STACK")
+    if not stack:
+        raise SystemExit("Restore requires an explicit new RADAR_STACK")
     if subprocess.run(["docker", "ps", "-a", "-q", "--filter",
                        "label=com.docker.compose.project=" + stack],
                       check=True, capture_output=True).stdout.strip():
@@ -221,6 +223,9 @@ def restore(root: Path, snapshot: Path) -> None:
             with archive.extractfile(member) as source, target.open("xb") as destination:
                 shutil.copyfileobj(source, destination)
             target.chmod(0o600)
+    # The snapshot carries its former deployment settings. Keep explicit settings
+    # for this new deployment so later commands use the same stack and network.
+    persist_overrides(root)
     set_container_ownership(root)
     compose(root, "up", "-d", "--no-build", "--wait", "db")
     dump = (snapshot / "database.dump").read_bytes()
