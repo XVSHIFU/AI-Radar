@@ -1,3 +1,5 @@
+> Historical extractor notes: provider restrictions and date rules below describe an earlier implementation. Paid extraction is currently paused. The current manual-first / optional content-Agent plan is [content-pipeline-plan.md](content-pipeline-plan.md); do not restart this command as part of that planning work.
+
 # DeepSeek Flash offline event extraction
 
 The extractor publishes structurally validated AI events from immutable `ArticleVersion` rows. It is an

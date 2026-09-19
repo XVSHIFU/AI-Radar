@@ -1,6 +1,6 @@
 # AI 革新雷达
 
-> 最新全方案进度以 [2026-09-15逐项审计](docs/implementation-audit-2026-09-15.md) 为准。下文旧阶段的无模型/无事件描述是历史记录，不代表当前状态。
+> 最新进度与下一阶段任务见 [2026-09-19 内容生产整合方案](docs/content-pipeline-plan.md)，上线与恢复见 [容器部署记录](docs/personal-container-deployment.md)。当前新研究 Agent 已上线、付费提取暂停；手动导入与可选内容 Agent 自动模式尚待开发。下文早期阶段记录不代表当前状态。
 
 本仓库正在按实施规格 v1.0 落地。当前工作区是 `E:\AI-AGENT\AI-Radar-Implementation-Spec\codex`，覆盖旧方案中的 C 盘示例路径。
 
@@ -16,7 +16,7 @@
 - `scripts/`：本地启动/停止、验证、RSS入口验证与 Ubuntu 服务管理。
 - `docs/`：设计、原型比较、实施记录和逐项验收证据。
 
-## 当前 Ubuntu 开发环境
+## 历史 Ubuntu 开发环境（已由容器部署替代）
 
 已将工程迁移到 Ubuntu，真实 PostgreSQL、API、采集 worker 和每小时调度已启动。
 页面：http://192.168.194.129:5173/ 。详细环境、备份恢复与服务命令见 [Ubuntu 开发记录](docs/ubuntu-development.md)。
@@ -70,7 +70,7 @@ python scripts/validate-sources.py
 
 原型比较：分别在两个 `prototypes/*` 目录执行 `npm ci` 和 `npm run dev -- --host 127.0.0.1 --port <4174或4173>`，再执行 `./scripts/check-prototypes.ps1`。运行前需本机已安装 `agent-browser` 及浏览器；结果写入 `docs/prototype-browser-results.json`。
 
-## 当前边界
+## 早期阶段边界（历史记录）
 
 5 个真实 RSS 与正文样本已通过生产抓取，原文持续保存到 Ubuntu 的真实 PG。备份/隔离恢复已通过。没有历史原站 ID 与 gold 材料，也没有模型凭据和付费预算。100 条真实标准事件、模型质量、旧 API/SSE 兼容和生产部署仍未完成。
 
