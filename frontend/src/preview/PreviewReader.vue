@@ -29,7 +29,7 @@ const labels: Record<Category, string> = {
   framework_sdk: "框架与 SDK",
   research: "研究",
   product: "产品",
-  industry: "产业",
+  industry: "产业", unclassified: "未分类",
 };
 const safeUrl = (url: string) => /^https?:\/\//i.test(url);
 const verification = (value: string) =>

@@ -3,7 +3,7 @@ import { completedPairs, validPreferences, memorySettings, type ReplyPreferences
 import type { Citation } from "./api";
 import type { ResearchArtifact } from "./research-artifacts";
 
-export type Attachment = { id: string; title: string };
+export type Attachment = { id: string; title: string; content_kind?: "event" | "article"; source_url?: string | null; source_name?: string | null };
 export type StoredPlan = {
   business_date: string; timezone: string; filters: { category?: string; date_from?: string; date_to?: string; entity_ids?: string[]; entity_match?: "all" | "any"; event_ids?: string[] };
   requires_clarification: boolean; clarification_candidates: { label: string; entity_id: string | null }[]; warnings: string[]; free_text?: string; entity_roles?: ("subject" | "product")[]; history_turns_considered?: number; history_user_turns_used?: number; event_targets?: { event_id:string; title_zh:string|null; status:"matched"|"filtered_out"|"not_found" }[];

@@ -12,6 +12,8 @@ export type InsightResult = {
   date_from: string;
   date_to: string;
   timezone: string;
+  total_items: number;
+  total_articles: number;
   total_events: number;
   total_relation: "eq";
   daily: { date: string; count: number }[];
@@ -47,11 +49,13 @@ function fixtureInsights(query: InsightQuery): InsightResult {
   }
   const dailyRows: { date: string; count: number }[] = [];
   for (let current = query.date_from; current <= query.date_to; current = addOneDay(current)) dailyRows.push({ date: current, count: daily.get(current) || 0 });
-  const allCategories: Category[] = ["model_release", "agent_tool", "framework_sdk", "research", "product", "industry"];
+  const allCategories: Category[] = ["model_release", "agent_tool", "framework_sdk", "research", "product", "industry", "unclassified"];
   return {
     date_from: query.date_from,
     date_to: query.date_to,
     timezone: "Asia/Shanghai",
+    total_items: rows.length,
+    total_articles: 0,
     total_events: rows.length,
     total_relation: "eq",
     daily: dailyRows,
@@ -72,10 +76,20 @@ export async function insights(
   const params = new URLSearchParams(
     Object.entries(query).filter(([, value]) => value !== undefined && value !== "") as [string, string][],
   );
-  const response = await fetch(`/api/v1/insights/summary?${params}`, { signal });
+  const response = await fetch(`${query.min_importance ? "/api/v1/insights/summary" : "/api/v1/feed/insights"}?${params}`, { signal });
   if (!response.ok) throw new Error("统计请求失败");
   const value = (await response.json()) as InsightResult;
-  if (!Array.isArray(value.daily_categories)) throw new Error("统计服务需更新后才能显示分类趋势。");
+  if (query.min_importance) { value.total_items = value.total_events; value.total_articles = 0; }
+  if (!Array.isArray(value.daily_categories) || !Number.isFinite(value.total_items)) throw new Error("统计服务需更新后才能显示收录趋势。");
+  const allCategories: Category[] = ["model_release", "agent_tool", "framework_sdk", "research", "product", "industry", "unclassified"];
+  const daily = new Map(value.daily.map((row) => [row.date, row.count]));
+  const matrix = new Map(value.daily_categories.map((row) => [row.date + "|" + row.category, row.count]));
+  const days: string[] = [];
+  for (let date = query.date_from; date <= query.date_to; date = addOneDay(date)) days.push(date);
+  value.daily = days.map((date) => ({ date, count: daily.get(date) || 0 }));
+  value.daily_categories = days.flatMap((date) => allCategories.map((category) => ({ date, category, count: matrix.get(date + "|" + category) || 0 })));
+  const categoryTotals = new Map(value.categories.map((row) => [row.category, row.count]));
+  value.categories = allCategories.map((category) => ({ category, count: categoryTotals.get(category) || 0 }));
   updateDataMode(value);
   return value;
 }

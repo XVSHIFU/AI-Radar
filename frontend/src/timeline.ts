@@ -1,15 +1,16 @@
-import type { Event } from "./api";
+import type { Event, FeedItem } from "./api";
 
-export type TimelineDay = { key: string; label: string; events: Event[] };
-export type TimelineMonth = {
+export type TimelineEntry = Event | FeedItem;
+export type TimelineDay<T extends TimelineEntry = Event> = { key: string; label: string; events: T[] };
+export type TimelineMonth<T extends TimelineEntry = Event> = {
   key: string;
   label: string;
-  days: TimelineDay[];
+  days: TimelineDay<T>[];
 };
-export type TimelineYear = {
+export type TimelineYear<T extends TimelineEntry = Event> = {
   key: string;
   label: string;
-  months: TimelineMonth[];
+  months: TimelineMonth<T>[];
   unknown?: boolean;
 };
 export type TimelineState = Record<string, boolean>;
@@ -22,11 +23,11 @@ const dateParts = (date: string | null) => {
 };
 
 /** Builds date headings from loaded rows only; it never claims calendar-wide counts. */
-export function buildTimeline(items: Event[]): TimelineYear[] {
-  const known = new Map<string, Map<string, Map<string, Event[]>>>();
-  const unknown: Event[] = [];
+export function buildTimeline<T extends TimelineEntry>(items: T[]): TimelineYear<T>[] {
+  const known = new Map<string, Map<string, Map<string, T[]>>>();
+  const unknown: T[] = [];
   for (const item of items) {
-    const parts = dateParts(item.event_date);
+    const parts = dateParts("display_date" in item ? item.display_date?.slice(0, 10) ?? null : item.event_date);
     if (!parts) {
       unknown.push(item);
       continue;
@@ -39,7 +40,7 @@ export function buildTimeline(items: Event[]): TimelineYear[] {
     months.set(parts.month, days);
     known.set(parts.year, months);
   }
-  const years: TimelineYear[] = [...known.entries()]
+  const years: TimelineYear<T>[] = [...known.entries()]
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([year, months]) => ({
       key: year,
@@ -71,7 +72,7 @@ export function buildTimeline(items: Event[]): TimelineYear[] {
   return years;
 }
 
-const allKeys = (timeline: TimelineYear[]) =>
+const allKeys = (timeline: TimelineYear<TimelineEntry>[]) =>
   timeline.flatMap((year) => [
     year.key,
     ...year.months.flatMap((month) => [
@@ -83,7 +84,7 @@ const allKeys = (timeline: TimelineYear[]) =>
 /** Preserves an author's open/closed choices while pages append new date groups. */
 export function reconcileTimelineState(
   current: TimelineState,
-  timeline: TimelineYear[],
+  timeline: TimelineYear<TimelineEntry>[],
 ): TimelineState {
   return Object.fromEntries(
     allKeys(timeline).map((key) => [key, current[key] ?? true]),
@@ -91,7 +92,7 @@ export function reconcileTimelineState(
 }
 
 export function setTimelineGranularity(
-  timeline: TimelineYear[],
+  timeline: TimelineYear<TimelineEntry>[],
   open: boolean,
 ): TimelineState {
   return Object.fromEntries(allKeys(timeline).map((key) => [key, open]));

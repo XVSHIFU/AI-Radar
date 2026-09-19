@@ -6,7 +6,8 @@ export type Category =
   | "framework_sdk"
   | "research"
   | "product"
-  | "industry";
+  | "industry"
+  | "unclassified";
 export type Event = {
   id: string;
   title_zh: string;
@@ -66,6 +67,27 @@ export type EventResult = {
   data_revision: string;
   request_id: string;
 };
+export type FeedItem = {
+  id: string;
+  content_kind: "event" | "article";
+  title: string;
+  excerpt: string | null;
+  category: Category | null;
+  published_at: string | null;
+  ingested_at: string | null;
+  display_date: string | null;
+  source_name: string | null;
+  source_url: string | null;
+  byline?: string | null;
+  importance?: number;
+  source_count?: number;
+  evidence_count?: number;
+  entities?: string[];
+  date_conflict?: boolean;
+  date_basis?: Event["date_basis"];
+};
+export type FeedResult = Omit<EventResult, "items"> & { items: FeedItem[] };
+export type FeedStats = Stats & { total_items: number; total_articles: number };
 const demo = () =>
   typeof location !== "undefined" &&
   new URLSearchParams(location.search).get("demo") === "1";
@@ -193,6 +215,15 @@ export const events = {
           signal,
         }).then((x) => x.items),
 };
+export const feed = {
+  list: (q: EventQuery, signal?: AbortSignal) => demo()
+    ? Promise.resolve({ ...filter(q), items: filter(q).items.map((item): FeedItem => ({ id: item.id, content_kind: "event", title: item.title_zh, excerpt: item.summary_zh, category: item.category, published_at: item.event_date, ingested_at: null, display_date: item.event_date, source_name: null, source_url: null, importance: item.importance, source_count: item.source_count, evidence_count: item.evidence_count, entities: item.entities, date_conflict: item.date_conflict, date_basis: item.date_basis })) })
+    : api<FeedResult>("/api/v1/feed?" + new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined && v !== "") as [string, string][]), { signal }),
+  one: (id: string, signal?: AbortSignal) => api<FeedItem & { paragraphs?: Record<string, string> }>("/api/v1/feed/" + encodeURIComponent(id), { signal }),
+  stats: () => demo()
+    ? stats().then((value): FeedStats => ({ ...value, total_items: value.total_events, total_articles: 0 }))
+    : api<FeedStats>("/api/v1/feed/stats"),
+};
 export type AssistantQuota = { remaining: number; limit: number; window_hours: number; next_available_at: string | null };
 export const assistantQuota = ref<AssistantQuota | null>(null);
 let sessionRequest: Promise<void> | undefined;
@@ -222,7 +253,12 @@ export type ResearchDataset = {
 };
 export type Citation = {
   evidence_id?: string;
-  kind?: "evidence" | "dataset" | "analysis";
+  kind?: "evidence" | "dataset" | "analysis" | "article";
+  article_id?: string;
+  content_kind?: "event" | "article";
+  excerpt_kind?: "feed_excerpt";
+  body_available?: boolean;
+  verification_status?: string;
   datasets?: ResearchDataset[];
   analysis?: { code?: string; stdout: string; stdout_truncated: boolean };
   dataset?: ResearchDataset;
@@ -254,11 +290,16 @@ export type ModelSettings = { provider: string; base_url: string; model: string;
 export type ModelPreset = { id: string; name: string; base_url: string; model: string; protocol: "openai-compatible" };
 export type ModelTest = { ok: boolean; message: string; model: string; usage?: { prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null }; request_messages?: Array<{ role: string; content: string }>; response_text?: string | null; error_code?: string | null };
 export type Usage = { items: Array<{ purpose: string; status: string; calls: number; usage_recorded: number | null; input_tokens: number | null; output_tokens: number | null; total_tokens: number | null }>; as_of: string };
+export type AdminArticle = { id: string; title: string; source_name: string | null; source_url: string | null; published_at: string | null; ingested_at: string | null; status: "published" | "hidden" };
+
 const csrfHeaders = (csrf: string, extra: HeadersInit = {}) => ({ ...extra, "X-CSRF-Token": csrf });
 export const admin = {
   session: (token?: string) => token === undefined ? api<AdminSession>("/api/v1/admin/session") : api<AdminSession>("/api/v1/admin/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) }),
   logout: (csrf: string) => fetch("/api/v1/admin/session", { method: "DELETE", credentials: "same-origin", headers: csrfHeaders(csrf) }).then((response) => { if (!response.ok) throw { code: `HTTP_${response.status}`, status: response.status, message: "退出管理后台失败" }; }),
   sources: () => api<{ items: Source[] }>("/api/v1/admin/sources"),
+  articles: (status: "published" | "hidden") => api<{ items: AdminArticle[]; total: number }>("/api/v1/admin/articles?status=" + status + "&limit=50"),
+  setArticleStatus: (csrf: string, id: string, status: "published" | "hidden") => api<{ id: string; status: "published" | "hidden" }>("/api/v1/admin/articles/" + encodeURIComponent(id), { method: "PATCH", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify({ status }) }),
+
   createSource: (csrf: string, payload: Pick<Source, "name" | "feed_url" | "channel_type">) => api<Source>("/api/v1/admin/sources", { method: "POST", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
   updateSource: (csrf: string, id: string, payload: Partial<Pick<Source, "name" | "feed_url" | "enabled">>) => api<Source>(`/api/v1/admin/sources/${id}`, { method: "PATCH", headers: csrfHeaders(csrf, { "Content-Type": "application/json" }), body: JSON.stringify(payload) }),
   probe: (csrf: string, id: string) => api<ProbeResult>(`/api/v1/admin/sources/${id}/probe`, { method: "POST", headers: csrfHeaders(csrf) }),

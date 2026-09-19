@@ -12,3 +12,7 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-page button.admin-action { transition: none; }
 }
+
+.admin-optional { margin: -8px 0 20px; }
+.admin-optional > summary { width: fit-content; color: var(--muted); cursor: pointer; padding: 8px 2px; }
+.admin-optional > .admin-tabs { margin: 4px 0 16px; }

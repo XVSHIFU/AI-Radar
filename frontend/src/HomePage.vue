@@ -2,13 +2,12 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
-  events,
+  feed,
   err,
-  stats,
   type Category,
-  type Event,
+  type FeedItem,
   type EventQuery,
-  type Stats,
+  type FeedStats,
 } from "./api";
 import EventDrawers from "./EventDrawers.vue";
 import DateRangePicker from "./DateRangePicker.vue";
@@ -30,7 +29,7 @@ const route = useRoute(),
   category = ref<Category | "">(""),
   from = ref(""),
   to = ref(""),
-  items = ref<Event[]>([]),
+  items = ref<FeedItem[]>([]),
   total = ref(0),
   next = ref<string | null>(null),
   loading = ref(false),
@@ -39,7 +38,7 @@ const route = useRoute(),
   compact = ref(innerWidth < 768),
   timer = ref<number>(),
   latest = latestRequest(),
-  overview = ref<Stats>(),
+  overview = ref<FeedStats>(),
   statsError = ref(false),
   timelineState = ref<TimelineState>({});
 const categories = computed<{ v: Category; l: string }[]>(() => [
@@ -49,6 +48,7 @@ const categories = computed<{ v: Category; l: string }[]>(() => [
   { v: "research", l: tx("研究", "Research") },
   { v: "product", l: tx("产品", "Products") },
   { v: "industry", l: tx("产业", "Industry") },
+  { v: "unclassified", l: tx("未分类", "Unclassified") },
 ]);
 const timeline = computed(() => buildTimeline(items.value).map(year => ({ ...year, label: year.unknown ? tx("日期未知", "Date unknown") : locale.value === "en" ? year.key : year.label, months: year.months.map(month => ({ ...month, label: year.unknown ? tx("未提供日期", "No date supplied") : locale.value === "en" ? new Intl.DateTimeFormat("en", { month: "long", timeZone: "UTC" }).format(new Date(month.key+"-01T00:00:00Z")) : month.label, days: month.days.map(day => ({ ...day, label: year.unknown ? tx("日期未知", "Unknown") : locale.value === "en" ? String(Number(day.key.slice(-2))) : day.label })) })) })));
 const hasFilters = computed(() =>
@@ -101,11 +101,11 @@ async function load(cursor?: string, append = false) {
       limit: 10,
       cursor,
     };
-    const response = await events.list(params, request.signal);
+    const response = await feed.list(params, request.signal);
     if (!request.current()) return;
     items.value = append
-      ? [...items.value, ...(response.items as Event[])]
-      : (response.items as Event[]);
+      ? [...items.value, ...(response.items as FeedItem[])]
+      : (response.items as FeedItem[]);
     total.value = response.total;
     next.value = response.next_cursor;
   } catch (cause) {
@@ -156,6 +156,11 @@ function directEventHref(id: string) {
     query: route.query.demo === "1" ? { demo: "1" } : {},
   }).href;
 }
+function safeSourceUrl(url: string | null) { return url && /^https?:\/\//i.test(url) ? url : null; }
+function attachArticle(item: FeedItem) {
+  window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: item.id, title: item.title, content_kind: "article", source_url: item.source_url, source_name: item.source_name } }));
+}
+function itemCategory(item: FeedItem) { return item.category ? categories.value.find((entry) => entry.v === item.category)?.l || item.category : tx("未分类", "Unclassified"); }
 function openEvent(event: MouseEvent, id: string) {
   if (
     event.defaultPrevented ||
@@ -187,7 +192,7 @@ const onAssistantPlan = (event: globalThis.Event) => { const plan = (event as un
 onMounted(async () => { window.addEventListener("assistant-apply-plan", onAssistantPlan as EventListener);
   load();
   try {
-    overview.value = await stats();
+    overview.value = await feed.stats();
   } catch {
     statsError.value = true;
   }
@@ -205,13 +210,13 @@ onBeforeUnmount(() => {
   <section class="home-layout">
     <div class="home-stream">
       <h1 class="page-title">{{ tx("AI 动态", "AI updates") }}</h1>
-      <p class="page-subtitle">{{ tx("从事件流开始，再回查来源与证据。", "Follow events. Explore their sources and evidence.") }}</p>
+      <p class="page-subtitle">{{ tx("按日期浏览收录文章与精选事件，打开原文核对。", "Browse articles and curated events by date, then check the source.") }}</p>
       <div class="filter-strip">
         <label class="search-field"
           >{{ tx("关键词", "Keyword") }}<input
             v-model="q"
             class="control"
-            :placeholder='tx("标题、摘要、实体", "Title, summary, entity")'
+            :placeholder='tx("标题、来源、摘录", "Title, source, excerpt")'
         /></label>
         <button
           v-if="compact && !['/', '/timeline-preview'].includes(route.path)"
@@ -240,17 +245,17 @@ onBeforeUnmount(() => {
         {{ tx("日期范围无效：起始日期不能晚于截止日期。", "Invalid range: the start date must precede the end date.") }}
       </p>
       <p v-else class="meta" aria-live="polite">
-        {{ loading ? tx("正在更新匹配结果…", "Updating results…") : tx(`精确匹配 ${total} 条事件`, `${total} matching events`) }}
+        {{ loading ? tx("正在更新匹配结果…", "Updating results…") : tx(`匹配 ${total} 条内容`, `${total} matching items`) }}
       </p>
-      <p v-if="(from || to) && !invalid" class="meta">{{ tx("日期范围只计入已核验的事件日期；未核验报道日期和冲突日期不计入。", "Date ranges include verified event dates only; unverified report dates and conflicts are excluded.") }}</p>
+      <p v-if="(from || to) && !invalid" class="meta">{{ tx("日期范围按文章发表日期（缺失时按收录日期）或精选事件日期筛选。", "Date ranges use article publication dates (collection dates when absent) or curated event dates.") }}</p>
       <div v-if="loading" class="loading-state" aria-live="polite">
-        {{ tx("正在读取事件流…", "Loading events…") }}
+        {{ tx("正在读取资讯流…", "Loading updates…") }}
       </div>
       <div v-if="error" class="card error" role="alert">
         {{ error.message }}<button @click="load()">{{ tx("重试", "Retry") }}</button>
       </div>
       <div v-else-if="!loading && !items.length" class="empty">
-        {{ tx("这个范围内没有事件。", "No events in this range.") }}
+        {{ tx("这个范围内没有收录内容。", "No items in this range.") }}
       </div>
       <div class="timeline-spine">
       <section
@@ -274,7 +279,7 @@ onBeforeUnmount(() => {
                 0,
               )
             }}
-            {{ tx("条", "events") }}</span
+            {{ tx("条", "items") }}</span
           >
         </div>
         <section
@@ -293,29 +298,33 @@ onBeforeUnmount(() => {
             <span class="timeline-month__count"
               >{{ tx("已加载", "Loaded") }}
               {{ month.days.reduce((sum, day) => sum + day.events.length, 0) }}
-              {{ tx("条", "events") }}</span
+              {{ tx("条", "items") }}</span
             >
           </button>
           <div v-if="timelineState[month.key]">
             <section v-for="day in month.days" :key="day.key" class="timeline-day">
               <button class="timeline-day__toggle" data-testid="timeline-day-toggle" :aria-label="day.key" :aria-expanded="timelineState[day.key]" :aria-controls="'day-'+day.key" @click="toggle(day.key)">
                 <svg class="timeline-fold-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg><span>{{ day.label }}</span>
-                <span class="timeline-day__loaded">{{ tx("已加载", "Loaded") }} {{ day.events.length }} {{ tx("条", "events") }}</span>
+                <span class="timeline-day__loaded">{{ tx("已加载", "Loaded") }} {{ day.events.length }} {{ tx("条", "items") }}</span>
               </button>
               <div v-if="timelineState[day.key]" :id="'day-'+day.key">
-              <article v-for="item in day.events" :key="item.id" class="timeline-event" :class="{ 'timeline-event--important': item.importance >= 4 }">
-                <span class="pill">{{ categories.find((entry) => entry.v === item.category)?.l }}</span>
+              <article v-for="item in day.events" :key="item.content_kind + ':' + item.id" class="timeline-event" :class="{ 'timeline-event--important': item.content_kind === 'event' && (item.importance || 0) >= 4 }">
+                <span class="pill">{{ item.content_kind === 'article' ? tx("收录文章", "Article") : tx("精选事件", "Curated event") }} · {{ itemCategory(item) }}</span>
                 <h2 class="timeline-event__title">
-                  <a :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a>
+                  <a v-if="item.content_kind === 'event'" :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title }}</a>
+                  <a v-else-if="safeSourceUrl(item.source_url)" :href="safeSourceUrl(item.source_url)!" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>
+                  <span v-else>{{ item.title }}</span>
                 </h2>
-                <p class="muted timeline-event__summary">{{ item.summary_zh }}</p>
-                <p class="meta tabular timeline-event__meta">
-                  {{ tx("重要度", "Importance") }} {{ item.importance }}/5 · {{ item.source_count }} {{ tx("个来源", "sources") }} · {{ item.evidence_count }} {{ tx("条关联证据", "evidence excerpts") }}
+                <p v-if="item.excerpt" class="muted timeline-event__summary"><span v-if="item.content_kind === 'article'" class="timeline-event__excerpt-label">{{ tx("来源摘录：", "Source excerpt: ") }}</span>{{ item.excerpt }}</p>
+                <p v-if="item.content_kind === 'article'" class="meta tabular timeline-event__meta">
+                  <span v-if="item.source_name">{{ item.source_name }} · </span><span v-if="item.byline">{{ tx("作者", "By") }} {{ item.byline }} · </span>
+                  {{ item.published_at ? tx("发表", "Published") + " " + formatDate(item.published_at) + " · " : tx("发表时间未提供 · ", "Publication date unavailable · ") }}
+                  {{ tx("收录", "Collected") }} {{ formatDate(item.ingested_at) }}
                 </p>
-                <p v-if="item.date_conflict || item.date_basis === 'report_date_unverified'" class="meta">{{ item.date_conflict ? tx('日期有冲突 · 待核验', 'Conflicting dates · pending review') : tx('按报道日期展示 · 待核验事件日期', 'Shown by report date · event date unverified') }}</p>
-                <p v-if="item.entities.length" class="timeline-event__entities">
-                  <span v-for="entity in item.entities" :key="entity" class="pill">{{ entity }}</span>
-                </p>
+                <p v-else class="meta tabular timeline-event__meta">{{ item.importance ? tx("重要度", "Importance") + " " + item.importance + "/5 · " : "" }}{{ item.source_count ?? 0 }} {{ tx("个来源", "sources") }} · {{ item.evidence_count ?? 0 }} {{ tx("条关联证据", "evidence excerpts") }}</p>
+                <p v-if="item.content_kind === 'event' && (item.date_conflict || item.date_basis === 'report_date_unverified')" class="meta">{{ item.date_conflict ? tx('日期有冲突 · 待核验', 'Conflicting dates · pending review') : tx('按报道日期展示 · 待核验事件日期', 'Shown by report date · event date unverified') }}</p>
+                <p v-if="item.content_kind === 'event' && item.entities?.length" class="timeline-event__entities"><span v-for="entity in item.entities" :key="entity" class="pill">{{ entity }}</span></p>
+                <button v-if="item.content_kind === 'article'" type="button" class="timeline-event__attach" @click="attachArticle(item)">{{ tx("加入当前对话", "Add to conversation") }}</button>
               </article>
               </div>
             </section>
@@ -331,13 +340,14 @@ onBeforeUnmount(() => {
       <h2>{{ tx("全库范围", "Entire collection") }}</h2>
       <p v-if="overview" class="tabular">
         {{ overview.scope === "global" ? tx("全库", "All") : overview.scope }} ·
-        {{ overview.total_events }} {{ tx("条事件", "events") }}
+        {{ overview.total_items }} {{ tx("条内容", "items") }}
       </p>
       <div v-if="overview" class="meta">
+        <p>{{ overview.total_articles }} {{ tx("篇文章", "articles") }} · {{ overview.total_events }} {{ tx("条精选事件", "curated events") }}</p>
         <p>{{ tx("更新时间：", "Updated: ") }}{{ formatDate(overview.as_of) }}</p>
         <ul>
           <li v-for="(count, name) in overview.categories" :key="name">
-            {{ categories.find((entry) => entry.v === name)?.l || name }}
+            {{ categories.find((entry) => entry.v === name)?.l || (name === "unclassified" ? tx("未分类", "Unclassified") : name) }}
             {{ count }}
           </li>
         </ul>

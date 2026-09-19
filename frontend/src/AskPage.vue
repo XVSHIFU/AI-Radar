@@ -3,7 +3,7 @@ import "./targeted-controls.css";
 import { categoryLabel, countLabel, formatDate, locale, translate as tr } from "./reader-locale";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { events, type Category, type Event } from "./api";
+import { feed, type Category, type FeedItem } from "./api";
 import EventDrawers from "./EventDrawers.vue";
 import DateRangePicker from "./DateRangePicker.vue";
 import type {DateRange} from "./date-range";
@@ -16,7 +16,7 @@ import { categoryBuckets, chartCategories } from "./insight-charts";
 const route = useRoute();
 const router = useRouter();
 const categoryName = (value: Category) => categoryLabel(value);
-const allCategories: Category[] = ["model_release", "agent_tool", "framework_sdk", "research", "product", "industry"];
+const allCategories: Category[] = ["model_release", "agent_tool", "framework_sdk", "research", "product", "industry", "unclassified"];
 function shanghaiToday() {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts();
   const get = (type: string) => parts.find((part) => part.type === type)?.value || "";
@@ -38,7 +38,7 @@ const rangeMode = ref<"today" | "week" | "month30" | "month" | "custom">("today"
 const overview = ref<InsightResult>();
 const overviewLoading = ref(false);
 const overviewError = ref("");
-const listItems = ref<Event[]>([]);
+const listItems = ref<FeedItem[]>([]);
 const listNext = ref<string | null>(null);
 const listLoading = ref(false);
 const listError = ref("");
@@ -53,7 +53,7 @@ const filters = computed(() => ({ q: keyword.value || undefined, category: categ
 const categories = computed(() => { const counts = new Map(overview.value?.categories.map((row) => [row.category, row.count]) || []); return allCategories.map((category) => ({ category, count: counts.get(category) || 0 })); });
 const chartBuckets = computed(() => { const rows = overview.value?.daily || []; if (spanDays.value <= 31) return rows.map((row) => ({ ...row, from: row.date, to: row.date, label: row.date.slice(5) })); const buckets = new Map<string, { date:string; count:number; from:string; to:string; label:string }>(); for (const row of rows) { const key=row.date.slice(0,7); const old=buckets.get(key); if(old){old.count+=row.count;old.to=row.date}else buckets.set(key,{date:key,count:row.count,from:row.date,to:row.date,label:key}); } return [...buckets.values()]; });
 const chartView = ref<"A" | "B" | "C">("C");
-const rankedCategories = computed(() => categories.value.map((row) => ({ ...row, share: overview.value?.total_events ? Math.round(row.count / overview.value.total_events * 100) : 0 })).sort((a,b) => b.count - a.count || a.category.localeCompare(b.category)));
+const rankedCategories = computed(() => categories.value.map((row) => ({ ...row, share: overview.value?.total_items ? Math.round(row.count / overview.value.total_items * 100) : 0 })).sort((a,b) => b.count - a.count || a.category.localeCompare(b.category)));
 const rankMax = computed(() => Math.max(1, ...rankedCategories.value.map((row) => row.count)));
 const dailyBins = computed(() => chartBuckets.value);
 const dailyMax = computed(() => Math.max(1, ...dailyBins.value.map((row) => row.count)));
@@ -63,7 +63,7 @@ const heatPalette=["#e8edf1","#f7eeeb","#f2dcd5","#eac7bd","#e4b4a6","#dba08e","
 const heatLevel=(count:number)=>count?Math.max(1,Math.ceil(count/heatMax.value*12)):0;
 const heatColor=(count:number)=>heatPalette[heatLevel(count)];
 const heatText=(count:number)=>heatLevel(count)>=8?"#fff":"#201511";
-const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return tr("尚无完整匹配事件。", "No exact-match events yet."); const ties = rankedCategories.value.filter((row) => row.count === top.count); return ties.length > 1 ? tr("{total} 条完整匹配事件；{categories}并列最多，各 {count} 条。", "{total} exact-match events; {categories} tie for the lead with {count} each.", { total: overview.value.total_events, categories: ties.map((row) => categoryName(row.category)).join(locale.value === "zh" ? "、" : ", "), count: top.count }) : tr("{total} 条完整匹配事件；{category}最多，共 {count} 条。", "{total} exact-match events; {category} leads with {count}.", { total: overview.value.total_events, category: categoryName(top.category), count: top.count }); });
+const factSummary = computed(() => { const top = rankedCategories.value[0]; if (!top || !overview.value) return tr("尚无匹配内容。", "No matching items yet."); const ties = rankedCategories.value.filter((row) => row.count === top.count); return ties.length > 1 ? tr("{total} 条匹配内容；{categories}并列最多，各 {count} 条。", "{total} matching items; {categories} tie for the lead with {count} each.", { total: overview.value.total_items, categories: ties.map((row) => categoryName(row.category)).join(locale.value === "zh" ? "、" : ", "), count: top.count }) : tr("{total} 条匹配内容；{category}最多，共 {count} 条。", "{total} matching items; {category} leads with {count}.", { total: overview.value.total_items, category: categoryName(top.category), count: top.count }); });
 const jointBuckets = computed(() => overview.value ? categoryBuckets(overview.value.daily_categories, spanDays.value > 31) : []);
 const jointMax = computed(() => Math.max(1, ...jointBuckets.value.flatMap((bucket) => chartCategories.map((category) => bucket.counts[category]))));
 const jointTotal = computed(() => Math.max(1, ...jointBuckets.value.map((bucket) => bucket.total)));
@@ -85,7 +85,7 @@ function stopMotion() { flowPlaying.value = false; playing.value = false; clearI
 function togglePlayback() { if (motionReduced.value) return; playing.value = !playing.value; if (playing.value) { clearInterval(playback); playback = window.setInterval(() => { activeBucket.value = jointBuckets.value.length ? (activeBucket.value + 1) % jointBuckets.value.length : 0; }, 900); } else clearInterval(playback); }
 function toggleFlow() { if (!motionReduced.value) flowPlaying.value = !flowPlaying.value; }
 const rangeLabel = computed(() => tr("{from} 至 {to}（Asia/Shanghai，起止均包含）", "{from} to {to} (Asia/Shanghai, inclusive)", { from: from.value ? formatDate(from.value) : tr("未选择", "Not selected"), to: to.value ? formatDate(to.value) : tr("未选择", "Not selected") }));
-const filterLabel = computed(() => [category.value ? tr("分类：{value}", "Category: {value}", { value: categoryName(category.value) }) : "", keyword.value ? tr("关键词：{value}", "Keyword: {value}", { value: keyword.value }) : "", minImportance.value ? tr("重要度：4及以上", "Importance: 4 or higher") : ""].filter(Boolean).join(" · "));
+const filterLabel = computed(() => [category.value ? tr("分类：{value}", "Category: {value}", { value: categoryName(category.value) }) : "", keyword.value ? tr("关键词：{value}", "Keyword: {value}", { value: keyword.value }) : "", minImportance.value ? tr("仅精选事件 · 重要度 4 及以上", "Curated events only · importance 4 or higher") : ""].filter(Boolean).join(" · "));
 function setRange(mode: "today" | "week" | "month30" | "month" | "custom") {
   rangeMode.value = mode;
   if (mode === "today") from.value = to.value = today;
@@ -116,12 +116,12 @@ async function loadOverview(cursor?: string, append = false) {
     listLoading.value = true;
     listError.value = "";
     try {
-      const rows = await events.list({ ...filters.value, limit: 10, cursor }, overviewController.signal);
+      const rows = await feed.list({ ...filters.value, limit: 10, cursor }, overviewController.signal);
       if (current !== overviewGeneration) return;
-      listItems.value = [...listItems.value, ...(rows.items as Event[])];
+      listItems.value = [...listItems.value, ...(rows.items as FeedItem[])];
       listNext.value = rows.next_cursor;
     } catch (cause) {
-      if (current === overviewGeneration && (cause as Error).name !== "AbortError") listError.value = cause instanceof Error ? cause.message : tr("事件列表请求失败", "Event list request failed");
+      if (current === overviewGeneration && (cause as Error).name !== "AbortError") listError.value = cause instanceof Error ? cause.message : tr("资讯列表请求失败", "Feed request failed");
     } finally { if (current === overviewGeneration) listLoading.value = false; }
     return;
   }
@@ -138,12 +138,12 @@ async function loadOverview(cursor?: string, append = false) {
   }).catch((cause: unknown) => {
     if (current === overviewGeneration && (cause as Error).name !== "AbortError") overviewError.value = cause instanceof Error ? cause.message : tr("统计请求失败", "Statistics request failed");
   }).finally(() => { if (current === overviewGeneration) overviewLoading.value = false; });
-  const listTask = events.list({ ...filters.value, limit: 10 }, overviewController.signal).then((rows) => {
+  const listTask = feed.list({ ...filters.value, limit: 10 }, overviewController.signal).then((rows) => {
     if (current !== overviewGeneration) return;
-    listItems.value = rows.items as Event[];
+    listItems.value = rows.items as FeedItem[];
     listNext.value = rows.next_cursor;
   }).catch((cause: unknown) => {
-    if (current === overviewGeneration && (cause as Error).name !== "AbortError") listError.value = cause instanceof Error ? cause.message : tr("事件列表请求失败", "Event list request failed");
+    if (current === overviewGeneration && (cause as Error).name !== "AbortError") listError.value = cause instanceof Error ? cause.message : tr("资讯列表请求失败", "Feed request failed");
   }).finally(() => { if (current === overviewGeneration) listLoading.value = false; });
   await Promise.allSettled([summaryTask, listTask]);
 }
@@ -164,11 +164,12 @@ function openEvent(event: MouseEvent, id: string) {
   event.preventDefault();
   void router.push({ path: route.path, query: { ...route.query, event: id } });
 }
+function safeSourceUrl(value: string | null) { return value && /^https?:\/\//i.test(value) ? value : null; }
 function eventHref(id: string) { return router.resolve({ path: `/events/${id}`, query: route.query.demo === "1" ? { demo: "1" } : {} }).href; }
 watch([keyword, category, from, to, minImportance], scheduleOverview);
 watch([keyword, category, from, to, minImportance], () => {
   const filters = { q: keyword.value || undefined, category: category.value || undefined, date_from: from.value || undefined, date_to: to.value || undefined, min_importance: minImportance.value ? 4 : undefined };
-  const parts = [rangeLabel.value, category.value ? tr("分类：{value}", "Category: {value}", { value: categoryName(category.value) }) : "", keyword.value ? tr("关键词「{value}」", "Keyword “{value}”", { value: keyword.value }) : "", minImportance.value ? tr("重要度：4及以上", "Importance: 4 or higher") : ""].filter(Boolean);
+  const parts = [rangeLabel.value, category.value ? tr("分类：{value}", "Category: {value}", { value: categoryName(category.value) }) : "", keyword.value ? tr("关键词「{value}」", "Keyword “{value}”", { value: keyword.value }) : "", minImportance.value ? tr("仅精选事件 · 重要度 4 及以上", "Curated events only · importance 4 or higher") : ""].filter(Boolean);
   setAssistantScope({ label: tr("当前统计范围", "Current statistics scope"), filters, snapshot: parts.join(" · ") });
 }, { immediate: true });
 const onVisibilityChange = () => { if (document.hidden) stopMotion(); };
@@ -180,7 +181,7 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
 <template>
   <section class="ask-overview">
     <h1 class="page-title">{{ tr("统计与问答", "Insights & Q&A") }}</h1>
-    <p class="ask-overview__intro">{{ tr("统计由库内事件计算，无需 AI。", "Statistics are calculated from events in the library; no AI is required.") }}</p>
+    <p class="ask-overview__intro">{{ tr("统计由库内收录内容计算，无需 AI。", "Statistics are calculated from collected items; no AI is required.") }}</p>
     <section class="ask-controls" :aria-label="tr('统计范围', 'Statistics scope')">
       <div class="ask-range-toolbar"><DateRangePicker :from="from" :to="to" @change="applyDates" />
       <div class="ask-range-buttons">
@@ -194,7 +195,8 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
         <div>
           <label>{{ tr("分类", "Category") }}<select v-model="category" class="control"><option value="">{{ tr("全部", "All") }}</option><option v-for="key in allCategories" :key="key" :value="key">{{ categoryName(key) }}</option></select></label>
           <label>{{ tr("关键词", "Keywords") }}<input v-model="keyword" class="control" :placeholder="tr('标题、摘要或实体', 'Title, summary, or entity')" /></label>
-          <label class="ask-importance"><input v-model="minImportance" type="checkbox" />{{ tr("重要度 4 及以上", "Importance 4 or higher") }}</label>
+          <label class="ask-importance"><input v-model="minImportance" type="checkbox" />{{ tr("仅精选事件 · 重要度 4 及以上", "Curated events only · importance 4 or higher") }}</label>
+
         </div>
       </details>
     </section>
@@ -202,10 +204,10 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
     <p v-else-if="invalid" class="status danger" role="alert">{{ tr("日期范围无效：起始日期不能晚于截止日期。", "Invalid date range: the start date cannot be after the end date.") }}</p>
     <p v-else-if="tooWide" class="status danger" role="alert">{{ tr("日期范围最多 366 天，请缩小范围。", "Date ranges are limited to 366 days.") }}</p>
     <p v-else class="ask-summary" data-testid="insights-summary" aria-live="polite">
-      {{ overviewLoading ? tr("正在计算总览…", "Calculating overview…") : overview ? tr("精确匹配 {count} 条事件 · {range}", "{count} exact-match events · {range}", { count: overview.total_events, range: rangeLabel }) : tr("尚未取得总览", "Overview unavailable") }}
+      {{ overviewLoading ? tr("正在计算总览…", "Calculating overview…") : overview ? tr("匹配 {count} 条内容 · {range}", "{count} matching items · {range}", { count: overview.total_items, range: rangeLabel }) : tr("尚未取得总览", "Overview unavailable") }}
       <span v-if="filterLabel"> · {{ filterLabel }}</span>
     </p>
-    <p v-if="!missingDates && !invalid" class="meta">{{ tr("按已核验的事件日期统计，不含未核验报道日期和冲突日期。", "Counts use verified event dates and exclude unverified report dates or date conflicts.") }}</p>
+    <p v-if="!missingDates && !invalid" class="meta">{{ tr("文章按发表日期统计，未提供时按收录日期；精选事件按事件日期统计。", "Articles use publication dates or collection dates when absent; curated events use event dates.") }}</p>
     <div class="ask-chart-heading"><h2>{{ tr("统计视图", "Statistics view") }}</h2>
           <div class="chart-tabs" role="group" :aria-label="tr('统计图表类型', 'Chart type')">
             <button type="button" data-view="A" :aria-pressed="chartView === 'A'" @click="chartView = 'A'">{{ tr("A 分类排行", "A Category ranking") }}</button>
@@ -215,25 +217,25 @@ onBeforeUnmount(() => { overviewGeneration++; overviewController?.abort(); clear
     </div>
     <div v-if="overviewError" class="card error" data-testid="insights-error" role="alert">{{ overviewError }} <button @click="loadOverview()">{{ tr("重试", "Retry") }}</button></div>
     <template v-else-if="overview">
-      <p v-if="!overview.total_events" class="ask-empty">{{ tr("当前范围暂无已收录事件。", "No recorded events in this scope.") }}<button v-if="rangeMode === 'today'" @click="setRange('week')">{{ tr("查看近7天", "View last 7 days") }}</button></p>
+      <p v-if="!overview.total_items" class="ask-empty">{{ tr("当前范围暂无已收录内容。", "No recorded items in this scope.") }}<button v-if="rangeMode === 'today'" @click="setRange('week')">{{ tr("查看近7天", "View last 7 days") }}</button></p>
       <div v-else class="ask-charts">
         <section class="ask-chart" data-testid="insights-visual" :data-view="chartView">
           <p class="meta">{{ factSummary }}</p>
           <div v-if="chartView === 'A'" class="rank-chart">
             <button v-for="row in rankedCategories" :key="row.category" class="rank-row" :data-category="row.category" @click="selectCategory(row.category)"><span>{{ categoryName(row.category) }}</span><i :style="{ width: (row.count / rankMax * 100) + '%' }"></i><b>{{ row.count }} · {{ row.share }}%</b></button>
           </div>
-          <div v-else-if="chartView === 'B'"><p v-if="dailyBins.length === 1" class="meta">{{ tr("只有一天数据，不显示趋势。", "Only one day is available; no trend is shown.") }}</p><p v-else class="meta">{{ tr("峰值：{values}", "Peak: {values}", { values: peakDays.map((row) => row.label + " " + countLabel(row.count, "条", "event")).join(locale === "zh" ? "、" : ", ") }) }}</p><div class="daily-chart"><button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button></div></div><div v-else class="heat-compact" role="group" :aria-label="tr('日期和分类热力图，可横向滚动', 'Date and category heatmap; scroll horizontally')" :style="{ '--heat-columns': jointBuckets.length, gridTemplateColumns: 'minmax(88px, auto) repeat(' + jointBuckets.length + ', minmax(34px, 1fr))' }">
+          <div v-else-if="chartView === 'B'"><p v-if="dailyBins.length === 1" class="meta">{{ tr("只有一天数据，不显示趋势。", "Only one day is available; no trend is shown.") }}</p><p v-else class="meta">{{ tr("峰值：{values}", "Peak: {values}", { values: peakDays.map((row) => row.label + " " + countLabel(row.count, "条", "item")).join(locale === "zh" ? "、" : ", ") }) }}</p><div class="daily-chart"><button v-for="row in dailyBins" :key="row.date" class="daily-count" :data-date-from="row.from" :data-date-to="row.to" :style="{ '--height': (row.count / dailyMax * 180) + 'px' }" @click="selectDay(row.from,row.to)"><b>{{ row.count }}</b><i></i><small>{{ row.label }}</small></button></div></div><div v-else class="heat-compact" role="group" :aria-label="tr('日期和分类热力图，可横向滚动', 'Date and category heatmap; scroll horizontally')" :style="{ '--heat-columns': jointBuckets.length, gridTemplateColumns: 'minmax(88px, auto) repeat(' + jointBuckets.length + ', minmax(34px, 1fr))' }">
             <span></span><span v-for="bucket in jointBuckets" :key="bucket.date">{{ bucket.label }}</span>
-            <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName(categoryKey) }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :aria-label="bucket.label + ' · ' + categoryName(categoryKey) + ' · ' + countLabel(bucket.counts[categoryKey], '条事件', 'event')" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
+            <template v-for="categoryKey in chartCategories" :key="categoryKey"><strong>{{ categoryName(categoryKey) }}</strong><button v-for="bucket in jointBuckets" :key="categoryKey + bucket.date" :aria-label="bucket.label + ' · ' + categoryName(categoryKey) + ' · ' + countLabel(bucket.counts[categoryKey], '条内容', 'item')" :data-category="categoryKey" :data-date-from="bucket.from" :data-date-to="bucket.to" :style="{ '--heat': heatColor(bucket.counts[categoryKey]), color: heatText(bucket.counts[categoryKey]) }" @click="category = categoryKey; selectDay(bucket.from,bucket.to)">{{ bucket.counts[categoryKey] }}</button></template>
           </div>
-          <p v-if="chartView === 'C'" class="meta">{{ tr("横向看日期，纵向看分类。点击色块查看对应事件。", "Dates run horizontally and categories vertically. Select a cell to view events.") }}</p><p v-if="chartView === 'C'" class="meta heat-legend">{{ tr("色标：0 浅灰 · {max} 深红", "Scale: 0 light gray · {max} dark red", { max: heatMax }) }}</p>
+          <p v-if="chartView === 'C'" class="meta">{{ tr("横向看日期，纵向看分类。点击色块查看对应内容。", "Dates run horizontally and categories vertically. Select a cell to view items.") }}</p><p v-if="chartView === 'C'" class="meta heat-legend">{{ tr("色标：0 浅灰 · {max} 深红", "Scale: 0 light gray · {max} dark red", { max: heatMax }) }}</p>
           <details class="ask-data-table"><summary>{{ tr("查看数据表", "View data table") }}</summary><table><thead><tr><th>{{ tr("日期", "Date") }}</th><th v-for="categoryKey in chartCategories" :key="categoryKey">{{ categoryName(categoryKey) }}</th><th>{{ tr("合计", "Total") }}</th></tr></thead><tbody><tr v-for="bucket in jointBuckets" :key="bucket.date"><td>{{ bucket.from === bucket.to ? formatDate(bucket.from) : formatDate(bucket.from) + tr(" 至 ", " to ") + formatDate(bucket.to) }}</td><td v-for="categoryKey in chartCategories" :key="categoryKey">{{ bucket.counts[categoryKey] }}</td><td>{{ bucket.total }}</td></tr></tbody></table></details>
         </section>
       </div>
     </template>
     <section class="ask-events" data-testid="insights-events">
-      <h2>{{ tr("匹配事件", "Matching events") }}</h2><p v-if="listLoading" class="meta">{{ tr("正在读取事件…", "Loading events…") }}</p><p v-else-if="listError" class="error">{{ listError }}</p><p v-else-if="!listItems.length" class="meta">{{ tr("当前范围没有可列出的事件。", "No events can be listed in this scope.") }}</p>
-      <article v-for="item in listItems" :key="item.id"><span class="pill">{{ categoryName(item.category) }}</span><h3><a :href="eventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title_zh }}</a></h3><p class="muted">{{ item.summary_zh }}</p></article>
+      <h2>{{ tr("匹配内容", "Matching items") }}</h2><p v-if="listLoading" class="meta">{{ tr("正在读取内容…", "Loading items…") }}</p><p v-else-if="listError" class="error">{{ listError }}</p><p v-else-if="!listItems.length" class="meta">{{ tr("当前范围没有可列出的内容。", "No items can be listed in this scope.") }}</p>
+      <article v-for="item in listItems" :key="item.content_kind + ':' + item.id"><span class="pill">{{ item.content_kind === 'article' ? tr('收录文章', 'Article') : tr('精选事件', 'Curated event') }} · {{ categoryName(item.category || 'unclassified') }}</span><h3><a v-if="item.content_kind === 'event'" :href="eventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title }}</a><a v-else-if="safeSourceUrl(item.source_url)" :href="safeSourceUrl(item.source_url)!" target="_blank" rel="noopener noreferrer">{{ item.title }}</a><span v-else>{{ item.title }}</span></h3><p v-if="item.excerpt" class="muted">{{ item.content_kind === 'article' ? tr('来源摘录：', 'Source excerpt: ') : '' }}{{ item.excerpt }}</p><p v-if="item.content_kind === 'article'" class="meta">{{ item.source_name || tr('来源未提供', 'Source unavailable') }} · {{ tr('发表', 'Published') }} {{ item.published_at ? formatDate(item.published_at) : tr('未知', 'Unknown') }} · {{ tr('收录', 'Collected') }} {{ item.ingested_at ? formatDate(item.ingested_at) : tr('未知', 'Unknown') }}</p></article>
       <button v-if="listNext && !listLoading" @click="loadOverview(listNext, true)">{{ tr("加载更多", "Load more") }}</button>
     </section>
   </section>

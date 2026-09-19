@@ -10,6 +10,7 @@ const categories: Record<Category, [string, string]> = {
   research: ["研究", "Research"],
   product: ["产品", "Products"],
   industry: ["产业", "Industry"],
+  unclassified: ["未分类", "Unclassified"],
 };
 
 export function categoryLabel(category: Category): string {
