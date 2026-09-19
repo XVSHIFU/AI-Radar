@@ -79,16 +79,55 @@ def set_container_ownership(root: Path) -> None:
                     "-eu", "-c", script], check=True)
 
 
+def selected(root: Path) -> dict[str, str | bool]:
+    path = root / "release-options.json"
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text())
+    if not isinstance(data, dict) or set(data) - {"assistant", "embedding", "https", "model_dir", "domain"}:
+        raise SystemExit("Invalid release options")
+    return data
+
+
+def save_selected(root: Path, data: dict[str, str | bool]) -> None:
+    path = root / "release-options.json"
+    path.write_text(json.dumps(data, indent=2) + "\n")
+    path.chmod(0o600)
+
+
+def active_overlays(root: Path) -> list[Path]:
+    state = selected(root)
+    return [path for key, path in (("assistant", ASSISTANT), ("embedding", EMBEDDING), ("https", HTTPS))
+            if state.get(key) is True]
+
+
+def image_exists(tag: str) -> bool:
+    return subprocess.run(["docker", "image", "inspect", tag],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+
+
 def env(root: Path) -> dict[str, str]:
     values = os.environ.copy()
     values["RADAR_DATA_ROOT"] = str(root)
     values.setdefault("RADAR_RELEASE", VERSION)
+    state = selected(root)
+    if state.get("embedding"):
+        values["RADAR_EMBEDDING_MODEL_DIR"] = str(state["model_dir"])
+    if state.get("https"):
+        values["RADAR_DOMAIN"] = str(state["domain"])
     return values
 
 
 def compose(root: Path, *args: str, input: bytes | None = None, stdout=None, capture=False,
             overlay: Path | None = None) -> subprocess.CompletedProcess:
-    files = ["-f", str(COMPOSE)] + (["-f", str(overlay)] if overlay else [])
+    overlays = active_overlays(root)
+    if overlay and overlay not in overlays:
+        overlays.append(overlay)
+    order = {ASSISTANT: 0, EMBEDDING: 1, HTTPS: 2}
+    overlays.sort(key=order.__getitem__)
+    files = ["-f", str(COMPOSE)]
+    for item in overlays:
+        files += ["-f", str(item)]
     return subprocess.run(
         ["docker", "compose", *files, *args], cwd=ROOT,
         env=env(root), input=input, stdout=subprocess.PIPE if capture else stdout,
@@ -115,7 +154,7 @@ def backup(root: Path, output: Path) -> None:
                         "--mount", f"type=bind,src={root},dst=/data,readonly",
                         "--entrypoint", "tar", f"ai-radar-db:{env(root)['RADAR_RELEASE']}",
                         "-C", "/data", "-czf", "-", "secrets", "model_config",
-                        "gateway_data", "gateway_config"], check=True, stdout=stream)
+                        "gateway_data", "gateway_config", "release-options.json"], check=True, stdout=stream)
     files = {name: {"bytes": (output / name).stat().st_size, "sha256": sha256(output / name)}
              for name in ("database.dump", "configuration.tar.gz")}
     (output / "manifest.json").write_text(json.dumps({"format": 1, "release": env(root)["RADAR_RELEASE"],
@@ -136,7 +175,7 @@ def restore(root: Path, snapshot: Path) -> None:
     saved: dict[str, bytes] = {}
     with tarfile.open(snapshot / "configuration.tar.gz", "r:gz") as archive:
         names = set(archive.getnames())
-        allowed = {"secrets", "model_config", "gateway_data", "gateway_config"}
+        allowed = {"secrets", "model_config", "gateway_data", "gateway_config", "release-options.json"}
         if any(name.split("/")[0] not in allowed or Path(name).is_absolute() or ".." in Path(name).parts for name in names):
             raise SystemExit("Unsafe backup paths")
         for name in SECRET_NAMES:
@@ -190,8 +229,10 @@ def main() -> None:
     require_linux()
     root = data_root(args.data_root, new=args.command in {"init", "restore"})
     if args.command == "init":
-        compose(root, "build", "db")
+        if not image_exists(f"ai-radar-db:{os.environ.get('RADAR_RELEASE', VERSION)}"):
+            compose(root, "build", "db")
         create_layout(root)
+        save_selected(root, {})
         set_container_ownership(root)
         print(f"Initialized {root}; admin token is in {root / 'secrets' / 'admin_token'}")
     elif args.command == "build":
@@ -199,23 +240,41 @@ def main() -> None:
     elif args.command == "up":
         compose(root, "up", "-d", "--no-build", "--wait", "db")
         compose(root, "--profile", "operations", "run", "--rm", "register-sources")
-        compose(root, "--profile", "collection", "up", "-d", "--no-build", "--wait",
-                "api", "gateway", "worker", "scheduler")
+        services = ["api", "gateway", "worker", "scheduler"]
+        if selected(root).get("assistant"):
+            services.append("pi-runtime")
+        if selected(root).get("embedding"):
+            services.append("embedding-index")
+        profiles = ["--profile", "collection"] + (["--profile", "embedding"] if selected(root).get("embedding") else [])
+        compose(root, *profiles, "up", "-d", "--no-build", "--wait", *services)
     elif args.command == "https-up":
-        if not os.environ.get("RADAR_DOMAIN"):
+        domain = os.environ.get("RADAR_DOMAIN")
+        if not domain:
             raise SystemExit("Set RADAR_DOMAIN before enabling public HTTPS")
-        compose(root, "up", "-d", "--no-build", "--wait", "gateway", overlay=HTTPS)
+        state = selected(root)
+        state.update({"https": True, "domain": domain})
+        save_selected(root, state)
+        compose(root, "up", "-d", "--no-build", "--wait", "gateway")
     elif args.command == "assistant-up":
-        compose(root, "build", "pi-runtime", overlay=ASSISTANT)
-        compose(root, "up", "-d", "--no-build", "--wait", "pi-runtime", "api", overlay=ASSISTANT)
+        state = selected(root)
+        state["assistant"] = True
+        save_selected(root, state)
+        if not image_exists(f"ai-radar-pi:{env(root)['RADAR_RELEASE']}"):
+            compose(root, "build", "pi-runtime")
+        compose(root, "up", "-d", "--no-build", "--wait", "pi-runtime", "api")
     elif args.command == "embedding-up":
         model = Path(os.environ.get("RADAR_EMBEDDING_MODEL_DIR", ""))
         if not model.is_absolute() or not model.is_dir():
             raise SystemExit("Set RADAR_EMBEDDING_MODEL_DIR to a verified local model directory")
-        compose(root, "--profile", "embedding", "build", "api", "embedding-index", overlay=EMBEDDING)
-        compose(root, "--profile", "embedding", "up", "-d", "--no-build", "api", "embedding-index", overlay=EMBEDDING)
+        state = selected(root)
+        state.update({"embedding": True, "model_dir": str(model.resolve())})
+        save_selected(root, state)
+        if not image_exists(f"ai-radar-embedding:{env(root)['RADAR_RELEASE']}"):
+            compose(root, "--profile", "embedding", "build", "api", "embedding-index")
+        compose(root, "--profile", "embedding", "up", "-d", "--no-build", "api", "embedding-index")
     elif args.command == "down":
-        compose(root, "--profile", "collection", "down")
+        profiles = ["--profile", "collection"] + (["--profile", "embedding"] if selected(root).get("embedding") else [])
+        compose(root, *profiles, "down")
     elif args.command == "config":
         compose(root, "--profile", "collection", "config", "--quiet")
         compose(root, "config", "--quiet", overlay=ASSISTANT)
@@ -226,9 +285,22 @@ def main() -> None:
     elif args.command == "export":
         if args.output is None or not args.output.is_absolute() or args.output.exists():
             raise SystemExit("--output must be a new absolute image tar path")
-        tags = [f"{name}:{env(root)['RADAR_RELEASE']}" for name in IMAGES]
+        manifest_path = args.output.with_suffix(args.output.suffix + ".json")
+        if manifest_path.exists():
+            raise SystemExit("Image manifest path already exists")
+        names = list(IMAGES)
+        if selected(root).get("assistant"):
+            names.append("ai-radar-pi")
+        if selected(root).get("embedding"):
+            names.append("ai-radar-embedding")
+        tags = [f"{name}:{env(root)['RADAR_RELEASE']}" for name in names]
+        identities = {tag: subprocess.run(["docker", "image", "inspect", "-f", "{{.Id}}", tag],
+                                          check=True, capture_output=True, text=True).stdout.strip() for tag in tags}
         subprocess.run(["docker", "image", "save", "-o", str(args.output), *tags], check=True)
-        print(f"Exported {args.output} sha256={sha256(args.output)}")
+        manifest_path.write_text(json.dumps({"release": env(root)["RADAR_RELEASE"],
+                                             "archive": args.output.name, "bytes": args.output.stat().st_size,
+                                             "sha256": sha256(args.output), "image_ids": identities}, indent=2) + "\n")
+        print(f"Exported {args.output} and {manifest_path}")
     elif args.command == "backup":
         if args.output is None:
             raise SystemExit("--output backup directory required")
