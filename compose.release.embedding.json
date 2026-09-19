@@ -1,0 +1,165 @@
+{
+  "services": {
+    "api": {
+      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "target": "embedding"
+      },
+      "environment": {
+        "EMBEDDING_MODEL_DIR": "/opt/radar-embedding",
+        "EMBEDDING_MODEL_REVISION": "7698c0c30eafe2736771e96d733545270cdec56f"
+      },
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "${RADAR_EMBEDDING_MODEL_DIR:?Set verified model directory}",
+          "target": "/opt/radar-embedding",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "mem_limit": "2g",
+      "cpus": 2.0
+    },
+    "embedding-index": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "2g",
+      "cpus": 4.0,
+      "restart": "no",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "embedding"
+      },
+      "command": [
+        "embedding-index"
+      ],
+      "profiles": [
+        "embedding"
+      ],
+      "networks": [
+        "database"
+      ],
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false",
+        "EMBEDDING_MODEL_DIR": "/opt/radar-embedding",
+        "EMBEDDING_MODEL_REVISION": "7698c0c30eafe2736771e96d733545270cdec56f"
+      },
+      "secrets": [
+        {
+          "source": "db_ingest_password",
+          "target": "db_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks",
+        {
+          "type": "bind",
+          "source": "${RADAR_EMBEDDING_MODEL_DIR:?Set verified model directory}",
+          "target": "/opt/radar-embedding",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "depends_on": {
+        "migrate": {
+          "condition": "service_completed_successfully"
+        }
+      }
+    },
+    "embedding-activate": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "2g",
+      "cpus": 4.0,
+      "restart": "no",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "embedding"
+      },
+      "command": [
+        "embedding-activate"
+      ],
+      "profiles": [
+        "embedding-operations"
+      ],
+      "networks": [
+        "database"
+      ],
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false",
+        "EMBEDDING_MODEL_DIR": "/opt/radar-embedding",
+        "EMBEDDING_MODEL_REVISION": "7698c0c30eafe2736771e96d733545270cdec56f"
+      },
+      "secrets": [
+        {
+          "source": "db_ingest_password",
+          "target": "db_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks",
+        {
+          "type": "bind",
+          "source": "${RADAR_EMBEDDING_MODEL_DIR:?Set verified model directory}",
+          "target": "/opt/radar-embedding",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "depends_on": {
+        "migrate": {
+          "condition": "service_completed_successfully"
+        }
+      }
+    }
+  }
+}

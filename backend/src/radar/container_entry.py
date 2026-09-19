@@ -12,6 +12,7 @@ import os
 import stat
 import sys
 from collections.abc import Mapping
+from ipaddress import ip_address
 from pathlib import Path
 
 DB_USERS = {
@@ -75,8 +76,13 @@ def environment(role: str, inherited: Mapping[str, str]) -> dict[str, str]:
         "SANDBOX_IMAGE_ID",
         "ASSISTANT_INPUT_PER_DAY",
         "ASSISTANT_OUTPUT_PER_DAY",
+        "RADAR_TRUSTED_PROXY_IP",
     }
     result = {key: value for key, value in inherited.items() if key in allowed}
+    if "RADAR_TRUSTED_PROXY_IP" in result:
+        proxy = ip_address(result["RADAR_TRUSTED_PROXY_IP"])
+        if not proxy.is_private or proxy.is_loopback or proxy.is_unspecified:
+            raise ValueError("private trusted proxy IP required")
     result.update(
         {
             "RADAR_DATA_MODE": "postgres",
@@ -129,7 +135,7 @@ def command(role: str) -> list[str]:
             "1",
             "--proxy-headers",
             "--forwarded-allow-ips",
-            "172.30.248.2",
+            os.environ.get("RADAR_TRUSTED_PROXY_IP", "172.30.248.2"),
             "--no-access-log",
         ],
         "worker": [sys.executable, "-m", "app.worker"],

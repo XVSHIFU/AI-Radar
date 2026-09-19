@@ -1,0 +1,516 @@
+{
+  "name": "${RADAR_STACK:-ai-radar-release}",
+  "services": {
+    "db": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": false,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770",
+        "/var/run/postgresql:rw,nosuid,nodev,noexec,size=8m,uid=10001,gid=10001,mode=0770"
+      ],
+      "pids_limit": 256,
+      "mem_limit": "1g",
+      "cpus": 1.0,
+      "restart": "unless-stopped",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-db:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Database.Dockerfile"
+      },
+      "networks": [
+        "database"
+      ],
+      "shm_size": "128m",
+      "environment": {
+        "POSTGRES_DB": "ai_radar",
+        "POSTGRES_USER": "radar_bootstrap",
+        "POSTGRES_PASSWORD_FILE": "/run/secrets/db_bootstrap_password",
+        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256 --auth-local=trust"
+      },
+      "secrets": [
+        {
+          "source": "db_bootstrap_password",
+          "target": "db_bootstrap_password"
+        },
+        {
+          "source": "db_owner_password",
+          "target": "db_owner_password"
+        },
+        {
+          "source": "db_api_password",
+          "target": "db_api_password"
+        },
+        {
+          "source": "db_ingest_password",
+          "target": "db_ingest_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/database:/var/lib/postgresql/data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "pg_isready",
+          "-U",
+          "radar_bootstrap",
+          "-d",
+          "ai_radar"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 20,
+        "start_period": "30s"
+      }
+    },
+    "migrate": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "cpus": 1.0,
+      "restart": "no",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "backend"
+      },
+      "command": [
+        "migrate"
+      ],
+      "networks": [
+        "database"
+      ],
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false"
+      },
+      "secrets": [
+        {
+          "source": "db_owner_password",
+          "target": "db_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks"
+      ],
+      "depends_on": {
+        "db": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "api": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "cpus": 1.0,
+      "restart": "unless-stopped",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "backend"
+      },
+      "command": [
+        "api"
+      ],
+      "networks": {
+        "database": {},
+        "broker": {},
+        "execution": {},
+        "api_egress": {},
+        "front": {
+          "ipv4_address": "${RADAR_API_IP:-172.31.249.3}"
+        }
+      },
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false",
+        "SANDBOX_IMAGE_ID": "",
+        "ASSISTANT_INPUT_PER_DAY": "200000",
+        "ASSISTANT_OUTPUT_PER_DAY": "32000",
+        "RADAR_TRUSTED_PROXY_IP": "${RADAR_GATEWAY_IP:-172.31.249.2}"
+      },
+      "secrets": [
+        {
+          "source": "db_api_password",
+          "target": "db_password"
+        },
+        {
+          "source": "admin_token",
+          "target": "admin_token"
+        },
+        {
+          "source": "cursor_secret",
+          "target": "cursor_secret"
+        },
+        {
+          "source": "public_assistant_secret",
+          "target": "public_assistant_secret"
+        },
+        {
+          "source": "runtime_token",
+          "target": "runtime_token"
+        },
+        {
+          "source": "sandbox_token",
+          "target": "sandbox_token"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks",
+        "${RADAR_DATA_ROOT:?Set absolute data root}/model_config:/var/lib/radar-model"
+      ],
+      "depends_on": {
+        "migrate": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request,json; d=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health/ready',timeout=3)); assert d.get('postgres_ready') is True"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 6,
+        "start_period": "20s"
+      }
+    },
+    "worker": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "cpus": 1.0,
+      "restart": "unless-stopped",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "backend"
+      },
+      "command": [
+        "worker"
+      ],
+      "networks": [
+        "database",
+        "ingest_egress"
+      ],
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false"
+      },
+      "secrets": [
+        {
+          "source": "db_ingest_password",
+          "target": "db_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks"
+      ],
+      "depends_on": {
+        "migrate": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "profiles": [
+        "collection"
+      ]
+    },
+    "scheduler": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "cpus": 1.0,
+      "restart": "unless-stopped",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "backend"
+      },
+      "command": [
+        "scheduler"
+      ],
+      "networks": [
+        "database"
+      ],
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false"
+      },
+      "secrets": [
+        {
+          "source": "db_ingest_password",
+          "target": "db_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks"
+      ],
+      "depends_on": {
+        "migrate": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "profiles": [
+        "collection"
+      ]
+    },
+    "register-sources": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "cpus": 1.0,
+      "restart": "no",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Backend.Dockerfile",
+        "target": "backend"
+      },
+      "command": [
+        "register-sources"
+      ],
+      "networks": [
+        "database"
+      ],
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "false"
+      },
+      "secrets": [
+        {
+          "source": "db_ingest_password",
+          "target": "db_password"
+        }
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/service_locks:/run/radar-service-locks"
+      ],
+      "depends_on": {
+        "migrate": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "profiles": [
+        "operations"
+      ]
+    },
+    "gateway": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "128m",
+      "cpus": 1.0,
+      "restart": "unless-stopped",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-gateway:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Gateway.Dockerfile"
+      },
+      "networks": {
+        "front": {
+          "ipv4_address": "${RADAR_GATEWAY_IP:-172.31.249.2}"
+        },
+        "edge": {}
+      },
+      "ports": [
+        "${RADAR_BIND_IP:-127.0.0.1}:${RADAR_HTTP_PORT:-8080}:8080"
+      ],
+      "volumes": [
+        "${RADAR_DATA_ROOT:?Set absolute data root}/gateway_data:/data",
+        "${RADAR_DATA_ROOT:?Set absolute data root}/gateway_config:/config",
+        "./deploy/containers/Caddyfile.release:/etc/caddy/Caddyfile:ro"
+      ],
+      "depends_on": {
+        "api": {
+          "condition": "service_healthy"
+        }
+      },
+      "environment": {
+        "RADAR_SITE": "${RADAR_SITE:-:8080}"
+      }
+    }
+  },
+  "networks": {
+    "database": {
+      "internal": true
+    },
+    "broker": {
+      "internal": true
+    },
+    "execution": {
+      "internal": true
+    },
+    "front": {
+      "internal": true,
+      "ipam": {
+        "config": [
+          {
+            "subnet": "${RADAR_FRONT_SUBNET:-172.31.249.0/29}"
+          }
+        ]
+      }
+    },
+    "edge": {},
+    "api_egress": {},
+    "ingest_egress": {}
+  },
+  "secrets": {
+    "db_bootstrap_password": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/db_bootstrap_password"
+    },
+    "db_owner_password": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/db_owner_password"
+    },
+    "db_api_password": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/db_api_password"
+    },
+    "db_ingest_password": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/db_ingest_password"
+    },
+    "admin_token": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/admin_token"
+    },
+    "cursor_secret": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/cursor_secret"
+    },
+    "public_assistant_secret": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/public_assistant_secret"
+    },
+    "runtime_token": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/runtime_token"
+    },
+    "sandbox_token": {
+      "file": "${RADAR_DATA_ROOT:?Set absolute data root}/secrets/sandbox_token"
+    }
+  }
+}

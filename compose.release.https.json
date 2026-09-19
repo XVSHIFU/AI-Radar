@@ -1,0 +1,8 @@
+{
+  "services": {
+    "gateway": {
+      "environment": {"RADAR_SITE": "${RADAR_DOMAIN:?Set the public HTTPS domain}"},
+      "ports": ["0.0.0.0:80:80", "0.0.0.0:443:443"]
+    }
+  }
+}

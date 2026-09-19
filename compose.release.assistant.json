@@ -1,0 +1,65 @@
+{
+  "services": {
+    "pi-runtime": {
+      "user": "10001:10001",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,nosuid,nodev,noexec,size=64m,uid=10001,gid=10001,mode=1770"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "cpus": 1.0,
+      "restart": "unless-stopped",
+      "stop_grace_period": "100s",
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "ai-radar-pi:${RADAR_RELEASE:-v0.1.0}",
+      "build": {
+        "context": ".",
+        "dockerfile": "deploy/containers/Runtime.Dockerfile"
+      },
+      "networks": [
+        "broker"
+      ],
+      "secrets": [
+        {
+          "source": "runtime_token",
+          "target": "runtime_token"
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8081/health',{signal:AbortSignal.timeout(2000)}).then(async r=>{const d=await r.json();if(!r.ok||d.runtime!=='pi-agent-core'||d.status!=='ready')process.exit(1)}).catch(()=>process.exit(1))"
+        ],
+        "interval": "10s",
+        "timeout": "4s",
+        "retries": 6
+      }
+    },
+    "api": {
+      "environment": {
+        "RESEARCH_AGENT_ENABLED": "true"
+      },
+      "depends_on": {
+        "pi-runtime": {
+          "condition": "service_healthy"
+        }
+      }
+    }
+  }
+}
