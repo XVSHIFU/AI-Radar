@@ -90,4 +90,4 @@ python3 scripts/release.py up --data-root "$PWD/.restored-data"
 
 开发时只验证受影响功能；首次部署再做一次采集、浏览和重启检查。默认不调用收费模型做测试。提交问题时提供版本、系统、复现步骤和已脱敏日志，不上传 API Key、管理员口令、数据库或用户会话。
 
-项目许可证待维护者在公开发行前确定。第三方字体和图标的许可证见 [第三方说明](THIRD_PARTY_NOTICES.md)。
+项目原创代码采用 [Apache License 2.0](LICENSE)。第三方字体、图标和依赖继续遵循各自许可证，见 [第三方说明](THIRD_PARTY_NOTICES.md)。
