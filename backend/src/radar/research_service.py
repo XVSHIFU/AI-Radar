@@ -332,7 +332,8 @@ async def research_answer_stream(
                 yield sse("reset", {"turn": turn, "text": final["answer"]})
             sources = final["citations"]
             event_ids = {
-                source["event_id"] for source in sources if source.get("kind") == "evidence"
+                source.get("event_id") or source.get("article_id")
+                for source in sources if source.get("kind") in {"evidence", "article"}
             }
             cited_indices = {source["index"] for source in sources}
             yield sse("sources", {"items": sources})

@@ -141,7 +141,7 @@ def command(role: str) -> list[str]:
         "worker": [sys.executable, "-m", "app.worker"],
         "scheduler": [sys.executable, "-m", "app.scheduler"],
         "migrate": [sys.executable, "-m", "alembic", "upgrade", "head"],
-        "register-sources": [sys.executable, "-m", "radar.register_sources"],
+        "register-sources": [sys.executable, "-m", "radar.register_sources", "--release-defaults"],
     }
     if role in {"history-discover", "history-extract", "embedding-index"}:
         return [sys.executable, "-m", "radar.container_maintenance", role]

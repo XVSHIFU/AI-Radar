@@ -22,15 +22,19 @@ class AsyncContext:
 
 
 class Result:
-    def __init__(self, scalar=None, rows=None):
+    def __init__(self, scalar=None, rows=None, row=None):
         self.scalar = scalar
         self.rows = rows or []
+        self.row = row
 
     def scalar_one_or_none(self):
         return self.scalar
 
     def all(self):
         return self.rows
+
+    def one(self):
+        return self.row
 
 
 class Sessions:
@@ -76,7 +80,11 @@ class DiscoverySession:
         raise AssertionError(sql)
 
     async def execute(self, statement):
-        self.article_inserts += 1
+        if statement.table.name == "articles":
+            self.article_inserts += 1
+            return Result(
+                row=SimpleNamespace(id=statement.compile().params["id"], status="published")
+            )
         return Result()
 
     def add(self, row):
@@ -160,6 +168,39 @@ async def test_discovery_persists_all_25_jobs_before_accepting_etag(monkeypatch)
     assert source.etag == '"v2"'
     assert source.health == "healthy"
     assert run.discovered_urls == 25
+    assert run.new_articles == 25
+    assert job.state == "succeeded"
+
+
+@pytest.mark.asyncio
+async def test_discovery_skips_publication_when_source_disabled_during_fetch(monkeypatch) -> None:
+    source, job, run = make_rows()
+    fetched_source = SimpleNamespace(
+        id=source.id,
+        enabled=True,
+        feed_url=source.feed_url,
+        etag=None,
+        last_modified=None,
+        name=source.name,
+    )
+    source.enabled = False
+    transaction = DiscoverySession(job, source, run, remaining=0)
+
+    async def fetch(*_args, **_kwargs):
+        return FetchResult(200, source.feed_url, b"feed", None, None)
+
+    monkeypatch.setattr("radar.ingest.worker_service.fetch_public", fetch)
+    monkeypatch.setattr(
+        "radar.ingest.worker_service.parse_feed",
+        lambda _body: [
+            FeedEntry("A model release", "https://example.com/one", "https://example.com/one", None)
+        ],
+    )
+    service = WorkerService(Sessions(SourceSession(fetched_source), transaction), SimpleNamespace())
+    await service.process(job)
+
+    assert transaction.article_inserts == 0
+    assert run.new_articles == 0
     assert job.state == "succeeded"
 
 

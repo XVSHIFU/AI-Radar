@@ -20,11 +20,13 @@ async def enqueue() -> None:
     try:
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         async with sessions() as session:
-            source_ids = list((await session.scalars(
-                select(SourceRow.id).where(SourceRow.enabled.is_(True))
-            )).all())
+            source_ids = list(
+                (
+                    await session.scalars(select(SourceRow.id).where(SourceRow.enabled.is_(True)))
+                ).all()
+            )
         if not source_ids:
-            raise RuntimeError("scheduler has no enabled sources; register a source first")
+            return
         period = datetime.now(UTC).strftime("%Y-%m-%dT%H")
         await IngestRepository(sessions).create_run(
             [UUID(str(item)) for item in source_ids],

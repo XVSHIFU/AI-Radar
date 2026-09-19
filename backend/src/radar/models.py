@@ -153,6 +153,15 @@ class ArticleRow(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     source_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("sources.id"))
     canonical_url: Mapped[str] = mapped_column(Text, unique=True)
+    title: Mapped[str | None] = mapped_column(Text)
+    excerpt: Mapped[str | None] = mapped_column(Text)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ingested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(16), default="legacy")
+    category: Mapped[str | None] = mapped_column(String(32))
+    current_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    content_hash: Mapped[str | None] = mapped_column(String(64))
+    duplicate_of_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
 
 
 class EventArticleRow(Base):

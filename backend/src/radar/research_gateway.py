@@ -110,9 +110,14 @@ DESCRIPTIONS = {
         "cite the returned citation_index. No network or host access."
     ),
     "resolve_entities": "Resolve names in the authorized scope; report ambiguity.",
-    "search_events": "Search the frozen scope; distinguish exact totals from returned pages.",
-    "get_event_evidence": "Read frozen evidence and citation IDs for up to three scoped events.",
-    "aggregate_events": "Exact database counts in the frozen scope, with dataset and date basis.",
+    "search_events": (
+        "Search scoped articles and curated items; "
+        "exact totals differ from returned pages."
+    ),
+    "get_event_evidence": "Read body evidence or labeled feed excerpts for up to three scoped IDs.",
+    "aggregate_events": (
+        "Count recorded items; use the returned unit and date basis, not unique events."
+    ),
     "compare_periods": "Compare two date intervals within the same scope; report zero baselines.",
     "build_chart": "Chart a dataset returned in this run; never accept invented numbers.",
     "load_research_skill": "Read a registered skill. No paths, plugins or code execution.",

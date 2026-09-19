@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0014_content_workbench"
+SCHEMA_REVISION = "0015_article_feed"

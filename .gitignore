@@ -22,3 +22,10 @@ artifacts/browser/
 
 # Third-party UI reference extraction (not project source)
 artifacts/reference-onesoc/
+
+# Local first-release data and image archives
+.local-data/
+.restored-data/
+.release/
+.env.*
+!.env.example

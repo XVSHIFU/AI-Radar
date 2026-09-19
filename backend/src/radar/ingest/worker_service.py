@@ -3,10 +3,11 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from ..article_rules import accept_feed_entry, classify_article
 from ..models import (
     ArticleCandidateRow,
     ArticleDiscoveryRow,
@@ -82,15 +83,77 @@ class WorkerService:
             last_modified=source.last_modified,
             resolver=self.resolver,
         )
-        entries = [] if feed.status == 304 else parse_feed(feed.body)
+        entries = (
+            []
+            if feed.status == 304
+            else [
+                entry
+                for entry in parse_feed(feed.body)
+                if accept_feed_entry(source.name, entry.title, entry.tags)
+            ][:30]
+        )
         async with self.sessions() as session, session.begin():
             locked = await self._locked_job(session, job)
             source_row = await session.scalar(
                 select(SourceRow).where(SourceRow.id == source.id).with_for_update()
             )
             assert source_row is not None
+            if not source_row.enabled:
+                run = await session.scalar(
+                    select(IngestRunRow).where(IngestRunRow.id == job.run_id).with_for_update()
+                )
+                assert run is not None
+                locked.state = "succeeded"
+                locked.lease_owner = None
+                locked.lease_until = None
+                await session.flush()
+                await self._complete_run_if_done(session, run)
+                return
             new_discoveries = 0
+            new_articles = 0
             for entry in entries:
+                if not entry.title:
+                    continue
+                now = datetime.now(UTC)
+                proposed_id = uuid4()
+                inserted_id = (
+                    await session.execute(
+                        insert(ArticleRow)
+                        .values(
+                            id=proposed_id,
+                            source_id=source.id,
+                            canonical_url=entry.url,
+                            title=entry.title,
+                            excerpt=entry.excerpt,
+                            published_at=published_datetime(entry.published),
+                            ingested_at=now,
+                            status="published",
+                            category=classify_article(entry.title, entry.tags),
+                        )
+                        .on_conflict_do_update(
+                            index_elements=["canonical_url"],
+                            set_={
+                                "title": entry.title,
+                                "excerpt": func.coalesce(entry.excerpt, ArticleRow.excerpt),
+                                "published_at": func.coalesce(
+                                    published_datetime(entry.published), ArticleRow.published_at
+                                ),
+                                "ingested_at": func.coalesce(ArticleRow.ingested_at, now),
+                                "category": func.coalesce(
+                                    classify_article(entry.title, entry.tags), ArticleRow.category
+                                ),
+                                "status": case(
+                                    (ArticleRow.status == "legacy", "published"),
+                                    else_=ArticleRow.status,
+                                ),
+                            },
+                        )
+                        .returning(ArticleRow.id, ArticleRow.status)
+                    )
+                ).one()
+                article_id = inserted_id.id
+                if article_id == proposed_id:
+                    new_articles += 1
                 discovery = await session.scalar(
                     select(ArticleDiscoveryRow).where(
                         ArticleDiscoveryRow.run_id == job.run_id,
@@ -108,6 +171,7 @@ class WorkerService:
                             original_url=entry.original_url,
                             title=entry.title,
                             published=entry.published,
+                            article_id=article_id,
                         )
                     )
                     new_discoveries += 1
@@ -134,6 +198,7 @@ class WorkerService:
             )
             assert run is not None
             run.discovered_urls += new_discoveries
+            run.new_articles += new_articles
             source_row.etag = feed.etag or source_row.etag
             source_row.last_modified = feed.last_modified or source_row.last_modified
             source_row.last_checked_at = datetime.now(UTC)
@@ -152,29 +217,29 @@ class WorkerService:
         document = parse_document(response.body)
         async with self.sessions() as session, session.begin():
             locked = await self._locked_job(session, job)
+            source_row = await session.scalar(
+                select(SourceRow).where(SourceRow.id == job.source_id).with_for_update()
+            )
             run = await session.scalar(
                 select(IngestRunRow).where(IngestRunRow.id == job.run_id).with_for_update()
             )
             assert run is not None
-            await session.execute(select(func.pg_advisory_xact_lock(func.hashtext(canonical_url))))
-            proposed_article_id = uuid4()
-            inserted_article_id = (
-                await session.execute(
-                    insert(ArticleRow)
-                    .values(
-                        id=proposed_article_id, source_id=job.source_id, canonical_url=canonical_url
-                    )
-                    .on_conflict_do_nothing(index_elements=["canonical_url"])
-                    .returning(ArticleRow.id)
-                )
-            ).scalar_one_or_none()
-            is_new = inserted_article_id is not None
-            article_id = inserted_article_id or await session.scalar(
-                select(ArticleRow.id).where(ArticleRow.canonical_url == canonical_url)
+            if source_row is None or not source_row.enabled:
+                locked.state = "succeeded"
+                locked.lease_owner = None
+                locked.lease_until = None
+                await session.flush()
+                await self._complete_run_if_done(session, run)
+                return
+            await session.execute(select(func.pg_advisory_xact_lock(func.hashtext(requested_url))))
+            article = await session.scalar(
+                select(ArticleRow)
+                .where(ArticleRow.canonical_url == requested_url)
+                .with_for_update()
             )
-            assert article_id is not None
-            if is_new:
-                run.new_articles += 1
+            if article is None:
+                raise ValueError("article metadata is missing for fetched feed entry")
+            article_id = article.id
             discovery = await session.scalar(
                 select(ArticleDiscoveryRow)
                 .where(
@@ -207,8 +272,27 @@ class WorkerService:
                 )
             )
             assert version_id is not None
-            if inserted_version_id is not None and not is_new:
+            if inserted_version_id is not None:
                 run.updated_articles += 1
+            article.current_version_id = version_id
+            article.content_hash = document.content_hash
+            # Exact same body at another URL from the same source is one article.
+            await session.execute(
+                select(func.pg_advisory_xact_lock(func.hashtext(document.content_hash)))
+            )
+            duplicate = await session.scalar(
+                select(ArticleRow.id)
+                .where(
+                    ArticleRow.id != article_id,
+                    ArticleRow.source_id == article.source_id,
+                    ArticleRow.content_hash == document.content_hash,
+                    ArticleRow.status.in_(("published", "hidden")),
+                    ArticleRow.duplicate_of_id.is_(None),
+                )
+                .order_by(ArticleRow.ingested_at, ArticleRow.id)
+                .limit(1)
+            )
+            article.duplicate_of_id = duplicate
             # One article job per run+URL, after all feed jobs finish:
             # fan out source-specific candidates over the same frozen version.
             discoveries = list(

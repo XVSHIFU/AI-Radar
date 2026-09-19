@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from urllib.parse import urlsplit
 from uuid import NAMESPACE_URL, uuid5
 
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.sql import Executable
@@ -17,6 +18,13 @@ from .models import SourceRow
 class SourceDefinition:
     name: str
     feed_url: str
+
+
+RELEASE_SOURCES = (
+    SourceDefinition("Hugging Face", "https://huggingface.co/blog/feed.xml"),
+    SourceDefinition("Google Research", "https://research.google/blog/rss/"),
+    SourceDefinition("AWS Machine Learning", "https://aws.amazon.com/blogs/machine-learning/feed/"),
+)
 
 
 CURATED_SOURCE_CANDIDATES = (
@@ -65,15 +73,42 @@ async def register_sources(sessions: async_sessionmaker[AsyncSession], *, enable
     return len(CURATED_SOURCE_CANDIDATES)
 
 
-async def run(enabled: bool) -> None:
+async def register_release_sources(sessions: async_sessionmaker[AsyncSession]) -> int:
+    """Seed only an empty installation; never reset an operator's source choices."""
+    async with sessions() as session, session.begin():
+        existing = await session.scalar(select(func.count()).select_from(SourceRow))
+        if existing:
+            return 0
+        for source in RELEASE_SOURCES:
+            host = urlsplit(source.feed_url).hostname
+            assert host is not None
+            session.add(
+                SourceRow(
+                    id=uuid5(NAMESPACE_URL, source.feed_url),
+                    name=source.name,
+                    feed_url=source.feed_url,
+                    enabled=True,
+                    health="unverified",
+                    consecutive_failures=0,
+                    canonical_host=host,
+                    channel_type="rss",
+                )
+            )
+    return len(RELEASE_SOURCES)
+
+
+async def run(enabled: bool, release_defaults: bool = False) -> None:
     settings = get_settings()
     url = settings.sqlalchemy_url()
     if settings.radar_data_mode != "postgres" or url is None:
         raise RuntimeError("source registration requires configured PostgreSQL mode")
     engine = create_async_engine(url, pool_pre_ping=True)
     try:
-        count = await register_sources(
-            async_sessionmaker(engine, expire_on_commit=False), enabled=enabled
+        sessions = async_sessionmaker(engine, expire_on_commit=False)
+        count = await (
+            register_release_sources(sessions)
+            if release_defaults
+            else register_sources(sessions, enabled=enabled)
         )
     finally:
         await engine.dispose()
@@ -81,7 +116,7 @@ async def run(enabled: bool) -> None:
         json.dumps(
             {
                 "registered": count,
-                "enabled": enabled,
+                "enabled": True if release_defaults else enabled,
                 "health": "unverified",
                 "production_body_validation": "required",
             }
@@ -98,8 +133,13 @@ def main() -> None:
         action="store_true",
         help="Explicitly enable sources; default registration is disabled and unverified.",
     )
+    parser.add_argument(
+        "--release-defaults",
+        action="store_true",
+        help="Seed three enabled feeds only on an empty installation.",
+    )
     args = parser.parse_args()
-    asyncio.run(run(enabled=args.enable))
+    asyncio.run(run(enabled=args.enable, release_defaults=args.release_defaults))
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
+from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -30,6 +31,8 @@ from .content_gateway import router as content_gateway_router
 from .content_runner import recover_abandoned
 from .data_quality_api import router as data_quality_router
 from .fixture_repository import FixtureRepository
+from .feed_api import router as feed_router
+from .feed_repository import FeedRepository
 from .ingest.dns import configured_resolver
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
 from .local_bge import LocalBgeM3Provider
@@ -93,6 +96,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.repository = None
     app.state.engine = None
     app.state.ingest_repository = None
+    app.state.feed_repository = None
     app.state.sessions = None
     app.state.admin_sessions = MemoryAdminSessionStore()
     app.state.ask_admission = AskAdmission()
@@ -126,6 +130,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             )
         app.state.admin_sessions = PostgresAdminSessionStore(sessions)
         app.state.ingest_repository = IngestRepository(sessions)
+        app.state.feed_repository = FeedRepository(sessions, settings.cursor_secret, settings.business_timezone)
         embedding_provider = None
         if settings.embedding_model_dir and settings.embedding_model_revision:
             embedding_provider = LocalBgeM3Provider(
@@ -161,6 +166,7 @@ app.include_router(research_router(research_sessions))
 app.include_router(session_router)
 app.include_router(admin_router)
 app.include_router(data_quality_router)
+app.include_router(feed_router)
 app.include_router(content_router)
 app.include_router(content_gateway_router)
 
@@ -695,31 +701,47 @@ async def create_query_plan(
         has_conflict = False
         try:
             for event_id in plan.filters.event_ids:
-                item = await repository.event(event_id)
-                if item is None:
+                if isinstance(repository, PostgresRepository):
+                    from .feed_repository import public_feed_query
+
+                    async with repository.sessions() as session:
+                        feed = public_feed_query(Filters(), str(repository.timezone))
+                        record = (await session.execute(
+                            select(feed).where(feed.c.id == event_id)
+                        )).mappings().first()
+                        scoped = public_feed_query(
+                            base_filters.model_copy(update={"event_ids": [event_id]}),
+                            str(repository.timezone),
+                        )
+                        matched_total = int(await session.scalar(
+                            select(func.count()).select_from(scoped)
+                        ) or 0)
+                    item_title = record["title"] if record else None
+                else:
+                    item = await repository.event(event_id)
+                    item_title = item.title_zh if item else None
+                    matched_total = (await repository.list_events(
+                        base_filters.model_copy(update={"event_ids": [event_id]}), 1, None
+                    )).total if item else 0
+                if item_title is None:
                     status = "not_found"
                     title = None
-                    warnings.append(f"附件事件 {event_id} 不存在或未发布")
+                    warnings.append(f"附件内容 {event_id} 不存在或未发布")
                     candidates.append(
                         ClarificationCandidate(
-                            label=f"移除不存在的附件事件 {event_id}",
+                            label=f"移除不存在的附件内容 {event_id}",
                             entity_id=None,
                         )
                     )
                     has_conflict = True
                 else:
-                    matched = await repository.list_events(
-                        base_filters.model_copy(update={"event_ids": [event_id]}),
-                        1,
-                        None,
-                    )
-                    status = "matched" if matched.total == 1 else "filtered_out"
-                    title = item.title_zh
+                    status = "matched" if matched_total == 1 else "filtered_out"
+                    title = item_title
                     if status == "filtered_out":
-                        warnings.append(f"附件事件“{title}”与当前筛选冲突")
+                        warnings.append(f"附件内容“{title}”与当前筛选冲突")
                         candidates.append(
                             ClarificationCandidate(
-                                label=f"调整筛选以包含附件事件“{title}”",
+                                label=f"调整筛选以包含附件内容“{title}”",
                                 entity_id=None,
                             )
                         )

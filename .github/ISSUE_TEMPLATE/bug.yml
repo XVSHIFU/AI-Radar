@@ -1,0 +1,21 @@
+name: Bug report
+description: 报告可复现的问题（请勿上传密钥或私有数据）
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 版本与运行环境
+      placeholder: v0.1.0 / Ubuntu / Docker / 浏览器
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤、期望结果和实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 已脱敏日志或截图
+      description: 不要包含 API Key、管理员口令、数据库或用户会话。

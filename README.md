@@ -1,106 +1,85 @@
 # AI 革新雷达
 
-> 最新进度见 [内容生产整合方案](docs/content-pipeline-plan.md)，操作接口见 [内容工作台 API](docs/content-workbench-api.md)，参考数据受控接入见 [说明](docs/content-reference-import.md)，本轮上线核验见 [内容工作台交付记录](docs/content-workbench-delivery-20260919.md)，既有部署与恢复见 [容器部署记录](docs/personal-container-deployment.md)。本阶段双模式内容工作台已交付：生产只读核验与同机备份完成；自动模式默认关闭，历史付费提取与免费采集仍停用。下文早期阶段记录不代表当前状态。
+一个自托管的 AI 资讯汇总站。脚本自动读取来源、清洗和去重，再直接展示原站标题、简介与链接；日常收录不需要模型 API，也不需要逐篇复制和导入。
 
-本仓库正在按实施规格 v1.0 落地。当前工作区是 `E:\AI-AGENT\AI-Radar-Implementation-Spec\codex`，覆盖旧方案中的 C 盘示例路径。
+当前为 **v0.1.0 本地发行候选**。镜像和代码暂不推送远端。完整工作范围见 [首版计划](docs/first-release-plan.md)；`docs/` 中旧部署与验收记录仅代表当时状态。
 
-首页候选已实际运行比较，采用 Terra 研究工作台。两候选共用浏览器DOM回归 **14/14通过**，保留在 `prototypes/sol` 和 `prototypes/terra`。四页、确定性查询计划与持久采集工程已集成，最终状态以 [验收矩阵](docs/acceptance-matrix.md) 为准，不能把原型通过算成 P0 完成。
+## 功能
 
-最新实施顺序与管理员后台扩展见 [实施方案续篇](docs/implementation-roadmap.md)。
+- 自动收录 RSS/Atom，保留原文语言；正文抓取失败时仍可阅读有效的来源简介和原文链接。
+- 时间线、关键词搜索、分类、日期过滤、统计、多套主题和手机布局。
+- 后台管理来源、采集故障、隐藏/恢复文章。手动编辑和内容 Agent 是可选精选功能。
+- 可选 pi 研究助手：读取收录内容并给出来源；每个 IP 滚动 48 小时 5 次提问，追问计入。
+- 数据保存在指定主机目录。Docker 镜像不携带你的数据库、模型凭据或会话。
 
-## 工程结构
+资讯列表按文章发布时间展示，缺失时明确使用收录时间。已有精选事件保留，关联原始文章不重复列出。规则分类不能确定时显示“未分类”，不会编造事件日期或重要度。
 
-- `frontend/`：Vue3、TypeScript、Vite、Tailwind4 四页与API适配。
-- `backend/`：FastAPI、SQLAlchemy、PostgreSQL仓储与显式合成演示仓储。
-- `contracts/`：接口基线、共享演示数据、新版SSE协议样本。
-- `scripts/`：本地启动/停止、验证、RSS入口验证与 Ubuntu 服务管理。
-- `docs/`：设计、原型比较、实施记录和逐项验收证据。
+## Docker 启动
 
-## 历史 Ubuntu 开发环境（已由容器部署替代）
+需要 Linux、Python 3、Docker Engine 和 Docker Compose。基础模式无需 Node、Python 依赖环境、API Key、向量模型或 gVisor。Windows 可以在 Linux Docker 主机/WSL 中运行以下命令。
 
-已将工程迁移到 Ubuntu，真实 PostgreSQL、API、采集 worker 和每小时调度已启动。
-页面：http://192.168.194.129:5173/ 。详细环境、备份恢复与服务命令见 [Ubuntu 开发记录](docs/ubuntu-development.md)。
-前端已由用户接受；数据库、脚本采集、Flash 事件提取与真实 JSON 问答已接通。
-管理员入口为 /ingest，支持来源、探测、采集记录、模型配置与用量。使用与最新验收见 [后台与真实问答](docs/admin-backoffice-and-qa.md)。
-
-## 本地安装与启动
-
-工具基线：Node 24.15.0、pnpm 11.22.0、Python 3.12、uv 0.11.16。从仓库根执行：
-
-```powershell
-Set-Location backend
-uv sync --frozen
-Set-Location ../frontend
-pnpm install --frozen-lockfile
-Set-Location ..
-./scripts/start-dev.ps1 -Fixture
-```
-
-首页 `http://127.0.0.1:5173`，API文档 `http://127.0.0.1:8000/docs`。服务后台启动，日志在 `.run/`。关闭使用 `./scripts/stop-dev.ps1`。
-
-`-Fixture` 显式启用合成数据，不调用付费模型。前端独立演示入口使用 `?demo=1`；普通API失败不会自动改为演示成功。合成数据不计入真实采集或历史gold验收。
-
-## 接入 PostgreSQL
-
-Windows 本机原先无可用 Docker/PG；现已在 Ubuntu 上运行，参见上述记录。新环境初始化示例：
-
-```powershell
-# 仅首次复制，不覆盖已填好的配置
-Copy-Item .env.example .env
-# 在本机填写数据库密码、管理凭据等
-docker compose up -d db
-Set-Location backend
-uv run alembic upgrade head
-Set-Location ..
-./scripts/start-dev.ps1
-```
-
-默认模式为PostgreSQL；数据库未配置/不可用应显示明确故障，不返回虚假的空事件库。模型凭据和付费预算未配置时不得伪造问答。镜像采用规格的 `pgvector/pgvector:0.8.6-pg16-bookworm`，Ubuntu 已拉取并记录 digest，见 Ubuntu 开发记录。
-
-## 验证
-
-```powershell
-./scripts/verify.ps1
-./scripts/check-frontend.ps1 -BaseUrl http://127.0.0.1:5173
-python scripts/check-api.py --base-url http://127.0.0.1:8000
-python scripts/validate-sources.py
-```
-
-`verify.ps1` 执行静态检查、单元测试、24项显式过滤结构回归、30项确定性计划HTTP检查、3项连接拒绝检查、OpenAPI对齐和离线迁移 SQL 生成；新增真实 PostgreSQL 集成测试及运行条件见 docs/db-live-validation.md。离线SQL编译和迁移SQL生成不等于真实PG迁移/向量测试。
-
-原型比较：分别在两个 `prototypes/*` 目录执行 `npm ci` 和 `npm run dev -- --host 127.0.0.1 --port <4174或4173>`，再执行 `./scripts/check-prototypes.ps1`。运行前需本机已安装 `agent-browser` 及浏览器；结果写入 `docs/prototype-browser-results.json`。
-
-## 早期阶段边界（历史记录）
-
-5 个真实 RSS 与正文样本已通过生产抓取，原文持续保存到 Ubuntu 的真实 PG。备份/隔离恢复已通过。没有历史原站 ID 与 gold 材料，也没有模型凭据和付费预算。100 条真实标准事件、模型质量、旧 API/SSE 兼容和生产部署仍未完成。
-
-详细证据：[原型比较](docs/prototype-comparison.md)、[来源探测](docs/source-validation.json)、[实施记录](docs/execution-log.md)、[验收矩阵](docs/acceptance-matrix.md)。
-
-用户已取消周额度 80% 停止规则；历史额度脚本不再作为继续开发的门槛。
-
-## 生产抓取路径与网络配置
-
-早期系统 DNS 返回 Fake-IP，生产抓取器按预期拒绝。Ubuntu 已使用显式配置的 Cloudflare DoH，
-保持公网地址验证和 IP 固定；五源正文样本已通过。默认 FETCH_DNS_MODE=system，仅需时选择 cloudflare。
+在项目根目录执行；当前用户需能使用 Docker：
 
 ```bash
-backend/.venv/bin/python scripts/validate-source-bodies.py
+# 如已有离线镜像，先加载；否则 init/build 会从源码构建。
+docker load -i /path/to/ai-radar-v0.1.0-images.tar
+
+python3 scripts/release.py init --data-root "$PWD/.local-data"
+python3 scripts/release.py build --data-root "$PWD/.local-data"  # 已加载全部镜像时省略
+python3 scripts/release.py up --data-root "$PWD/.local-data"
 ```
 
-报告为 docs/source-body-validation.json，只取每源1篇正文，不写数据库、不调用模型、不发布事件。此前 urllib RSS入口5/5与本次生产transport结果分开记录。即使正文解析成功，仍需后续完整提取、证据与入库验收。
+访问 `http://127.0.0.1:8080`；管理员入口 `/ingest`。`init` 生成的管理员口令位于数据目录 `secrets/admin_token`，用本机管理员权限读取并妥善保管，不要提交到 Git。首次空库登记少量默认来源；已有来源开关不会被启动命令重置。
 
-## 采集进程（数据库环境就绪后）
+`init` 只用于新目录，升级或重启不要重新初始化。默认仅监听本机。局域网试用可以在启动前设置 `RADAR_BIND_IP=0.0.0.0`；通过 `RADAR_HTTP_PORT` 修改端口。公网部署使用 HTTPS，并限制管理入口和服务器端口。
 
-从 backend 目录执行：
-
-```powershell
-uv run alembic upgrade head
-uv run radar-register-sources
-# 上一步仅注册5个候选，默认禁用。完成生产抓取验证后才显式启用：
-uv run radar-register-sources --enable
-# 以下两个进程分别运行，API不会兼任定时器或worker：
-uv run python -m app.scheduler
-uv run python -m app.worker
+```bash
+# 停止服务，保留持久数据
+python3 scripts/release.py down --data-root "$PWD/.local-data"
+# 同版本重启
+python3 scripts/release.py up --data-root "$PWD/.local-data"
+# 导出本地镜像，旁边生成摘要清单；目标文件必须不存在
+python3 scripts/release.py export --data-root "$PWD/.local-data" \
+  --output /absolute/path/ai-radar-v0.1.0-images.tar
 ```
 
-注册命令按来源名幂等更新；再次不带 --enable 运行会把这些候选设为禁用。来源健康表示RSS发现状态，正文解析失败与最终任务失败在运行记录中分别统计。当前采集止于冻结正文版本与待审候选，已发布事件数保持0；模型提取、发布、embedding及回答生成尚未完成。预算预留表和调用账本表已建模，实际计费执行与结算仍未实现。
+基础服务由数据库、API、网关、采集 worker 和调度器组成。不会启动旧的收费事件提取。镜像标签使用 `v0.1.0`，可通过 `RADAR_RELEASE` 覆盖；实际镜像 ID 以导出清单为准。
+
+## 可选助手与 HTTPS
+
+```bash
+python3 scripts/release.py assistant-up --data-root "$PWD/.local-data"
+# 然后在后台配置自己的模型。没有 Key 时，基础采集/浏览照常可用。
+
+RADAR_DOMAIN=radar.example.com python3 scripts/release.py https-up \
+  --data-root "$PWD/.local-data"
+```
+
+域名需指向服务器，HTTPS 部署前核对端口及已有反向代理。首次启用助手会构建尚未提供的 pi 镜像；后续可直接加载预构建镜像。可选模式会保存在数据目录，之后的 `up` 会保留选择。
+
+向量检索可通过 `embedding-up` 和 `RADAR_EMBEDDING_MODEL_DIR` 使用已校验的本地模型；默认用文本搜索。基础发行包不开放 Python 执行；现有 gVisor 控制器实现保留在源码中，启用必须配齐独立隔离环境，不能退回宿主执行。
+
+## 备份和升级
+
+保留一份镜像归档和一份一致性数据备份即可；不要直接复制运行中的 PostgreSQL 数据目录。
+
+```bash
+python3 scripts/release.py backup --data-root "$PWD/.local-data" \
+  --output /absolute/path/radar-backup
+# 恢复到新目录；停止原服务或使用不同 RADAR_STACK，避免两套服务冲突。
+RADAR_STACK=ai-radar-restored python3 scripts/release.py restore \
+  --data-root "$PWD/.restored-data" --snapshot /absolute/path/radar-backup
+```
+
+备份含数据库、私有配置和凭据，只保存在你指定的位置。恢复命令校验摘要并启动数据库，应用需另行执行 `up`。升级前先备份，再加载新镜像并运行 `up`；涉及数据库变化时，不能仅换回旧镜像就认为已完成回退。同机副本不能应对整块磁盘损坏。
+
+## 开发与反馈
+
+- `frontend/`：Vue 3、TypeScript；`pnpm --dir frontend install --frozen-lockfile`。
+- `backend/`：Python 3.12、FastAPI、PostgreSQL；`uv sync --frozen --project backend`。
+- `agent/`：可选 pi 运行时、研究规则、Skills 和隔离 Python 实现。
+- `deploy/containers/`、`compose.release*.json`、`scripts/release.py`：发行构建和部署。
+
+开发时只验证受影响功能；首次部署再做一次采集、浏览和重启检查。默认不调用收费模型做测试。提交问题时提供版本、系统、复现步骤和已脱敏日志，不上传 API Key、管理员口令、数据库或用户会话。
+
+项目许可证待维护者在公开发行前确定。第三方字体和图标的许可证见 [第三方说明](THIRD_PARTY_NOTICES.md)。

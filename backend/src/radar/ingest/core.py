@@ -129,6 +129,36 @@ class FeedEntry:
     url: str
     original_url: str
     published: str | None
+    excerpt: str | None = None
+    tags: tuple[str, ...] = ()
+
+
+class SummaryParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.parts: list[str] = []
+        self.ignored = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in {"script", "style"}:
+            self.ignored += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"script", "style"} and self.ignored:
+            self.ignored -= 1
+
+    def handle_data(self, data: str) -> None:
+        if not self.ignored:
+            self.parts.append(data)
+
+
+def feed_excerpt(value: str | None) -> str | None:
+    if not value:
+        return None
+    parser = SummaryParser()
+    parser.feed(value)
+    cleaned = " ".join(" ".join(parser.parts).split())[:600]
+    return cleaned or None
 
 
 def parse_feed(body: bytes) -> list[FeedEntry]:
@@ -140,7 +170,11 @@ def parse_feed(body: bytes) -> list[FeedEntry]:
             str(entry.get("title", "")).strip(),
             canonicalize_url(str(entry.link)),
             str(entry.link),
-            entry.get("published"),
+            entry.get("published") or entry.get("updated"),
+            feed_excerpt(entry.get("summary")),
+            tuple(
+                str(tag.get("term", "")).strip() for tag in entry.get("tags", []) if tag.get("term")
+            ),
         )
         for entry in parsed.entries
         if entry.get("link")

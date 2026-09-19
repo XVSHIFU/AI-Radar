@@ -68,7 +68,9 @@ async def research_scope(
         await session.execute(text("SET LOCAL idle_in_transaction_session_timeout = '95s'"))
         as_of = await session.scalar(select(func.transaction_timestamp()))
         snapshot = await session.scalar(text("SELECT pg_current_snapshot()::text"))
-        toolset = ResearchTools(
+        from .feed_research_tools import FeedResearchTools
+
+        toolset = FeedResearchTools(
             repository, session, guard, filters, skills, str(as_of), str(snapshot)
         )
         try:
