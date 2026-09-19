@@ -22,6 +22,10 @@ The internal service reads only the packaged `../research/SYSTEM.md`. Configure 
 - Model response NDJSON: `text {text}`, `tool {id,name,arguments}` (fully assembled and validated provider arguments), `usage {input,output}` (null means unknown), `finish {reason:stop|toolUse|length}`. Usage may follow finish; no other content may.
 - Tool request body: `name`, `args`, `call_id`; response: `{result:…}`. The gateway binds every call to the active capability and the model-issued call ID and parameters, applies schema/scope/size checks and independently enforces budgets. Unknown or schema-invalid provider calls must produce validated error results and be consumed without running business code.
 
+## Content workbench route
+
+`POST /v1/content` uses the same private runtime bearer token and exact request fields as `/v1/run`. It creates a fresh pi Agent with a fixed content system prompt, no registered tools, and a hard limit of one model turn. The runtime calls only `POST /internal/content/model` with the one-use capability, `context`, `sequence:1`, and `max_output`; redirects are rejected. It emits one terminal NDJSON result: `{type:"result",status:"completed",content,usage:{input,output}}`. Unknown usage stays null. Invalid or tool-bearing provider streams fail without another request. The Python gateway owns the bound frozen prompt and the usage reservation.
+
 ## What is verified / outstanding
 
 Tests exercise the installed pi core rather than a mock agent loop: dependent tool rounds, real incremental emission, sequential execution, tool/model budgets, extra-field rejection, cancellation, no automatic retries, secret/error filtering, per-run transcript separation, internal HTTP authentication, and broker envelope validation. Broker/provider outputs are controlled fixtures; no production model was called.

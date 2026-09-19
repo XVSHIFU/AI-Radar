@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { once } from "node:events";
 import { httpBroker } from "./broker.ts";
+import { httpContentBroker } from "./content-broker.ts";
+import { runContent, type ContentBroker } from "./content.ts";
 import { runResearch, type Broker, type PublicEvent } from "./runner.ts";
 
 type Configuration = {
@@ -17,6 +19,7 @@ type Configuration = {
   policyDigest?: string;
   pythonEnabled?: boolean;
   broker: (capability: string) => Broker;
+  contentBroker?: (capability: string) => ContentBroker;
   deadlineMs?: number;
 };
 async function body(request: IncomingMessage): Promise<unknown> {
@@ -52,12 +55,17 @@ export function createRuntimeServer(config: Configuration) {
         policy_digest: config.policyDigest}));
       return;
     }
-    if (request.method !== "POST" || request.url !== "/v1/run") {
+    const isContent = request.url === "/v1/content";
+    if (request.method !== "POST" || (!isContent && request.url !== "/v1/run")) {
       reject(response, 404, "NOT_FOUND");
       return;
     }
     if (!authorized(request, config.token)) {
       reject(response, 401, "UNAUTHORIZED");
+      return;
+    }
+    if (isContent && !config.contentBroker) {
+      reject(response, 503, "CONTENT_UNAVAILABLE");
       return;
     }
     if (active >= 2) {
@@ -95,12 +103,18 @@ export function createRuntimeServer(config: Configuration) {
         !/^[A-Za-z0-9_-]{32,128}$/.test(p.capability)
       )
         throw new Error("INVALID_ARGUMENT");
-      const broker = config.broker(p.capability);
+      const broker = isContent ? config.contentBroker!(p.capability) : config.broker(p.capability);
       response.writeHead(200, {
         "content-type": "application/x-ndjson",
         "cache-control": "no-store",
         "x-accel-buffering": "no",
       });
+      if (isContent) {
+        const result = await runContent(p.prompt, p.max_output, broker as ContentBroker, controller.signal);
+        if (!response.destroyed)
+          response.end(JSON.stringify({ type: "result", ...result }) + "\n");
+        return;
+      }
       const write = async (
         event: PublicEvent | Awaited<ReturnType<typeof runResearch>>,
       ) => {
@@ -110,7 +124,7 @@ export function createRuntimeServer(config: Configuration) {
       };
       const result = await runResearch(
         { system: config.system, prompt: p.prompt, maxOutput: p.max_output, pythonEnabled: config.pythonEnabled },
-        broker,
+        broker as Broker,
         write,
         controller.signal,
       );
@@ -130,6 +144,7 @@ export function createRuntimeServer(config: Configuration) {
           JSON.stringify({
             type: "result",
             status: controller.signal.aborted ? "cancelled" : "failed",
+            ...(isContent ? { content: "", usage: { input: null, output: null } } : {}),
             code: controller.signal.aborted
               ? "CANCELLED"
               : "RUNTIME_UNAVAILABLE",
@@ -156,6 +171,7 @@ if (
     policyDigest: policy.digest,
     pythonEnabled: policy.pythonEnabled,
     broker: (capability) => httpBroker(origin, capability),
+    contentBroker: (capability) => httpContentBroker(origin, capability),
   });
   server.requestTimeout = 90000;
   server.headersTimeout = 10000;
