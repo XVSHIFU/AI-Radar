@@ -3,6 +3,7 @@ import { open, constants } from 'node:fs/promises';
 import { createRuntimeServer } from './dist/src/server.js';
 import { loadPolicy } from './dist/src/policy.js';
 import { httpBroker } from './dist/src/broker.js';
+import { httpContentBroker } from './dist/src/content-broker.js';
 
 const file = await open('/run/secrets/runtime_token', constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
 let token;
@@ -21,6 +22,7 @@ const policy = await loadPolicy(new URL('../research/', import.meta.url));
 const server = createRuntimeServer({
   token, system: policy.system, policyDigest: policy.digest, pythonEnabled: policy.pythonEnabled,
   broker: capability => httpBroker('http://api:8000', capability),
+  contentBroker: capability => httpContentBroker('http://api:8000', capability),
 });
 server.requestTimeout = 90000;
 server.headersTimeout = 10000;
