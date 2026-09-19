@@ -1,0 +1,14 @@
+/* Text actions in admin screens share the public category control palette. */
+.admin-page button.admin-action {
+  background: var(--blue-soft);
+  border-color: var(--line);
+  color: var(--blue);
+  transition: background-color .16s ease, border-color .16s ease;
+}
+.admin-page button.admin-action:not(:disabled):hover {
+  background: var(--aqua);
+  border-color: var(--hover-line);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-page button.admin-action { transition: none; }
+}
