@@ -122,7 +122,7 @@ class FeedResearchTools(ResearchTools):
             counts = {row["category"]: row["count"] for row in rows}
             rows = [
                 {"category": key, "count": counts.get(key, 0)}
-                for key in [*(category.value for category in Category), "unclassified"]
+                for key in dict.fromkeys([*(category.value for category in Category), "unclassified"])
             ]
         total, included = await self._count(), await self._count(*extra)
         articles = await self._count(self._feed.c.content_kind == "article")
