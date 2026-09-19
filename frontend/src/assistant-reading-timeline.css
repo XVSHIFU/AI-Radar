@@ -18,12 +18,13 @@
 .assistant-reading-timeline .assistant-header-tools button:hover { color:var(--blue); background:transparent; }
 .assistant-reading-timeline .assistant-header-tools svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .assistant-reading-timeline .assistant-scope-bar {
+  position:relative; z-index:3;
   display:flex; align-items:center; justify-content:space-between; gap:12px;
   padding:0 20px 13px; border-bottom:1px solid var(--line); flex:none;
 }
 .assistant-reading-timeline .assistant-scope-bar > .meta { font-size:11px; }
 .assistant-reading-timeline .assistant-scope-menu summary { font-size:12px; color:var(--blue); }
-.assistant-reading-timeline .assistant-scope-popover { z-index:5; max-width:calc(100vw - 40px); }
+.assistant-reading-timeline .assistant-scope-popover { inset:calc(100% + 4px) 20px auto; z-index:5; max-width:none; }
 .assistant-reading-timeline .assistant-main > .assistant-attachment {
   flex:none; margin:12px 20px 0; padding:8px 10px; border-radius:6px;
   background:var(--blue-soft); font-size:12px; line-height:1.6;
@@ -91,6 +92,7 @@
   .assistant-reading-timeline .assistant-heading { gap:6px; }
   .assistant-reading-timeline .assistant-heading strong { font-size:15px; }
   .assistant-reading-timeline .assistant-scope-bar { padding:0 16px 12px; }
+  .assistant-reading-timeline .assistant-scope-popover { right:16px; left:16px; }
   .assistant-reading-timeline .assistant-stage .assistant-messages { padding:22px 16px 12px 24px; }
   .assistant-reading-timeline .assistant-dock { padding:12px 12px max(12px, env(safe-area-inset-bottom)); }
 }
