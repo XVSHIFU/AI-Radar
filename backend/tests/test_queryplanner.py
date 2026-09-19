@@ -25,6 +25,8 @@ CASES = [
     ("research", {}, {"category": "research"}),
     ("product", {}, {"category": "product"}),
     ("industry", {}, {"category": "industry"}),
+    ("未分类", {}, {"category": "unclassified"}),
+    ("unclassified", {}, {"category": "unclassified"}),
 ]
 
 

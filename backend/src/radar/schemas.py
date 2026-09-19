@@ -16,6 +16,7 @@ class Category(StrEnum):
     RESEARCH = "research"
     PRODUCT = "product"
     INDUSTRY = "industry"
+    UNCLASSIFIED = "unclassified"
 
 
 class Event(BaseModel):

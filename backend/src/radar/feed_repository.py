@@ -33,7 +33,7 @@ from .models import (
 )
 from .normalize import normalize_text
 from .repository import InvalidCursor, RepositoryUnavailable
-from .schemas import Evidence, Filters
+from .schemas import Category, Evidence, Filters
 
 
 def _like_term(value: str) -> str:
@@ -45,6 +45,7 @@ def public_feed_query(
     filters: Filters, timezone: str = "Asia/Shanghai", unclassified: bool = False
 ):
     """Return one row per public item, with truthful article provenance columns."""
+    unclassified = unclassified or filters.category == Category.UNCLASSIFIED
     member = aliased(EventRow)
     linked_event = aliased(EventRow)
     linked_parent = aliased(EventRow)

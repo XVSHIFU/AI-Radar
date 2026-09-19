@@ -48,6 +48,8 @@ CATEGORY_ALIASES = {
     "产品": Category.PRODUCT,
     "industry": Category.INDUSTRY,
     "行业": Category.INDUSTRY,
+    "unclassified": Category.UNCLASSIFIED,
+    "未分类": Category.UNCLASSIFIED,
 }
 GENERIC_WORDS = (
     "这些日期",
@@ -160,9 +162,7 @@ def _date_range(text: str, business_date: date) -> tuple[date, date, str | None]
 
 
 def _date_terms(text: str) -> list[str]:
-    terms = [
-        term for term in RELATIVE_DATE_TERMS if term in text
-    ]
+    terms = [term for term in RELATIVE_DATE_TERMS if term in text]
     absolute = ABSOLUTE_RANGE.search(text)
     dates = (
         [absolute.group(0)]
@@ -244,10 +244,7 @@ class QueryPlanner:
         follow_up_requested = any(term in normalized for term in FOLLOW_UP_REFERENCES) or (
             normalized.endswith("呢")
             and bool(
-                inferred.date_from
-                or inferred.category
-                or inferred.entity_ids
-                or inferred.event_ids
+                inferred.date_from or inferred.category or inferred.entity_ids or inferred.event_ids
             )
         )
 
@@ -334,9 +331,7 @@ class QueryPlanner:
         warnings = list(plan.warnings)
         assistant_turns = sum(item.role == "assistant" for item in history)
         if assistant_turns:
-            warnings.append(
-                f"已忽略 {assistant_turns} 条 assistant 历史中的筛选、事实与证据"
-            )
+            warnings.append(f"已忽略 {assistant_turns} 条 assistant 历史中的筛选、事实与证据")
         if not follow_up_requested:
             if history:
                 warnings.append("当前问题按独立问题处理，未继承历史筛选")
@@ -382,9 +377,7 @@ class QueryPlanner:
             if "entity_ids" in values:
                 values["entity_match"] = historical.filters.entity_match
 
-            has_relative_date = any(
-                term in historical_text for term in RELATIVE_DATE_TERMS
-            )
+            has_relative_date = any(term in historical_text for term in RELATIVE_DATE_TERMS)
             frozen_date = bool(
                 message.filters
                 and message.filters.date_from is not None
@@ -394,9 +387,7 @@ class QueryPlanner:
                 values.pop("date_from", None)
                 values.pop("date_to", None)
                 unsafe_relative_date = True
-            uncertain_history = bool(
-                historical.requires_clarification or historical.free_text
-            )
+            uncertain_history = bool(historical.requires_clarification or historical.free_text)
             if values or unsafe_relative_date or uncertain_history:
                 inherited = values
                 break
