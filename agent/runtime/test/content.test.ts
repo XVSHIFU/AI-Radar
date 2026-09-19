@@ -110,3 +110,43 @@ test("content broker posts once to bound callback with no redirect following", a
     globalThis.fetch = original;
   }
 });
+
+test("content accepts a 48KB bound prompt whose JSON body exceeds the research limit", async () => {
+  let calls = 0;
+  const token = "content-large-prompt-secret-123456789012345";
+  const server = createRuntimeServer({
+    token,
+    system: "Research",
+    broker: () => { throw new Error("research broker must not run"); },
+    contentBroker: () => ({
+      async *model(context) {
+        calls++;
+        assert.equal(context.tools?.length, 0);
+        yield { type: "text", text: '{"ok":true}' };
+        yield { type: "finish", reason: "stop" };
+      },
+    }),
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  assert(address && typeof address === "object");
+  const prompt = "\t".repeat(45_000);
+  const body = JSON.stringify({ prompt, max_output: 100, capability: "a".repeat(64) });
+  assert(Buffer.byteLength(body) > 65_536);
+  try {
+    const response = await fetch(`http://127.0.0.1:${address.port}/v1/content`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      body,
+    });
+    assert.equal(response.status, 200);
+    const result = JSON.parse((await response.text()).trim());
+    assert.equal(result.status, "completed");
+    assert.equal(calls, 1);
+  } finally {
+    server.closeAllConnections();
+    server.close();
+    await once(server, "close");
+  }
+});

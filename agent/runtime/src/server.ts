@@ -22,12 +22,12 @@ type Configuration = {
   contentBroker?: (capability: string) => ContentBroker;
   deadlineMs?: number;
 };
-async function body(request: IncomingMessage): Promise<unknown> {
+async function body(request: IncomingMessage, maxBytes = 65536): Promise<unknown> {
   let length = 0;
   const chunks: Buffer[] = [];
   for await (const chunk of request) {
     length += chunk.length;
-    if (length > 65536) throw new Error("REQUEST_TOO_LARGE");
+    if (length > maxBytes) throw new Error("REQUEST_TOO_LARGE");
     chunks.push(chunk);
   }
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
@@ -85,7 +85,7 @@ export function createRuntimeServer(config: Configuration) {
     );
     timer.unref();
     try {
-      const payload = await body(request);
+      const payload = await body(request, isContent ? 131072 : 65536);
       if (!payload || typeof payload !== "object" || Array.isArray(payload))
         throw new Error("INVALID_ARGUMENT");
       const p = payload as Record<string, unknown>;
@@ -94,7 +94,7 @@ export function createRuntimeServer(config: Configuration) {
           (k) => !["prompt", "max_output", "capability"].includes(k),
         ) ||
         typeof p.prompt !== "string" ||
-        Buffer.byteLength(p.prompt) > 24000 ||
+        Buffer.byteLength(p.prompt) > (isContent ? 48000 : 24000) ||
         typeof p.max_output !== "number" ||
         !Number.isInteger(p.max_output) ||
         p.max_output < 1 ||
