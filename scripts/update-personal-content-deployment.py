@@ -83,8 +83,12 @@ def image_builds(source: Path, tag: str, skip: bool):
 
 
 def running(config: Path, service: str) -> bool:
+    # Docker labels include services hidden by inactive Compose profiles.
     result = subprocess.run(
-        ["docker", "compose", "-f", str(config), "ps", "--status", "running", "-q", service],
+        ["docker", "ps",
+         "--filter", "label=com.docker.compose.project=ai-radar-personal",
+         "--filter", f"label=com.docker.compose.service={service}",
+         "--format", "{{.ID}}"],
         check=True, capture_output=True, text=True, timeout=30,
     )
     return bool(result.stdout.strip())
