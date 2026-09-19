@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,6 +64,40 @@ class ReferenceDataTests(unittest.TestCase):
         self.assertIsNone(module.RejectRedirects().redirect_request(
             None, None, 302, "redirect", {}, "https://elsewhere.example"
         ))
+
+    def test_unsafe_official_url_is_reported_as_deferred(self):
+        class UnsafeSourceOpener:
+            def open(self, req, timeout):
+                if req.full_url.endswith("/session"):
+                    return io.BytesIO(b'{"csrf_token":"test"}')
+                if req.get_method() == "GET":
+                    return io.BytesIO(json.dumps({"items": [{
+                        "name": "Hugging Face",
+                        "feed_url": "https://huggingface.co/blog/feed.xml",
+                    }]}).encode())
+                self.payload = json.loads(req.data)
+                body = json.dumps({"detail": {
+                    "code": "SOURCE_URL_UNSAFE",
+                    "message": "URL resolves to a non-public address",
+                }}).encode()
+                raise HTTPError(req.full_url, 422, "unsafe", {}, io.BytesIO(body))
+
+        opener = UnsafeSourceOpener()
+        with tempfile.TemporaryDirectory() as folder:
+            out = Path(folder)
+            module.prepare(output=out)
+            with patch.object(module, "build_opener", return_value=opener):
+                counts = module.apply_seeds(
+                    "http://localhost:8000", "dummy-token", out / "disabled_feed_seeds.json"
+                )
+        self.assertEqual(counts, {
+            "existing": 1, "created_disabled": 0, "deferred_unsafe": 1,
+        })
+        self.assertEqual(opener.payload, {
+            "name": "Groq Official Changelog",
+            "feed_url": "https://github.com/groq/groq-changelog/commits/main.atom",
+            "channel_type": "rss",
+        })
 
     def test_apply_does_not_follow_redirect(self):
         class RedirectingOpener:

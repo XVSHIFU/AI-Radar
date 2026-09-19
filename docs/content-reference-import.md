@@ -13,6 +13,8 @@ python -m unittest discover -s data/content-reference -p test_reference_data.py
 
 `disabled_feed_seeds.json` 只有先前 XML 抽检的 Hugging Face 博客和 Groq 官方 changelog Atom。两者均为 `enabled:false`、`health:unverified`。Hugging Face 已在内置来源中；接入脚本按 URL 和名称跳过现有来源。Groq 提交记录还需检查实际变更说明，不能把每个 commit 直接当作事件。64 个来源没有整体导入；社区 Groq 转发源也没有代替官方源启用。
 
+2026-09-19 生产接入结果：Hugging Face 已存在并跳过；Groq 官方 Atom 的三字段请求符合 SourceCreate，但当前生产 DNS 将 github.com 解析为非公网地址，API 返回 SOURCE_URL_UNSAFE（HTTP 422）。脚本将此记录为 deferred_unsafe，未导入 Groq、未启用来源。保持 URL 安全检查，不使用社区镜像绕过。
+
 部署包只含生成数据时，用以下命令检查 manifest 与每个输出文件的哈希，再通过已有管理员来源 API **显式创建缺失的禁用源**：
 
 ```powershell

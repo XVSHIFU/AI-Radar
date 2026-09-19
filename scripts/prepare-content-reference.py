@@ -262,7 +262,17 @@ def prepared_seeds(seed_file: Path) -> list[dict]:
     return seeds
 
 
-def apply_seeds(base_url: str, token: str, seed_file: Path) -> None:
+def source_api_error_code(exc: HTTPError) -> str | None:
+    try:
+        response = json.loads(exc.read(4096))
+    except (ValueError, UnicodeError):
+        return None
+    detail = response.get("detail") if isinstance(response, dict) else None
+    code = detail.get("code") if isinstance(detail, dict) else None
+    return code if isinstance(code, str) else None
+
+
+def apply_seeds(base_url: str, token: str, seed_file: Path) -> dict[str, int]:
     origin = api_origin(base_url)
     seeds = prepared_seeds(seed_file)
     opener = build_opener(
@@ -283,15 +293,27 @@ def apply_seeds(base_url: str, token: str, seed_file: Path) -> None:
     existing = request("/api/v1/admin/sources")["items"]
     known_urls = {row["feed_url"].rstrip("/") for row in existing}
     known_names = {row["name"] for row in existing}
+    counts = {"existing": 0, "created_disabled": 0, "deferred_unsafe": 0}
     for seed in seeds:
         if seed["feed_url"].rstrip("/") in known_urls or seed["name"] in known_names:
+            counts["existing"] += 1
             print(f"skip existing: {seed['name']}")
             continue
         payload = {key: seed[key] for key in ("name", "feed_url", "channel_type")}
-        created = request("/api/v1/admin/sources", method="POST", body=payload, csrf=csrf)
+        try:
+            created = request("/api/v1/admin/sources", method="POST", body=payload, csrf=csrf)
+        except HTTPError as exc:
+            if exc.code == 422 and source_api_error_code(exc) == "SOURCE_URL_UNSAFE":
+                counts["deferred_unsafe"] += 1
+                print(f"deferred unsafe URL (not imported): {seed['name']}")
+                continue
+            raise
         if created["enabled"] is not False:
             raise RuntimeError(f"source unexpectedly enabled: {seed['name']}")
+        counts["created_disabled"] += 1
         print(f"created disabled: {seed['name']}")
+    print(json.dumps({"seed_apply": counts}))
+    return counts
 
 
 def main() -> None:
