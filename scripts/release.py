@@ -27,6 +27,11 @@ SECRET_NAMES = (
 )
 DATA_DIRS = ("database", "model_config", "gateway_data", "gateway_config", "service_locks")
 IMAGES = ("ai-radar-db", "ai-radar-backend", "ai-radar-gateway")
+DEPLOYMENT_ENV = (
+    "RADAR_STACK", "RADAR_RELEASE", "RADAR_BIND_IP", "RADAR_HTTP_PORT",
+    "RADAR_FRONT_SUBNET", "RADAR_GATEWAY_IP", "RADAR_API_IP",
+    "FETCH_DNS_MODE", "FETCH_INTERVAL_SECONDS",
+)
 
 
 def require_linux() -> None:
@@ -84,7 +89,7 @@ def selected(root: Path) -> dict[str, str | bool]:
     if not path.is_file():
         return {}
     data = json.loads(path.read_text())
-    if not isinstance(data, dict) or set(data) - {"assistant", "embedding", "https", "model_dir", "domain"}:
+    if not isinstance(data, dict) or set(data) - {"assistant", "embedding", "https", "model_dir", "domain", *DEPLOYMENT_ENV}:
         raise SystemExit("Invalid release options")
     return data
 
@@ -93,6 +98,14 @@ def save_selected(root: Path, data: dict[str, str | bool]) -> None:
     path = root / "release-options.json"
     path.write_text(json.dumps(data, indent=2) + "\n")
     path.chmod(0o600)
+
+
+def persist_overrides(root: Path) -> None:
+    state = selected(root)
+    for key in DEPLOYMENT_ENV:
+        if key in os.environ:
+            state[key] = os.environ[key]
+    save_selected(root, state)
 
 
 def active_overlays(root: Path) -> list[Path]:
@@ -109,8 +122,11 @@ def image_exists(tag: str) -> bool:
 def env(root: Path) -> dict[str, str]:
     values = os.environ.copy()
     values["RADAR_DATA_ROOT"] = str(root)
-    values.setdefault("RADAR_RELEASE", VERSION)
     state = selected(root)
+    for key in DEPLOYMENT_ENV:
+        if key in state:
+            values.setdefault(key, str(state[key]))
+    values.setdefault("RADAR_RELEASE", VERSION)
     if state.get("embedding"):
         values["RADAR_EMBEDDING_MODEL_DIR"] = str(state["model_dir"])
     if state.get("https"):
@@ -233,11 +249,13 @@ def main() -> None:
             compose(root, "build", "db")
         create_layout(root)
         save_selected(root, {})
+        persist_overrides(root)
         set_container_ownership(root)
         print(f"Initialized {root}; admin token is in {root / 'secrets' / 'admin_token'}")
     elif args.command == "build":
         compose(root, "build", "db", "api", "gateway")
     elif args.command == "up":
+        persist_overrides(root)
         compose(root, "up", "-d", "--no-build", "--wait", "db")
         compose(root, "--profile", "operations", "run", "--rm", "register-sources")
         services = ["api", "gateway", "worker", "scheduler"]
@@ -248,6 +266,7 @@ def main() -> None:
         profiles = ["--profile", "collection"] + (["--profile", "embedding"] if selected(root).get("embedding") else [])
         compose(root, *profiles, "up", "-d", "--no-build", "--wait", *services)
     elif args.command == "https-up":
+        persist_overrides(root)
         domain = os.environ.get("RADAR_DOMAIN")
         if not domain:
             raise SystemExit("Set RADAR_DOMAIN before enabling public HTTPS")
@@ -256,6 +275,7 @@ def main() -> None:
         save_selected(root, state)
         compose(root, "up", "-d", "--no-build", "--wait", "gateway")
     elif args.command == "assistant-up":
+        persist_overrides(root)
         state = selected(root)
         state["assistant"] = True
         save_selected(root, state)
@@ -263,6 +283,7 @@ def main() -> None:
             compose(root, "build", "pi-runtime")
         compose(root, "up", "-d", "--no-build", "--wait", "pi-runtime", "api")
     elif args.command == "embedding-up":
+        persist_overrides(root)
         model = Path(os.environ.get("RADAR_EMBEDDING_MODEL_DIR", ""))
         if not model.is_absolute() or not model.is_dir():
             raise SystemExit("Set RADAR_EMBEDDING_MODEL_DIR to a verified local model directory")

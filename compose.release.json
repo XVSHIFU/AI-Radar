@@ -181,7 +181,9 @@
         "SANDBOX_IMAGE_ID": "",
         "ASSISTANT_INPUT_PER_DAY": "200000",
         "ASSISTANT_OUTPUT_PER_DAY": "32000",
-        "RADAR_TRUSTED_PROXY_IP": "${RADAR_GATEWAY_IP:-172.31.249.2}"
+        "RADAR_TRUSTED_PROXY_IP": "${RADAR_GATEWAY_IP:-172.31.249.2}",
+        "FETCH_DNS_MODE": "${FETCH_DNS_MODE:-system}",
+        "FETCH_INTERVAL_SECONDS": "${FETCH_INTERVAL_SECONDS:-10}"
       },
       "secrets": [
         {
@@ -270,7 +272,9 @@
         "ingest_egress"
       ],
       "environment": {
-        "RESEARCH_AGENT_ENABLED": "false"
+        "RESEARCH_AGENT_ENABLED": "false",
+        "FETCH_DNS_MODE": "${FETCH_DNS_MODE:-system}",
+        "FETCH_INTERVAL_SECONDS": "${FETCH_INTERVAL_SECONDS:-10}"
       },
       "secrets": [
         {
@@ -328,7 +332,9 @@
         "database"
       ],
       "environment": {
-        "RESEARCH_AGENT_ENABLED": "false"
+        "RESEARCH_AGENT_ENABLED": "false",
+        "FETCH_DNS_MODE": "${FETCH_DNS_MODE:-system}",
+        "FETCH_INTERVAL_SECONDS": "${FETCH_INTERVAL_SECONDS:-10}"
       },
       "secrets": [
         {
