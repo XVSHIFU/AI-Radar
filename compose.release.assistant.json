@@ -25,7 +25,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-pi:${RADAR_RELEASE:-v0.1.2}",
+      "image": "ai-radar-pi:${RADAR_RELEASE:-v0.1.3}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Runtime.Dockerfile"
