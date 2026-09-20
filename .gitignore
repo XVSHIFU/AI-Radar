@@ -29,3 +29,12 @@ artifacts/reference-onesoc/
 .release/
 .env.*
 !.env.example
+# Internal plans, design sessions and development reports (local only)
+简单安排.txt
+/PRODUCT.md
+/DESIGN.md
+/.impeccable/
+/docs/*
+!/docs/.gitkeep
+/backup/
+/deploy/containers/README.md
