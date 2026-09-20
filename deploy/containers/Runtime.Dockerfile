@@ -2,7 +2,7 @@ FROM node:22.19.0-bookworm-slim@sha256:4a4884e8a44826194dff92ba316264f392056cbe2
 ENV CI=true
 RUN npm install -g pnpm@11.22.0 --ignore-scripts
 WORKDIR /app/agent/runtime
-COPY agent/runtime/package.json agent/runtime/pnpm-lock.yaml ./
+COPY agent/runtime/package.json agent/runtime/pnpm-lock.yaml agent/runtime/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY agent/runtime/tsconfig.json ./
 COPY agent/runtime/src ./src

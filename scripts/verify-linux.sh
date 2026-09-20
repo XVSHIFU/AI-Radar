@@ -9,7 +9,7 @@ if ! command -v pnpm >/dev/null && [[ -x "$HOME/.local/share/ai-radar-tools/node
 fi
 if [[ "${1:-}" == --postgres ]]; then
   export RADAR_RUN_POSTGRES_TESTS=1
-  pnpm --dir "$root/agent/runtime" install --frozen-lockfile
+  pnpm --dir "$root/agent/runtime" install --frozen-lockfile --ignore-scripts
   pnpm --dir "$root/agent/runtime" build
 fi
 cd backend
