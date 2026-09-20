@@ -49,7 +49,7 @@ onMounted(() => void load());
 </script>
 
 <template>
-  <details class="card admin-articles" open>
+  <details class="card admin-articles">
     <summary class="admin-articles__summary"><div><h2>{{ tr("最近收录", "Recent articles") }}</h2><p class="meta">{{ tr("可隐藏无关文章，也可在“已隐藏”中恢复。", "Hide irrelevant articles or restore them from Hidden.") }}</p></div></summary>
     <div class="admin-articles__content">
     <button type="button" class="admin-action" :disabled="loading || !!actionId" @click="load">{{ tr("刷新", "Refresh") }}</button>
@@ -59,9 +59,9 @@ onMounted(() => void load());
     </div>
     <p v-if="notice" class="meta" role="status">{{ notice }}</p>
     <p v-if="error" class="error" role="alert">{{ error }} <button type="button" @click="load">{{ tr("重试", "Retry") }}</button></p>
-    <p v-else-if="loading" class="meta" aria-live="polite">{{ tr("正在读取文章…", "Loading articles…") }}</p>
-    <p v-else-if="!rows.length" class="meta">{{ status === "published" ? tr("暂无收录文章。", "No published articles yet.") : tr("暂无隐藏文章。", "No hidden articles.") }}</p>
-    <template v-else>
+    <p v-if="loading" class="meta" aria-live="polite">{{ tr("正在读取文章…", "Loading articles…") }}</p>
+    <p v-if="!rows.length && !loading" class="meta">{{ status === "published" ? tr("暂无收录文章。", "No published articles yet.") : tr("暂无隐藏文章。", "No hidden articles.") }}</p>
+    <template v-if="rows.length">
       <p class="meta">{{ tr("共 {count} 篇，显示最近 50 篇。", "{count} articles; showing the latest 50.", { count: total }) }}</p>
       <article v-for="row in rows" :key="row.id" class="admin-articles__row">
         <div>

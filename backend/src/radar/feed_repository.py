@@ -1,8 +1,9 @@
 """SQL projection shared by public feed and optional research tools."""
 
 import hashlib
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
-from typing import Any, Awaitable, Callable
+from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from sqlalchemy import (
@@ -96,6 +97,7 @@ def public_feed_query(
         .scalar_subquery()
     )
     event_display = func.coalesce(
+        EventRow.event_date,
         cast(func.timezone(timezone, primary_publication), Date),
         cast(func.timezone(timezone, EventRow.created_at), Date),
     )
@@ -115,6 +117,8 @@ def public_feed_query(
         no_uuid.label("article_version_id"),
         literal(False).label("body_available"),
         literal("curated_summary").label("excerpt_kind"),
+        EventRow.date_basis.label("date_basis"),
+        EventRow.date_conflict.label("date_conflict"),
     )
     event_clauses: list[Any] = [EventRow.status == "published"]
     if filters.event_ids:
@@ -185,6 +189,8 @@ def public_feed_query(
         ArticleRow.current_version_id.label("article_version_id"),
         ArticleRow.current_version_id.is_not(None).label("body_available"),
         literal("feed_excerpt").label("excerpt_kind"),
+        literal("unknown").label("date_basis"),
+        literal(False).label("date_conflict"),
     ).join(SourceRow, SourceRow.id == ArticleRow.source_id)
     article_clauses: list[Any] = [
         ArticleRow.status == "published",
@@ -311,7 +317,9 @@ class FeedRepository:
         now = datetime.now(UTC)
         fingerprint = hashlib.sha256(
             (
-                "feed:" + filters_fingerprint(filters) + (":unclassified" if unclassified else "")
+                "feed-v2:"
+                + filters_fingerprint(filters)
+                + (":unclassified" if unclassified else "")
             ).encode()
         ).hexdigest()
         try:
