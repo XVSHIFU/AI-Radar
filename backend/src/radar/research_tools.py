@@ -360,6 +360,7 @@ class ResearchTools:
             rows = [
                 {"category": category.value, "count": counts.get(category.value, 0)}
                 for category in Category
+                if category != Category.UNCLASSIFIED
             ]
         total = await self._count()
         included = await self._count(*extra)

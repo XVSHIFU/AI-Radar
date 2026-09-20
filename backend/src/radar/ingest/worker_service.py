@@ -272,7 +272,7 @@ class WorkerService:
                 )
             )
             assert version_id is not None
-            if inserted_version_id is not None:
+            if inserted_version_id is not None and article.current_version_id is not None:
                 run.updated_articles += 1
             article.current_version_id = version_id
             article.content_hash = document.content_hash

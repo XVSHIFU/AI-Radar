@@ -38,7 +38,7 @@ async def test_ip_forgetting_preserves_live_quota_and_owner_bound_replay(ledger)
     async with ledger.sessions() as session:
         assert (await session.get(PublicAskRow, old.id)).ip_hash is None
         assert (await session.get(PublicAskRow, fresh.id)).ip_hash == ip
-    assert (await ledger.snapshot(ip)).remaining == 19
+    assert (await ledger.snapshot(ip)).remaining == 4
     with pytest.raises(PublicAdmissionError, match="IDEMPOTENCY_REPLAY"):
         await ledger.reserve(owner, key("changed IP"), "old", key("old"))
     assert (await clean_public_quota(ledger.sessions)).forgotten_ips == 0

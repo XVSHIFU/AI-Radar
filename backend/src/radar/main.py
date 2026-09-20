@@ -646,6 +646,7 @@ async def insight_summary(
         ],
         categories=[
             {"category": item, "count": snapshot.categories.get(item, 0)} for item in Category
+            if item != Category.UNCLASSIFIED
         ],
         daily_categories=[
             {
@@ -657,6 +658,7 @@ async def insight_summary(
             }
             for offset in range((date_to - date_from).days + 1)
             for category_item in Category
+            if category_item != Category.UNCLASSIFIED
         ],
         as_of=snapshot.as_of,
         data_revision=snapshot.data_revision,

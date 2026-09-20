@@ -14,9 +14,10 @@ pytestmark = pytest.mark.postgres
 
 
 async def test_snapshot_is_stable_across_new_question_and_restore_gate_detects_it(
-    postgres_database,
+    migration_database,
 ):
-    engine = create_async_engine(postgres_database.rendered_url)
+    migration_database.upgrade("0013_public_quota_retention")
+    engine = create_async_engine(migration_database.rendered_url)
     quota = PostgresPublicQuota(
         async_sessionmaker(engine),
         QuotaPolicy(input_per_day=10000000, output_per_day=10000000),

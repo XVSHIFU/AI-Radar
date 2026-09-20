@@ -1,15 +1,17 @@
 """Verify the frozen corpus through actual repository/tools on a disposable DB."""
 
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from test_research_quality_seed import CORPUS, ROOT, quality, seed
 
 from radar.postgres_repository import PostgresRepository
 from radar.research_guard import ResearchGuard
-from radar.research_tools import load_research_skills, research_scope
+from radar.research_tools import ResearchTools, load_research_skills
 from radar.schemas import Filters
 
 pytestmark = pytest.mark.postgres
@@ -17,8 +19,22 @@ pytestmark = pytest.mark.postgres
 
 @pytest.fixture
 def quality_database(migration_database):
-    migration_database.upgrade()
+    migration_database.upgrade("0013_public_quota_retention")
     return migration_database
+
+
+@asynccontextmanager
+async def curated_scope(repository, guard, filters, skills):
+    """The frozen quality corpus specifies curated-event behavior at schema 0013."""
+    async with repository.sessions() as session, session.begin():
+        await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"))
+        tools = ResearchTools(
+            repository, session, guard, filters, skills, datetime.now(UTC).isoformat(), "0013"
+        )
+        try:
+            yield tools
+        finally:
+            tools._closed = True
 
 
 async def test_seeded_quality_oracles_match_real_repository_and_tools(quality_database):
@@ -44,7 +60,7 @@ async def test_seeded_quality_oracles_match_real_repository_and_tools(quality_da
             expected = quality.selected(CORPUS["events"], case["scope"])
             assert page.total == len(expected), case["id"]
             guard = ResearchGuard(uuid4(), "a" * 64, datetime.now(UTC) + timedelta(seconds=90))
-            async with research_scope(repository, guard, filters, skills) as tools:
+            async with curated_scope(repository, guard, filters, skills) as tools:
                 aggregate = await tools.execute("aggregate_events", {"dimension": "category"})
                 assert sum(row["count"] for row in aggregate["rows"]) == len(expected)
                 if "counts" in case["required"]:
@@ -67,7 +83,7 @@ async def test_seeded_quality_oracles_match_real_repository_and_tools(quality_da
         # Real saved evidence, UUIDs and paragraphs must match all frozen locators.
         for item in CORPUS["events"]:
             guard = ResearchGuard(uuid4(), "b" * 64, datetime.now(UTC) + timedelta(seconds=90))
-            async with research_scope(
+            async with curated_scope(
                 repository, guard, Filters(event_ids=[UUID(item["id"])]), skills
             ) as tools:
                 evidence = await tools.execute("get_event_evidence", {"event_ids": [item["id"]]})

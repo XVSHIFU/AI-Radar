@@ -29,14 +29,16 @@ async def data(postgres_database):
             title = f"{prefix} item-{index}" if index < 10 else "outside-authorized-scope"
             await connection.execute(
                 "INSERT INTO events (id,title_zh,summary_zh,category,importance,event_date,"
-                "date_precision,date_basis,status,source_count,evidence_count,content_version) "
-                "VALUES ($1,$2,'original summary',$3,3,$4,$5,$6,'published',1,1,1)",
+                "date_precision,date_basis,status,source_count,evidence_count,content_version,"
+                "created_at) VALUES ($1,$2,'original summary',$3,3,$4,$5,$6,"
+                "'published',1,1,1,$7)",
                 event_id,
                 title,
                 "model_release" if index < 8 else "product",
                 date(2026, 9, 1 if index < 4 else 2) if index != 9 else None,
                 "day" if index != 9 else "unknown",
                 "official_publication" if index < 8 else "report_date_unverified",
+                datetime(2026, 9, 1 if index < 4 else 2 if index < 8 else 3, 12, tzinfo=UTC),
             )
         await connection.execute(
             "INSERT INTO sources (id,name,feed_url,enabled,health,consecutive_failures,"
@@ -112,7 +114,9 @@ async def test_snapshot_keeps_counts_search_and_evidence_consistent_during_write
         assert page["scope_total"] == page["matched_total"] == 10
         assert page["returned_count"] == 6 and page["next_cursor"] and not page["complete"]
         aggregate = await tools.execute("aggregate_events", {"dimension": "category"})
-        assert aggregate["total_events"] == 10
+        assert aggregate["total_items"] == 10
+        assert aggregate["total_articles"] == 0
+        assert aggregate["total_curated_events"] == 10
         assert sum(row["count"] for row in aggregate["rows"]) == 10
         first_evidence = await tools.execute("get_event_evidence", {"event_ids": [str(ids[0])]})
         assert first_evidence["evidence"][0]["citation_id"] == str(evidence)
@@ -127,7 +131,7 @@ async def test_snapshot_keeps_counts_search_and_evidence_consistent_during_write
         finally:
             await connection.close()
         after = await tools.execute("search_events", {"query": "item-0"})
-        assert after["events"][0]["summary_zh"] == "original summary"
+        assert after["events"][0]["excerpt"] == "original summary"
         assert after["scope_total"] == 10
         second_evidence = await tools.execute("get_event_evidence", {"event_ids": [str(ids[0])]})
         assert second_evidence == first_evidence
@@ -175,10 +179,12 @@ async def test_exact_dates_zero_baseline_scope_limits_and_scoped_skills(data):
     run = guard()
     async with research_scope(repository, run, filters, skills) as tools:
         dates = await tools.execute("aggregate_events", {"dimension": "date"})
-        assert dates["included_events"] == 8 and dates["excluded_unverified_dates"] == 2
+        assert dates["included_items"] == 10 and dates["excluded_unknown_dates"] == 0
+        assert dates["date_basis"] == "source_publication_or_collection_date"
         assert dates["rows"] == [
             {"date": "2026-09-01", "count": 4},
             {"date": "2026-09-02", "count": 4},
+            {"date": "2026-09-03", "count": 2},
         ]
         comparison = await tools.execute(
             "compare_periods",

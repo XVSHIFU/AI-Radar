@@ -181,7 +181,7 @@ async def test_both_http_endpoints_share_quota_and_owner_bound_replay(ledger, cl
             headers={"x-forwarded-for": "203.0.113.8"},
         )
         assert denied.status_code == 429 and denied.headers["retry-after"]
-        assert normal.await_count == 10 and streaming.await_count == 10
+        assert normal.await_count == 3 and streaming.await_count == 2
 
 
 async def test_controller_settles_usage_and_keeps_cancelled_unknown_charge(ledger):

@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 
 from radar.content_api import make_export, parse_import, validate_content
 from radar.content_gateway import register
-from radar.main import app
 from radar.model_config import EffectiveModelConfig
 from radar.models import ArticleVersionRow, ContentTaskRow
 
@@ -50,7 +49,7 @@ def test_export_bounds_long_frozen_article_and_checks_quote_scope() -> None:
     ]
 
 
-def test_content_gateway_capability_is_single_use_and_output_bound() -> None:
+def test_content_gateway_capability_is_single_use_and_output_bound(client: TestClient) -> None:
     config = EffectiveModelConfig(
         api_key="not-used",
         enabled=True,
@@ -61,16 +60,15 @@ def test_content_gateway_capability_is_single_use_and_output_bound() -> None:
         model="deepseek-flash",
     )
     capability = asyncio.run(register(config, "frozen prompt", 30))
-    with TestClient(app) as client:
-        response = client.post(
-            "/internal/content/model",
-            headers={"Authorization": f"Bearer {capability}"},
-            json={"context": {}, "sequence": 1, "max_output": 31},
-        )
-        assert response.status_code == 422
-        replay = client.post(
-            "/internal/content/model",
-            headers={"Authorization": f"Bearer {capability}"},
-            json={"context": {}, "sequence": 1, "max_output": 30},
-        )
-        assert replay.status_code == 401
+    response = client.post(
+        "/internal/content/model",
+        headers={"Authorization": f"Bearer {capability}"},
+        json={"context": {}, "sequence": 1, "max_output": 31},
+    )
+    assert response.status_code == 422
+    replay = client.post(
+        "/internal/content/model",
+        headers={"Authorization": f"Bearer {capability}"},
+        json={"context": {}, "sequence": 1, "max_output": 30},
+    )
+    assert replay.status_code == 401

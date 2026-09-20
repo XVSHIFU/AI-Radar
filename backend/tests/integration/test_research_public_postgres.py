@@ -115,7 +115,7 @@ async def test_public_pi_answers_and_followups_share_durable_question_quota(data
             ]
         else:
             dataset = json.loads(body["messages"][-1]["content"])
-            assert dataset["total_events"] == 10
+            assert dataset["total_items"] == 10
             assert sum(row["count"] for row in dataset["rows"]) == 10
             index = 99 if invalid else dataset["citation_index"]
             blocks = [
@@ -202,7 +202,7 @@ async def test_public_pi_answers_and_followups_share_durable_question_quota(data
             assert frames[-1][1]["status"] == "completed", response.text
             assert [body["turn"] for kind, body in frames if kind == "reset"] == [1, 2]
             source = frames[-2][1]["items"][0]
-            assert source["kind"] == "dataset" and source["dataset"]["total_events"] == 10
+            assert source["kind"] == "dataset" and source["dataset"]["total_items"] == 10
             assert source["source_url"] == ""
             assert (await client.post(base + "/api/v1/ask", json=first)).status_code == 409
             assert len(paid) == 2
