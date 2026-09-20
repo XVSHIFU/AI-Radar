@@ -1,0 +1,11 @@
+{
+  "ssh": "operator@your-server",
+  "container": "ai-radar-cloud-worker-1",
+  "proxy": null,
+  "limit": 30,
+  "delay_seconds": 1,
+  "feeds": [
+    {"name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml"},
+    {"name": "Google Research", "url": "https://research.google/blog/rss/"}
+  ]
+}
