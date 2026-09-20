@@ -29,6 +29,17 @@ python3 scripts/release.py build --data-root "$PWD/.local-data"  # 已加载全�
 python3 scripts/release.py up --data-root "$PWD/.local-data"
 ```
 
+有私有 ACR 权限时，可以用同一个仓库中的发行镜像代替源码构建或离线加载。先用 Docker 登录，按提示输入自己的账号凭据；脚本不接收或保存密码：
+
+```bash
+docker login crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com
+python3 scripts/pull-release.py --assistant
+python3 scripts/release.py init --data-root "$PWD/.local-data"
+python3 scripts/release.py up --data-root "$PWD/.local-data"
+```
+
+`pull-release.py` 默认拉取基础模式的 `db-v0.1.0`、`backend-v0.1.0`、`gateway-v0.1.0`；`--assistant` 再拉取 `pi-v0.1.0`。它们都来自 `ai_radar_spec/ai_radar_docker`，并分别标记为 Compose 使用的 `ai-radar-db:v0.1.0`、`ai-radar-backend:v0.1.0`、`ai-radar-gateway:v0.1.0`、`ai-radar-pi:v0.1.0`。如需指定其他仓库或版本，可传入 `--repository` 和 `--version`。拉取后无需运行 `release.py build`；启用助手时再运行下文的 `assistant-up`。
+
 访问 `http://127.0.0.1:8080`；管理员入口 `/ingest`。`init` 生成的管理员口令位于数据目录 `secrets/admin_token`，用本机管理员权限读取并妥善保管，不要提交到 Git。首次空库登记少量默认来源；已有来源开关不会被启动命令重置。
 
 `init` 只用于新目录，升级或重启不要重新初始化。默认仅监听本机。局域网试用可以在启动前设置 `RADAR_BIND_IP=0.0.0.0`；通过 `RADAR_HTTP_PORT` 修改端口。公网部署使用 HTTPS，并限制管理入口和服务器端口。

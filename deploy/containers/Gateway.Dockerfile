@@ -14,4 +14,6 @@ RUN set -eu; command -v getcap >/dev/null; command -v setcap >/dev/null; \
 RUN mkdir -p /data /config && chown -R 10001:10001 /data /config
 COPY --from=build /build/frontend/dist /srv
 COPY deploy/containers/Caddyfile /etc/caddy/Caddyfile
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/ai-radar/
 USER 10001:10001

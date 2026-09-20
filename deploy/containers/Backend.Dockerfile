@@ -11,6 +11,8 @@ COPY backend/app ./app
 COPY backend/alembic ./alembic
 COPY backend/alembic.ini ./alembic.ini
 COPY agent/research /app/agent/research
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/ai-radar/
 USER 10001:10001
 ENTRYPOINT ["python", "-m", "radar.container_entry"]
 CMD ["api"]

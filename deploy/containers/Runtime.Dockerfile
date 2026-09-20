@@ -16,5 +16,7 @@ COPY --from=build /app/agent/runtime/dist ./dist
 COPY agent/runtime/package.json ./package.json
 COPY agent/research /app/agent/research
 COPY deploy/containers/runtime-entry.mjs ./container.mjs
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/ai-radar/
 USER 10001:10001
 ENTRYPOINT ["node", "container.mjs"]

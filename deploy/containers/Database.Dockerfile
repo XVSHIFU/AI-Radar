@@ -2,4 +2,6 @@ FROM pgvector/pgvector:0.8.6-pg16-bookworm@sha256:ccc6e83d6e35e931dc7c5def202272
 RUN groupmod -g 10001 postgres && usermod -u 10001 -g 10001 postgres \
     && chown -R 10001:10001 /var/lib/postgresql /var/run/postgresql
 COPY --chmod=0555 deploy/containers/init-database.sh /docker-entrypoint-initdb.d/10-radar.sh
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/ai-radar/
 USER 10001:10001
