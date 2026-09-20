@@ -1,1 +1,1 @@
-SCHEMA_REVISION = "0015_article_feed"
+SCHEMA_REVISION = "0016_article_summary_translation"
