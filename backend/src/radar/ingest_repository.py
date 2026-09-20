@@ -122,14 +122,24 @@ class IngestRepository:
                 ).all()
             )
 
-    async def claim(self, owner: str, lease_seconds: int = 60) -> IngestJobRow | None:
+    async def claim(
+        self, owner: str, lease_seconds: int = 60, *, trigger_types: tuple[str, ...] | None = None
+    ) -> IngestJobRow | None:
         now = datetime.now(UTC)
+        scope = (
+            IngestJobRow.run_id.in_(
+                select(IngestRunRow.id).where(IngestRunRow.trigger_type.in_(trigger_types))
+            )
+            if trigger_types is not None
+            else True
+        )
         async with self._database_boundary(), self.sessions() as session, session.begin():
             expired_jobs = list(
                 (
                     await session.scalars(
                         select(IngestJobRow)
                         .where(
+                            scope,
                             IngestJobRow.state == "running",
                             IngestJobRow.lease_until < now,
                             IngestJobRow.attempts >= IngestJobRow.max_attempts,
@@ -163,6 +173,7 @@ class IngestRepository:
             job = await session.scalar(
                 select(IngestJobRow)
                 .where(
+                    scope,
                     ~exists(
                         select(1).where(
                             SourceRow.id == IngestJobRow.source_id,

@@ -49,7 +49,8 @@ async def run() -> None:
         ) as client:
             service = WorkerService(sessions, client, resolver=resolver)
             while True:
-                job = await repository.claim(owner)
+                # Historical backfill is an explicit maintenance workflow, not daily RSS work.
+                job = await repository.claim(owner, trigger_types=("manual", "schedule"))
                 if job is None:
                     await asyncio.sleep(2)
                     continue

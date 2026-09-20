@@ -165,3 +165,43 @@ async def test_budget_reservation_is_idempotent_and_serialized(
         assert reserved == Decimal("10.000000")
     finally:
         await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_scoped_claim_leaves_paused_history_and_its_expired_leases_alone(
+    postgres_database: Any,
+) -> None:
+    engine, sessions, repository = await _repository(postgres_database)
+    try:
+        source = (await _add_sources(sessions, 1))[0]
+        history, _ = await repository.create_run(
+            [source.id], f"history-scope:{uuid4()}", trigger_type="backfill"
+        )
+        live_type = f"test-{uuid4().hex[:12]}"
+        current, _ = await repository.create_run(
+            [source.id], f"current-scope:{uuid4()}", trigger_type=live_type
+        )
+        async with sessions() as session, session.begin():
+            history_job = await session.scalar(
+                select(IngestJobRow).where(IngestJobRow.run_id == history.id)
+            )
+            assert history_job is not None
+            history_job.state = "running"
+            history_job.attempts = history_job.max_attempts
+            history_job.lease_until = datetime.now(UTC) - timedelta(minutes=1)
+        claimed = await repository.claim("rss-worker", trigger_types=(live_type,))
+        assert claimed is not None and claimed.run_id == current.id
+        async with sessions() as session:
+            untouched = await session.get(IngestJobRow, history_job.id)
+            assert untouched is not None and untouched.state == "running"
+        assert await repository.finish(
+            claimed.id, str(claimed.lease_owner), claimed.lease_generation, True
+        )
+        assert await repository.claim("rss-worker", trigger_types=(live_type,)) is None
+        # The original unscoped maintenance path can still clean up history.
+        await repository.claim("history-maintenance")
+        async with sessions() as session:
+            untouched = await session.get(IngestJobRow, history_job.id)
+            assert untouched is not None and untouched.state == "failed"
+    finally:
+        await engine.dispose()
