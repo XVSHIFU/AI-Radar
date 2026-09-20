@@ -26,7 +26,7 @@ class FeedResearchTools(ResearchTools):
         return {
             **super()._metadata(),
             "coverage": "recorded_articles_and_curated_events",
-            "date_basis": "source_publication_or_collection_date",
+            "date_basis": "event_date_or_source_publication_or_collection_date",
         }
 
     async def _count(self, *extra: Any) -> int:
@@ -136,7 +136,7 @@ class FeedResearchTools(ResearchTools):
             total_curated_events=total - articles,
             included_items=included,
             excluded_unknown_dates=total - included,
-            date_basis="source_publication_or_collection_date",
+            date_basis="event_date_or_source_publication_or_collection_date",
             zero_buckets="included" if dimension == "category" else "omitted",
         )
 
@@ -175,7 +175,7 @@ class FeedResearchTools(ResearchTools):
             zero_baseline=baseline == 0,
             unequal_duration=rows[0]["days"] != rows[1]["days"],
             overlapping=max(p[0] for p in periods) <= min(p[1] for p in periods),
-            date_basis="source_publication_or_collection_date",
+            date_basis="event_date_or_source_publication_or_collection_date",
             coverage_gaps="not_measured",
         )
 

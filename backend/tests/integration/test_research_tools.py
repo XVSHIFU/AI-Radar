@@ -180,11 +180,12 @@ async def test_exact_dates_zero_baseline_scope_limits_and_scoped_skills(data):
     async with research_scope(repository, run, filters, skills) as tools:
         dates = await tools.execute("aggregate_events", {"dimension": "date"})
         assert dates["included_items"] == 10 and dates["excluded_unknown_dates"] == 0
-        assert dates["date_basis"] == "source_publication_or_collection_date"
+        assert dates["date_basis"] == "event_date_or_source_publication_or_collection_date"
+        # The ninth item has a stored September 2 date despite September 3 collection.
         assert dates["rows"] == [
             {"date": "2026-09-01", "count": 4},
-            {"date": "2026-09-02", "count": 4},
-            {"date": "2026-09-03", "count": 2},
+            {"date": "2026-09-02", "count": 5},
+            {"date": "2026-09-03", "count": 1},
         ]
         comparison = await tools.execute(
             "compare_periods",
@@ -194,7 +195,7 @@ async def test_exact_dates_zero_baseline_scope_limits_and_scoped_skills(data):
             },
         )
         assert comparison["zero_baseline"] and comparison["percentage_change"] is None
-        assert comparison["difference"] == 8 and comparison["unequal_duration"]
+        assert comparison["difference"] == 9 and comparison["unequal_duration"]
         assert comparison["coverage_gaps"] == "not_measured"
         assert (await tools.execute("resolve_entities", {"name": prefix}))["matches"]
         skill = await tools.execute("load_research_skill", {"name": "compare-periods"})
@@ -211,7 +212,7 @@ async def test_exact_dates_zero_baseline_scope_limits_and_scoped_skills(data):
                     "second": {"from": "2026-09-01", "to": "2026-09-02"},
                 },
             )
-        assert (await tools.execute("search_events", {}))["scope_total"] == 8
+        assert (await tools.execute("search_events", {}))["scope_total"] == 9
 
 
 async def test_database_enforces_read_only_even_for_accidental_write(data):
