@@ -4121,6 +4121,48 @@
         "summary": "Feed Detail"
       }
     },
+    "/api/v1/feed/{item_id}/translate": {
+      "post": {
+        "operationId": "translate_feed_summary_api_v1_feed__item_id__translate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Translate Feed Summary Api V1 Feed  Item Id  Translate Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Translate Feed Summary"
+      }
+    },
     "/api/v1/ingest/runs": {
       "get": {
         "operationId": "ingest_runs_api_v1_ingest_runs_get",
