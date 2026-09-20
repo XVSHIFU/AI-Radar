@@ -18,6 +18,15 @@ AI 资讯聚合网站，自动收录来源并展示原文标题、简介和链�
 
 可选的 pi 研究助手可根据已收录内容回答问题并列出来源。
 
+- 界面演示
+<img width="1685" height="982" alt="image" src="https://github.com/user-attachments/assets/d7697614-19d3-458b-a786-b9838438e7f1" />
+<img width="1680" height="983" alt="image" src="https://github.com/user-attachments/assets/536fb0cd-7581-4f81-8fd5-46dbce68795b" />
+<img width="1670" height="978" alt="image" src="https://github.com/user-attachments/assets/3acfd009-5c21-4fde-8ebc-8587a008df35" />
+
+- 并且制作了一些主题色
+<img width="1680" height="983" alt="image" src="https://github.com/user-attachments/assets/27d7de10-9535-4539-a45f-1f290f33def8" />
+
+
 ## 快速开始
 
 需要 Docker（Linux 容器）和 Python 3；以下命令在 Linux 终端执行，Windows 可用 WSL。
