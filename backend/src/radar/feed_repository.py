@@ -430,7 +430,9 @@ class FeedRepository:
                         .join(EventEntityRow, EventEntityRow.entity_id == EntityRow.id)
                         .join(EventArticleRow, EventArticleRow.event_id == EventEntityRow.event_id)
                         .join(EventRow, EventRow.id == EventArticleRow.event_id)
-                        .where(EventArticleRow.article_id == item_id, EventRow.status == "published")
+                        .where(
+                            EventArticleRow.article_id == item_id, EventRow.status == "published"
+                        )
                         .distinct()
                         .order_by(EntityRow.canonical_name)
                     )
@@ -444,7 +446,9 @@ class FeedRepository:
                 translation = await session.get(ArticleSummaryTranslationRow, item_id)
                 item["summary_translation"] = (
                     translation.translated_text
-                    if translation and translation.summary_hash == _summary_hash(article.excerpt if article else "")
+                    if translation
+                    and translation.summary_hash
+                    == _summary_hash(article.excerpt if article else "")
                     else None
                 )
                 item["evidence"] = [
@@ -455,7 +459,7 @@ class FeedRepository:
     async def translate_article_summary(
         self, item_id: UUID, translator: Callable[[str], Awaitable[str]]
     ) -> dict[str, Any] | None:
-        failed = False
+        failure: TranslationProviderError | None = None
         result: dict[str, Any] | None = None
         async with self.sessions() as session, session.begin():
             article = await session.scalar(
@@ -482,19 +486,19 @@ class FeedRepository:
                     raise TranslationCooldown
             try:
                 translated = await translator(summary)
-            except TranslationProviderError:
-                failed = True
+            except TranslationProviderError as exc:
+                failure = exc
                 translated = None
             if cached is None:
                 cached = ArticleSummaryTranslationRow(article_id=item_id, summary_hash=digest)
                 session.add(cached)
             cached.summary_hash = digest
             cached.translated_text = translated
-            cached.retry_after = now + timedelta(seconds=60) if failed else None
+            cached.retry_after = now + timedelta(seconds=60) if failure else None
             if translated is not None:
                 result = {"summary_translation": translated, "cached": False}
-        if failed:
-            raise TranslationProviderError
+        if failure:
+            raise failure
         return result
 
     async def stats(self) -> dict[str, Any]:
@@ -583,9 +587,7 @@ class FeedRepository:
 
     async def admin_articles(self, status: str | None, limit: int) -> dict[str, Any]:
         async with self.sessions() as session:
-            clauses: list[ColumnElement[bool]] = [
-                ArticleRow.status.in_(("published", "hidden"))
-            ]
+            clauses: list[ColumnElement[bool]] = [ArticleRow.status.in_(("published", "hidden"))]
             if status:
                 clauses.append(ArticleRow.status == status)
             total = await session.scalar(

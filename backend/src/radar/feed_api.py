@@ -8,11 +8,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from .admin_auth import require_admin
+from .baidu_translation import (
+    TranslationQuotaExceeded,
+    TranslationRateLimited,
+    configured_baidu,
+    translate_baidu,
+)
 from .feed_repository import FeedRepository, SummaryMissing, TranslationCooldown
 from .repository import InvalidCursor, RepositoryUnavailable
 from .schemas import Category, Filters
 from .summary_translation import (
-    TranslationProviderError, configured_endpoint, translate_summary,
+    TranslationProviderError,
+    configured_endpoint,
+    translate_summary,
 )
 
 router = APIRouter()
@@ -134,16 +142,43 @@ async def feed_detail(item_id: UUID, request: Request) -> dict[str, Any]:
 
 @router.post("/api/v1/feed/{item_id}/translate")
 async def translate_feed_summary(item_id: UUID, request: Request) -> dict[str, Any]:
-    endpoint = configured_endpoint(request.app.state.settings)
-    if endpoint is None:
+    try:
+        baidu = configured_baidu(request.app.state.settings)
+    except TranslationProviderError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "TRANSLATION_UNAVAILABLE",
+                "message": "Translation configuration unavailable",
+            },
+        ) from exc
+    endpoint = None if baidu else configured_endpoint(request.app.state.settings)
+    if baidu is None and endpoint is None:
         raise HTTPException(
             status_code=503,
             detail={"code": "TRANSLATION_UNAVAILABLE", "message": "Translation is unavailable"},
         )
+    async def translate(summary: str) -> str:
+        if baidu is not None:
+            return await translate_baidu(baidu, summary)
+        assert endpoint is not None
+        return await translate_summary(endpoint, summary)
+
     try:
-        result = await _repository(request).translate_article_summary(
-            item_id, lambda summary: translate_summary(endpoint, summary)
-        )
+        result = await _repository(request).translate_article_summary(item_id, translate)
+    except TranslationQuotaExceeded as exc:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "TRANSLATION_QUOTA_EXHAUSTED",
+                "message": "本月翻译额度已用完，已停止调用。",
+            },
+        ) from exc
+    except TranslationRateLimited as exc:
+        raise HTTPException(
+            status_code=429,
+            detail={"code": "TRANSLATION_RATE_LIMITED", "message": "翻译请求较多，请稍后再试。"},
+        ) from exc
     except SummaryMissing as exc:
         raise HTTPException(
             status_code=422,
@@ -152,12 +187,18 @@ async def translate_feed_summary(item_id: UUID, request: Request) -> dict[str, A
     except TranslationCooldown as exc:
         raise HTTPException(
             status_code=503,
-            detail={"code": "TRANSLATION_COOLDOWN", "message": "Translation is temporarily unavailable"},
+            detail={
+                "code": "TRANSLATION_COOLDOWN",
+                "message": "Translation is temporarily unavailable",
+            },
         ) from exc
     except TranslationProviderError as exc:
         raise HTTPException(
             status_code=503,
-            detail={"code": "TRANSLATION_FAILED", "message": "Translation is temporarily unavailable"},
+            detail={
+                "code": "TRANSLATION_FAILED",
+                "message": "Translation is temporarily unavailable",
+            },
         ) from exc
     if result is None:
         raise HTTPException(
