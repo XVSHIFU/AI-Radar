@@ -53,6 +53,8 @@ const messages: Record<string, string> = {
   "没有可手动采集的已启用 RSS 来源。": "No enabled RSS sources are available for manual ingestion.",
   "尚无采集记录。": "No ingestion runs yet.",
   "发现 {found} · 候选 {candidates} · 版本 {versions} · 发布 {kept}": "Found {found} · Candidates {candidates} · Versions {versions} · Published {kept}",
+  "发现 {found} · 新增文章 {added} · 更新文章 {updated}": "Found {found} · New articles {added} · Updated articles {updated}",
+  "来源连接失败，请检查服务器到原站的网络。": "Connection failed. Check network access from the server to the source site.",
   "解析失败 {parser} · 任务失败 {jobs}": "Parser failures {parser} · Failed jobs {jobs}",
   "模型服务配置": "Model service configuration",
   "支持 OpenAI Chat Completions 兼容接口；预设可继续修改，保存后生效。": "Supports OpenAI Chat Completions compatible APIs. Presets can be edited; changes take effect when saved.",
