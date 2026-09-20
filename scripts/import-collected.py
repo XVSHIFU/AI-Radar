@@ -82,14 +82,25 @@ async def receive(batch):
                     )
                     session.add(source)
                     await session.flush()
-                if source.name != name:
-                    raise ValueError("source name does not match configured feed")
                 entries = [
                     e
                     for e in parse_feed(base64.b64decode(feed["rss"], validate=True))
                     if accept_feed_entry(name, e.title, e.tags)
                 ][: batch["limit"]]
                 for entry in entries:
+                    category = feed.get("categories", {}).get(entry.url)
+                    if category not in {
+                        "model_release",
+                        "agent_tool",
+                        "framework_sdk",
+                        "research",
+                        "product",
+                        "industry",
+                        None,
+                    }:
+                        raise ValueError("invalid article category")
+                    if "categories" not in feed:
+                        category = classify_article(entry.title, entry.tags)
                     # Same URL lock used by the ordinary worker. Preserve hidden status.
                     await session.execute(
                         select(func.pg_advisory_xact_lock(func.hashtext(entry.url)))
@@ -107,7 +118,7 @@ async def receive(batch):
                                 published_at=published_datetime(entry.published),
                                 ingested_at=now,
                                 status="published",
-                                category=classify_article(entry.title, entry.tags),
+                                category=category,
                             )
                             .on_conflict_do_nothing(index_elements=["canonical_url"])
                             .returning(ArticleRow.id)
@@ -124,7 +135,7 @@ async def receive(batch):
                     article.published_at = (
                         published_datetime(entry.published) or article.published_at
                     )
-                    article.category = classify_article(entry.title, entry.tags) or article.category
+                    article.category = article.category or category
                     article.ingested_at = article.ingested_at or now
                     if article.status == "legacy":
                         article.status = "published"

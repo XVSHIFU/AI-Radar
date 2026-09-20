@@ -20,7 +20,7 @@ from urllib.parse import urljoin, urlsplit
 from uuid import uuid4
 
 import httpx
-from radar.article_rules import accept_feed_entry
+from radar.article_rules import accept_feed_entry, classify_article
 from radar.ingest.core import canonicalize_url, fetch_public, parse_document, parse_feed
 from radar.ingest.public_transport import PublicAsyncTransport
 
@@ -138,9 +138,11 @@ async def collect(config, state):
             name, url = source["name"], canonicalize_url(source["url"])
             try:
                 _, raw = await download(client, url, proxy)
-                entries = [e for e in parse_feed(raw) if accept_feed_entry(name, e.title, e.tags)][
-                    : batch["limit"]
-                ]
+                entries = [
+                    e
+                    for e in parse_feed(raw)
+                    if accept_feed_entry(name, e.title, e.tags, source_url=url)
+                ][: batch["limit"]]
             except (httpx.HTTPError, OSError, ValueError) as exc:
                 batch["errors"].append(f"{name}: feed {type(exc).__name__}")
                 continue
@@ -149,6 +151,12 @@ async def collect(config, state):
                 "url": url,
                 "rss": base64.b64encode(raw).decode(),
                 "bodies": {},
+                "categories": {
+                    entry.url: classify_article(
+                        entry.title, entry.tags, summary=entry.excerpt, source_url=url
+                    )
+                    for entry in entries
+                },
             }
             for entry in entries:
                 fingerprint = hashlib.sha256(

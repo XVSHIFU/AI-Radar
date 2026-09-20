@@ -89,7 +89,9 @@ class WorkerService:
             else [
                 entry
                 for entry in parse_feed(feed.body)
-                if accept_feed_entry(source.name, entry.title, entry.tags)
+                if accept_feed_entry(
+                    source.name, entry.title, entry.tags, source_url=source.feed_url
+                )
             ][:30]
         )
         async with self.sessions() as session, session.begin():
@@ -128,7 +130,12 @@ class WorkerService:
                             published_at=published_datetime(entry.published),
                             ingested_at=now,
                             status="published",
-                            category=classify_article(entry.title, entry.tags),
+                            category=classify_article(
+                                entry.title,
+                                entry.tags,
+                                summary=entry.excerpt,
+                                source_url=source.feed_url,
+                            ),
                         )
                         .on_conflict_do_update(
                             index_elements=["canonical_url"],
@@ -140,7 +147,13 @@ class WorkerService:
                                 ),
                                 "ingested_at": func.coalesce(ArticleRow.ingested_at, now),
                                 "category": func.coalesce(
-                                    classify_article(entry.title, entry.tags), ArticleRow.category
+                                    ArticleRow.category,
+                                    classify_article(
+                                        entry.title,
+                                        entry.tags,
+                                        summary=entry.excerpt,
+                                        source_url=source.feed_url,
+                                    ),
                                 ),
                                 "status": case(
                                     (ArticleRow.status == "legacy", "published"),

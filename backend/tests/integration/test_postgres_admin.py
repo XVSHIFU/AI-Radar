@@ -109,13 +109,13 @@ def test_admin_sources_and_usage_live_postgres(
         response = client.get("/api/v1/admin/sources", headers=headers)
         assert response.status_code == 200
         selected = {item["id"]: item for item in response.json()["items"]}
-        assert selected[builtin_id]["editable"] is False
+        assert selected[builtin_id]["editable"] is True
         assert selected[custom_id]["editable"] is True
-        immutable = client.patch(
+        renamed = client.patch(
             f"/api/v1/admin/sources/{builtin_id}", json={"name": "renamed"}, headers=headers
         )
-        assert immutable.status_code == 422
-        assert immutable.json()["code"] == "SOURCE_IMMUTABLE"
+        assert renamed.status_code == 200
+        assert renamed.json()["name"] == "renamed"
         assert (
             client.patch(
                 f"/api/v1/admin/sources/{custom_id}", json={"name": None}, headers=headers

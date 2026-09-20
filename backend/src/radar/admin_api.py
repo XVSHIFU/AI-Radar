@@ -39,17 +39,6 @@ from .model_config import (
 )
 from .models import LlmCallRow, SourceRow
 
-BUILTIN_SOURCES = {
-    "Hugging Face",
-    "arXiv cs.AI",
-    "Google Research",
-    "AWS Machine Learning",
-    "NVIDIA Technical Blog",
-    "OpenAI",
-    "Anthropic",
-    "DeepSeek",
-}
-
 router = APIRouter(prefix="/api/v1/admin", dependencies=[Depends(require_admin)])
 session_router = APIRouter(prefix="/api/v1/admin/session")
 
@@ -134,7 +123,7 @@ def _source(row: SourceRow) -> dict[str, object]:
         "channel_type": row.channel_type,
         "last_checked_at": row.last_checked_at,
         "cooldown_until": row.cooldown_until,
-        "editable": row.name not in BUILTIN_SOURCES,
+        "editable": True,
     }
 
 
@@ -282,12 +271,6 @@ async def patch_source(
             row = await session.get(SourceRow, source_id, with_for_update=True)
             if row is None:
                 raise admin_error("SOURCE_NOT_FOUND", "Source was not found", 404)
-            if row.name in BUILTIN_SOURCES and any(key in values for key in ("name", "feed_url")):
-                raise admin_error(
-                    "SOURCE_IMMUTABLE",
-                    "Built-in archive source metadata is read-only",
-                    422,
-                )
             for key, value in values.items():
                 setattr(row, key, value)
     except IntegrityError as exc:
