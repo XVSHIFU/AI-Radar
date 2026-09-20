@@ -13,11 +13,16 @@ from radar.recovery_snapshot import capture_snapshot, verify_restored_snapshot
 pytestmark = pytest.mark.postgres
 
 
-async def test_snapshot_is_stable_across_new_question_and_restore_gate_detects_it(
-    migration_database,
-):
+@pytest.fixture
+def recovery_database(migration_database):
     migration_database.upgrade("0013_public_quota_retention")
-    engine = create_async_engine(migration_database.rendered_url)
+    return migration_database
+
+
+async def test_snapshot_is_stable_across_new_question_and_restore_gate_detects_it(
+    recovery_database,
+):
+    engine = create_async_engine(recovery_database.rendered_url)
     quota = PostgresPublicQuota(
         async_sessionmaker(engine),
         QuotaPolicy(input_per_day=10000000, output_per_day=10000000),
