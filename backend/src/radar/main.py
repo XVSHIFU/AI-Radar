@@ -30,9 +30,9 @@ from .content_api import router as content_router
 from .content_gateway import router as content_gateway_router
 from .content_runner import recover_abandoned
 from .data_quality_api import router as data_quality_router
-from .fixture_repository import FixtureRepository
 from .feed_api import router as feed_router
 from .feed_repository import FeedRepository
+from .fixture_repository import FixtureRepository
 from .ingest.dns import configured_resolver
 from .ingest_repository import IdempotencyConflict, IngestRepository, SourceRejected
 from .local_bge import LocalBgeM3Provider
@@ -130,7 +130,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             )
         app.state.admin_sessions = PostgresAdminSessionStore(sessions)
         app.state.ingest_repository = IngestRepository(sessions)
-        app.state.feed_repository = FeedRepository(sessions, settings.cursor_secret, settings.business_timezone)
+        app.state.feed_repository = FeedRepository(
+            sessions, settings.cursor_secret, settings.business_timezone
+        )
         embedding_provider = None
         if settings.embedding_model_dir and settings.embedding_model_revision:
             embedding_provider = LocalBgeM3Provider(

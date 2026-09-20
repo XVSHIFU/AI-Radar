@@ -152,7 +152,7 @@ def verification_destination(settings: Settings) -> None:
 
 async def verify(config_root: Path, run_id: UUID) -> dict[str, Any]:
     settings = effective_model_settings(
-        Settings(_env_file=config_root / ".env")  # type: ignore[call-arg]
+        Settings(_env_file=config_root / ".env")
     )
     verification_destination(settings)
     if not settings.llm_api_key or not settings.sqlalchemy_url():

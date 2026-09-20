@@ -1,7 +1,7 @@
 """Public article/event feed and article visibility controls."""
 
 from datetime import date
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, cast
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -22,7 +22,7 @@ def _repository(request: Request) -> FeedRepository:
             status_code=503,
             detail={"code": "FEED_UNAVAILABLE", "message": "Feed requires PostgreSQL mode"},
         )
-    return repository
+    return cast(FeedRepository, repository)
 
 
 def _category(value: str | None) -> Category | None:
@@ -63,7 +63,7 @@ async def feed(
     min_importance: Annotated[int | None, Query(ge=1, le=5)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     cursor: str | None = None,
-) -> dict:
+) -> dict[str, Any]:
     filters = _filters(q, _category(category), date_from, date_to, min_importance)
     try:
         result = await _repository(request).list(filters, limit, cursor, category == "unclassified")
@@ -84,7 +84,7 @@ async def feed(
 
 
 @router.get("/api/v1/feed/stats")
-async def feed_stats(request: Request) -> dict:
+async def feed_stats(request: Request) -> dict[str, Any]:
     return {**await _repository(request).stats(), "data_mode": "postgres"}
 
 
@@ -95,7 +95,7 @@ async def feed_insights(
     date_to: date,
     q: Annotated[str | None, Query(max_length=500)] = None,
     category: str | None = None,
-) -> dict:
+) -> dict[str, Any]:
     if (date_to - date_from).days > 365:
         raise HTTPException(
             status_code=422,
@@ -112,7 +112,7 @@ async def feed_insights(
 
 
 @router.get("/api/v1/feed/{item_id}")
-async def feed_detail(item_id: UUID, request: Request) -> dict:
+async def feed_detail(item_id: UUID, request: Request) -> dict[str, Any]:
     item = await _repository(request).detail(item_id)
     if item is None:
         raise HTTPException(
@@ -134,7 +134,7 @@ async def admin_articles(
     request: Request,
     status: Literal["published", "hidden"] | None = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
-) -> dict:
+) -> dict[str, Any]:
     return await _repository(request).admin_articles(status, limit)
 
 
@@ -145,7 +145,7 @@ class ArticleStatusChange(BaseModel):
 @router.patch("/api/v1/admin/articles/{article_id}", dependencies=[Depends(require_admin)])
 async def change_article_status(
     article_id: UUID, payload: ArticleStatusChange, request: Request
-) -> dict:
+) -> dict[str, Any]:
     item = await _repository(request).set_status(article_id, payload.status)
     if item is None:
         raise HTTPException(

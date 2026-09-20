@@ -5,13 +5,12 @@ import importlib.util
 import io
 import json
 import os
-from pathlib import Path
 import subprocess
 import tarfile
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
-
 
 RELEASE_PATH = Path(__file__).resolve().parents[2] / "scripts" / "release.py"
 SPEC = importlib.util.spec_from_file_location("release", RELEASE_PATH)
@@ -70,7 +69,9 @@ class RestoreOptionsTest(unittest.TestCase):
                 return subprocess.CompletedProcess(args, 0, stdout=output)
 
             with patch.dict(os.environ, new), patch.object(
-                release.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=b"")
+                release.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0, stdout=b""),
             ), patch.object(release, "set_container_ownership"), patch.object(
                 release, "compose", side_effect=fake_compose
             ):

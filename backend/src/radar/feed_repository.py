@@ -19,6 +19,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased
+from sqlalchemy.sql.elements import ColumnElement
+from sqlalchemy.sql.selectable import Subquery
 
 from .cursor import decode_snapshot_cursor, encode_snapshot_cursor, filters_fingerprint
 from .models import (
@@ -43,7 +45,7 @@ def _like_term(value: str) -> str:
 
 def public_feed_query(
     filters: Filters, timezone: str = "Asia/Shanghai", unclassified: bool = False
-):
+) -> Subquery:
     """Return one row per public item, with truthful article provenance columns."""
     unclassified = unclassified or filters.category == Category.UNCLASSIFIED
     member = aliased(EventRow)
@@ -408,7 +410,7 @@ class FeedRepository:
             revision = await session.scalar(
                 text("SELECT revision FROM retrieval_data_revision WHERE singleton")
             )
-        counts = {
+        counts: dict[str, Any] = {
             "total_items": 0,
             "total_articles": 0,
             "total_events": 0,
@@ -478,7 +480,9 @@ class FeedRepository:
 
     async def admin_articles(self, status: str | None, limit: int) -> dict[str, Any]:
         async with self.sessions() as session:
-            clauses = [ArticleRow.status.in_(("published", "hidden"))]
+            clauses: list[ColumnElement[bool]] = [
+                ArticleRow.status.in_(("published", "hidden"))
+            ]
             if status:
                 clauses.append(ArticleRow.status == status)
             total = await session.scalar(

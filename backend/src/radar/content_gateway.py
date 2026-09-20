@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import secrets
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Any
 
@@ -73,7 +74,7 @@ async def content_model(
         max_tokens=invocation.max_output,
     )
 
-    async def events():
+    async def events() -> AsyncIterator[dict[str, str | int | None]]:
         try:
             completion = await client.complete_json(system=SYSTEM, user=invocation.prompt)
             yield ({"type": "text", "text": completion.content})
@@ -90,7 +91,7 @@ async def content_model(
         finally:
             await client.close()
 
-    async def ndjson():
+    async def ndjson() -> AsyncIterator[bytes]:
         import json
 
         async for item in events():
