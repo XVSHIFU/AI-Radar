@@ -1,0 +1,31 @@
+{
+  "version": "v0.1.3",
+  "platform": "linux/amd64",
+  "repository": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker",
+  "build_source_commit": "55e54ceb580bd7687d7629377f98aed008404672",
+  "images": {
+    "db": {
+      "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:db-v0.1.3",
+      "digest": "sha256:49e5a8a7e731e4ae06b41070b7da45857bab1fec628ef7d177f2e9475a7536ba",
+      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:49e5a8a7e731e4ae06b41070b7da45857bab1fec628ef7d177f2e9475a7536ba",
+      "reused_from": "ai-radar-db:v0.1.1"
+    },
+    "backend": {
+      "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:backend-v0.1.3",
+      "digest": "sha256:c3b0fdfcb0424eb255fc5a6e598152b3a7c1411e36a896a6edac18be8e54ce78",
+      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:c3b0fdfcb0424eb255fc5a6e598152b3a7c1411e36a896a6edac18be8e54ce78"
+    },
+    "gateway": {
+      "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:gateway-v0.1.3",
+      "digest": "sha256:a68849042a0d78da0b6775b9a42f0155c205bc1fd2ef74b2b57398fec7318cfa",
+      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:a68849042a0d78da0b6775b9a42f0155c205bc1fd2ef74b2b57398fec7318cfa",
+      "reused_from": "ai-radar-gateway:v0.1.1"
+    },
+    "pi": {
+      "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:pi-v0.1.3",
+      "digest": "sha256:068194c7ffed56a14ce0f53a437141470b23e29df530592a0502d69879c24adc",
+      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:068194c7ffed56a14ce0f53a437141470b23e29df530592a0502d69879c24adc",
+      "reused_from": "ai-radar-pi:v0.1.1"
+    }
+  }
+}
