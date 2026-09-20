@@ -24,7 +24,7 @@
 | 后端单元测试 | 94/94 | local-checks.json、verification日志；无真实PG |
 | 前端单元测试 | 18/18 | 新增跨年/月、未知日期及分页折叠状态；drawer-ui-report.md |
 | 统一工程检查 | 11/11 | local-checks.json；静态/类型/单测、两层回归、OpenAPI、离线迁移、构建 |
-| 真实连接拒绝故障协议 | 3/3 | database-unavailable-results.json；保留未监听loopback端口，未使用PG服务 |
+| 真实连接拒绝故障协议 | 3/3 | database-unavailable-results.json；历史记录为3次HTTP检查；v0.1.0改为1次启动拒绝检查，根因为连接拒绝，未使用PG服务 |
 | 仅生产依赖启动导入 | 通过 | runtime-validation.json；独立no-dev环境导入API/worker/scheduler，未安装pytest |
 | 原RSS入口探测 | 5/5 XML解析 | source-validation.json；使用旧入口探测脚本，不能代替生产transport |
 | 生产抓取/正文样本 | 5/5 | source-body-validation.json；Ubuntu 显式 DoH，保留公网校验和 IP 固定 |

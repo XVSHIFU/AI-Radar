@@ -27,7 +27,7 @@
 | 后端单元测试 | 94/94 | 100% | local-checks.json及.run/verification.log |
 | 前端单元测试 | 15/15 | 100% | 同上 |
 | 统一工程步骤 | 11/11 | 100% | local-checks.json，包含上述部分检查 |
-| 真实连接拒绝协议 | 3/3 | 100% | database-unavailable-results.json，不是PG集成 |
+| 真实连接拒绝协议 | 3/3 | 100% | database-unavailable-results.json；历史记录为3次HTTP检查；v0.1.0为1次连接拒绝导致的启动拒绝检查，不是PG集成 |
 | no-dev运行依赖导入 | 通过 | 不汇总比例 | runtime-validation.json |
 | 原RSS入口XML探测 | 5/5 | 100% | source-validation.json，不替代生产抓取 |
 | 生产正文探测 | 0/5 | 0% | source-body-validation.json，DNS非公网地址阻断 |

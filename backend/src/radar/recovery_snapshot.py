@@ -115,7 +115,7 @@ async def _transaction(engine: AsyncEngine) -> AsyncIterator[AsyncConnection]:
                 .scalars()
                 .all()
             )
-            if revisions != ["0013"]:
+            if revisions != ["0013_public_quota_retention"]:
                 raise InvalidBundle("unsupported recovery schema")
             yield connection
 

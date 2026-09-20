@@ -9,7 +9,7 @@
 | T04–T09 | `backend/tests/test_acceptance_boundaries.py::test_relative_plan_exact_event_ids`，7组时钟/范围/确切事件ID场景 | 固定业务时钟，跨月跨年；不限于检查日期字符串 |
 | E08 | `test_acceptance_boundaries.py::test_e08_ambiguous_and_fuzzy_entities_are_not_silently_confirmed`；`test_queryplanner.py` 澄清协议 | 歧义与模糊实体不会静默确认为单一实体 |
 | N03 | `test_hybrid.py::test_embedding_failure_degrades_without_becoming_empty_scope`；真实PG本地模型测试 | 嵌入失败保留关键词范围；不把故障当无资料 |
-| N04 | `scripts/check-database-unavailable.py` | 真实拒绝连接；业务错误而非无答案 |
+| N04 | `scripts/check-database-unavailable.py` | 真实拒绝连接；v0.1.0要求启动故障关闭且根因为连接拒绝，不将故障当无答案 |
 | N06 | `test_qa_service.py::test_citation_whitelist_rejects_urls_unknown_or_mismatched_indices`；流式失败用例 | 引用白名单/原文定位已验证；逐主张语义复核随专用Agent阶段实现，当前不标“语义已核验” |
 | R01 | `test_retrieval.py::test_chinese_search_document_uses_overlapping_bigrams_and_ascii_tokens`；查询计划分类别名；真实BGE检索 | 中文词法与本地嵌入功能已实现；真实标注集Recall仍须单独报告 |
 | R03 | `test_hybrid.py::test_hard_scope_is_complete_and_both_channels_are_isolated`；`test_retrieval.py` RRF | 两通道融合、去重与硬范围隔离 |
