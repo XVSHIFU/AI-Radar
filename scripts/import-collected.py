@@ -56,13 +56,13 @@ async def receive(batch):
                 idempotency_key=f"ssh-sync:{batch_id}",
                 payload_hash=digest,
                 trigger_type="ssh_sync",
-                status="completed",
+                status="success",
                 new_articles=0,
                 updated_articles=0,
                 discovered_urls=0,
                 fetched_articles=0,
                 cost=0,
-                cost_status="known",
+                cost_status="actual",
             )
             session.add(run)
             await session.flush()
@@ -196,7 +196,7 @@ async def receive(batch):
                     source.health = "healthy"
                     source.consecutive_failures = 0
             run.finished_at = datetime.now(UTC)
-            run.status = "partial" if errors else "completed"
+            run.status = "partial" if errors else "success"
             run.failed_jobs = len(errors)
             run.error_summary = "; ".join(errors)[:2000] or None
             return {
