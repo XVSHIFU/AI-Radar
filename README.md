@@ -2,7 +2,7 @@
 
 一个自托管的 AI 资讯汇总站。脚本自动读取来源、清洗和去重，再直接展示原站标题、简介与链接；日常收录不需要模型 API，也不需要逐篇复制和导入。
 
-当前为 **v0.1.0 本地发行候选**。镜像和代码暂不推送远端。完整工作范围见 [首版计划](docs/first-release-plan.md)；`docs/` 中旧部署与验收记录仅代表当时状态。
+当前版本为 **v0.1.0**，源码仓库：[XVSHIFU/AI-Radar](https://github.com/XVSHIFU/AI-Radar)。预构建镜像使用下文的私有 ACR 仓库；没有仓库权限时可直接从源码构建。完整工作范围见 [首版计划](docs/first-release-plan.md)；`docs/` 中旧部署与验收记录仅代表当时状态。
 
 ## 功能
 
@@ -17,6 +17,13 @@
 ## Docker 启动
 
 需要 Linux、Python 3、Docker Engine 和 Docker Compose。基础模式无需 Node、Python 依赖环境、API Key、向量模型或 gVisor。Windows 可以在 Linux Docker 主机/WSL 中运行以下命令。
+
+先取得源码：
+
+```bash
+git clone https://github.com/XVSHIFU/AI-Radar.git
+cd AI-Radar
+```
 
 在项目根目录执行；当前用户需能使用 Docker：
 
