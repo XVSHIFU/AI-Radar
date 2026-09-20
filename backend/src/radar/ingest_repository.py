@@ -7,7 +7,7 @@ from decimal import Decimal
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import and_, exists, func, or_, select, update
+from sqlalchemy import and_, exists, func, or_, select, true, update
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -131,7 +131,7 @@ class IngestRepository:
                 select(IngestRunRow.id).where(IngestRunRow.trigger_type.in_(trigger_types))
             )
             if trigger_types is not None
-            else True
+            else true()
         )
         async with self._database_boundary(), self.sessions() as session, session.begin():
             expired_jobs = list(

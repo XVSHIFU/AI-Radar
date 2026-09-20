@@ -1,7 +1,7 @@
 {
   "services": {
     "api": {
-      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.1}",
+      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.2}",
       "build": {
         "target": "embedding"
       },
@@ -48,7 +48,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.1}",
+      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.2}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",
@@ -117,7 +117,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.1}",
+      "image": "ai-radar-embedding:${RADAR_RELEASE:-v0.1.2}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",

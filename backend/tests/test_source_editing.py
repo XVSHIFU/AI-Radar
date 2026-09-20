@@ -2,9 +2,10 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
+from starlette.requests import Request
+
 from radar import admin_api
 from radar.models import SourceRow
-from starlette.requests import Request
 
 
 class Session:

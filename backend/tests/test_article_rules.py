@@ -1,4 +1,5 @@
 import pytest
+
 from radar.article_rules import accept_feed_entry, classify_article
 
 

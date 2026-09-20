@@ -456,7 +456,7 @@ class FeedRepository:
                     translation.translated_text
                     if translation
                     and translation.summary_hash
-                    == _summary_hash(article.excerpt if article else "")
+                    == _summary_hash((article.excerpt or "") if article else "")
                     else None
                 )
                 item["evidence"] = [

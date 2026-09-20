@@ -1,6 +1,6 @@
 # AI 革新雷达
 
-AI 资讯聚合网站，自动收录来源并展示原文标题、简介和链接。当前版本为 v0.1.1。
+AI 资讯聚合网站，自动收录来源并展示原文标题、简介和链接。当前版本为 v0.1.2。
 
 ## 目录
 
@@ -47,7 +47,7 @@ python3 --version
 公开镜像仓库：`crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker`。
 
 ```bash
-curl -fL https://github.com/XVSHIFU/AI-Radar/releases/download/v0.1.1/ai-radar-deploy.zip -o ai-radar-deploy.zip
+curl -fL https://github.com/XVSHIFU/AI-Radar/releases/download/v0.1.2/ai-radar-deploy.zip -o ai-radar-deploy.zip
 unzip ai-radar-deploy.zip
 cd ai-radar
 python3 scripts/pull-release.py

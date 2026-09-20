@@ -4,8 +4,10 @@ import argparse
 import asyncio
 import json
 from collections import Counter
+from typing import Any, cast
 
 from sqlalchemy import select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from .article_rules import classify_article
@@ -41,7 +43,7 @@ async def run(apply: bool = False) -> dict[str, object]:
                         .where(ArticleRow.id == row.id, ArticleRow.category.is_(None))
                         .values(category=category)
                     )
-                    changed += result.rowcount
+                    changed += cast(CursorResult[Any], result).rowcount
         return {"applied": apply, "changed": changed, "preview": dict(counts)}
     finally:
         await engine.dispose()
