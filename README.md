@@ -1,11 +1,12 @@
 # AI 革新雷达
 
-AI 资讯聚合网站，自动收录来源并展示原文标题、简介和链接。当前版本为 v0.1.0。
+AI 资讯聚合网站，自动收录来源并展示原文标题、简介和链接。当前版本为 v0.1.1。
 
 ## 目录
 
 - [功能](#功能)
 - [快速开始](#快速开始)
+- [本地采集同步](#本地采集同步)
 - [本机数据库备份](#本机数据库备份)
 - [项目目录](#项目目录)
 - [致谢](#致谢)
@@ -46,7 +47,7 @@ python3 --version
 公开镜像仓库：`crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker`。
 
 ```bash
-curl -fL https://github.com/XVSHIFU/AI-Radar/releases/download/v0.1.0/ai-radar-deploy.zip -o ai-radar-deploy.zip
+curl -fL https://github.com/XVSHIFU/AI-Radar/releases/download/v0.1.1/ai-radar-deploy.zip -o ai-radar-deploy.zip
 unzip ai-radar-deploy.zip
 cd ai-radar
 python3 scripts/pull-release.py
@@ -55,6 +56,18 @@ python3 scripts/release.py up --data-root "$PWD/.local-data"
 ```
 
 访问 `http://127.0.0.1:8080`，后台入口为 `/ingest`。首次初始化生成的管理员口令位于 `.local-data/secrets/admin_token`；`init` 只在新建数据目录时运行。
+
+## 本地采集同步
+
+服务器访问不了的来源，可以在本地电脑抓取，再通过 SSH 同步到服务器。抓取、去重和入库由脚本完成，不调用 AI。
+
+在源码目录中，将 `scripts/collect-sync.example.json` 复制到 `.run/collect-sync.json`，填写 SSH 地址、worker 容器名、来源及本机代理地址。使用已安装后端依赖的 Python 执行：
+
+```bash
+python scripts/collect-sync.py --config .run/collect-sync.json
+```
+
+同步结果保存在 `.run/collect-sync-state/last-run.json`；失败的待发批次会留到下次重试。脚本用途见 [scripts/README.md](scripts/README.md)。
 
 ## 本机数据库备份
 
@@ -68,7 +81,7 @@ python3 scripts/backup-database.py --data-root "$PWD/.local-data" --output "$PWD
 frontend/   网站界面
 backend/    API、采集与数据库
 agent/      可选研究助手
-scripts/    启动与备份脚本
+scripts/    部署、备份、采集同步与维护工具
 deploy/     容器构建文件
 ```
 

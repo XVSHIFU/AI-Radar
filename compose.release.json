@@ -27,7 +27,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-db:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-db:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Database.Dockerfile"
@@ -103,7 +103,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",
@@ -158,7 +158,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",
@@ -259,7 +259,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",
@@ -320,7 +320,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",
@@ -380,7 +380,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-backend:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Backend.Dockerfile",
@@ -438,7 +438,7 @@
           "max-file": "3"
         }
       },
-      "image": "ai-radar-gateway:${RADAR_RELEASE:-v0.1.0}",
+      "image": "ai-radar-gateway:${RADAR_RELEASE:-v0.1.1}",
       "build": {
         "context": ".",
         "dockerfile": "deploy/containers/Gateway.Dockerfile"

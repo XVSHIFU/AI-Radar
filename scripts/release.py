@@ -1,4 +1,4 @@
-"""Local v0.1.0 Docker release helper. Run on a Linux Docker host; never calls a model."""
+"""Local v0.1.1 Docker release helper. Run on a Linux Docker host; never calls a model."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ COMPOSE = ROOT / "compose.release.json"
 ASSISTANT = ROOT / "compose.release.assistant.json"
 EMBEDDING = ROOT / "compose.release.embedding.json"
 HTTPS = ROOT / "compose.release.https.json"
-VERSION = "v0.1.0"
+VERSION = "v0.1.1"
 UID = GID = 10001
 SECRET_NAMES = (
     "db_bootstrap_password", "db_owner_password", "db_api_password",
