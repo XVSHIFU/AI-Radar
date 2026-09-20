@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     embedding_model_dir: Path | None = None
     embedding_model_revision: str | None = None
     embedding_threads: int = Field(default=4, ge=1, le=8)
+    deeplx_endpoint_file: Path | None = None
+    deeplx_endpoint: SecretStr | None = Field(default=None, repr=False)
 
     def sqlalchemy_url(self) -> str | URL | None:
         if self.database_url:

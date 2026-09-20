@@ -164,6 +164,19 @@ class ArticleRow(Base):
     duplicate_of_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
 
 
+class ArticleSummaryTranslationRow(Base):
+    __tablename__ = "article_summary_translations"
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("articles.id", ondelete="CASCADE"), primary_key=True
+    )
+    summary_hash: Mapped[str] = mapped_column(String(64))
+    translated_text: Mapped[str | None] = mapped_column(Text)
+    retry_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 class EventArticleRow(Base):
     __tablename__ = "event_articles"
     event_id: Mapped[uuid.UUID] = mapped_column(

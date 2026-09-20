@@ -32,11 +32,14 @@ python3 --version
 
 ### 镜像部署
 
+下载的是启动配置和脚本；应用直接使用已构建的镜像，无需克隆源码。
+
 公开镜像仓库：`crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker`。
 
 ```bash
-git clone https://github.com/XVSHIFU/AI-Radar.git
-cd AI-Radar
+curl -fL https://github.com/XVSHIFU/AI-Radar/releases/download/v0.1.0/ai-radar-deploy.zip -o ai-radar-deploy.zip
+unzip ai-radar-deploy.zip
+cd ai-radar
 python3 scripts/pull-release.py
 python3 scripts/release.py init --data-root "$PWD/.local-data"
 python3 scripts/release.py up --data-root "$PWD/.local-data"

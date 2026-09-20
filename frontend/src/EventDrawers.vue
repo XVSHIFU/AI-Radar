@@ -14,7 +14,9 @@ import {
   dataMode,
   err,
   events,
+  feed,
   isDemo,
+  type FeedArticleDetail,
   type Article,
   type Category,
   type Event,
@@ -36,6 +38,15 @@ const router = useRouter();
 const props = defineProps<{ basePath?: string }>();
 const pagePath = computed(() => props.basePath || route.path);
 const item = ref<Event>();
+const article = ref<FeedArticleDetail>();
+const articleLoading = ref(false);
+const articleError = ref<ReturnType<typeof err>>();
+const translationLoading = ref(false);
+const translationError = ref<ReturnType<typeof err>>();
+const showTranslation = ref(false);
+let articleGeneration = 0;
+let articleController: AbortController | undefined;
+let translationController: AbortController | undefined;
 const evidence = ref<Evidence[]>([]);
 const loading = ref(false);
 const error = ref<ReturnType<typeof err>>();
@@ -43,6 +54,8 @@ const evidenceError = ref<ReturnType<typeof err>>();
 const eventDialog = ref<HTMLDialogElement>();
 const sourceDialog = ref<HTMLDialogElement>();
 const evidenceDialog = ref<HTMLDialogElement>();
+const articleDialog = ref<HTMLDialogElement>();
+const articleBodyDialog = ref<HTMLDialogElement>();
 const shieldVisible = ref(false);
 const outerClosing = ref(false);
 let outerExitTimer: number | undefined;
@@ -58,21 +71,24 @@ let eventOpener: HTMLElement | undefined;
 let sourceOpener: HTMLElement | undefined;
 let evidenceOpener: HTMLElement | undefined;
 
-const queryString = (name: "event" | "source" | "evidence") => {
+const queryString = (name: "event" | "source" | "evidence" | "article") => {
   const value = route.query[name];
   return typeof value === "string" ? value : undefined;
 };
 const eventId = computed(() => queryString("event"));
 const sourceKey = computed(() => queryString("source"));
 const evidenceId = computed(() => queryString("evidence"));
+const articleId = computed(() => queryString("article"));
+const articleBody = computed(() => Boolean(articleId.value && route.query.article_body === "1"));
 const eventLayer = computed(() =>
-  Boolean(eventId.value || sourceKey.value || evidenceId.value),
+  Boolean((eventId.value || sourceKey.value || evidenceId.value) && !articleId.value),
 );
+const drawerLayer = computed(() => eventLayer.value || Boolean(articleId.value));
 const eventInactive = computed(() =>
   Boolean(sourceKey.value || evidenceId.value),
 );
 const sourceInactive = computed(() => Boolean(evidenceId.value));
-const safeUrl = (url: string) => /^https?:\/\//i.test(url);
+const safeUrl = (url: string | null | undefined): url is string => Boolean(url && /^https?:\/\//i.test(url));
 const readingUrl = (url: string) => locale.value === "en" ? url : preferredReadingUrl(url);
 const categoryLabels = (category: Category) => categoryLabel(category);
 
@@ -127,6 +143,8 @@ function baseQuery(): LocationQueryRaw {
   delete query.event;
   delete query.source;
   delete query.evidence;
+  delete query.article;
+  delete query.article_body;
   return query;
 }
 function parentQuery(): LocationQueryRaw {
@@ -140,6 +158,14 @@ function parentQuery(): LocationQueryRaw {
   return query;
 }
 function moveToParent() {
+  if (articleId.value) {
+    const query = baseQuery();
+    if (articleBody.value) query.article = articleId.value;
+    const target = router.resolve({ path: pagePath.value, query }).fullPath;
+    if ((history.state as { back?: string } | null)?.back === target) router.back();
+    else void router.replace({ path: pagePath.value, query });
+    return;
+  }
   const query = parentQuery();
   const target = router.resolve({ path: pagePath.value, query }).fullPath;
   if ((history.state as { back?: string } | null)?.back === target)
@@ -147,6 +173,19 @@ function moveToParent() {
   else void router.replace({ path: pagePath.value, query });
 }
 function attachToConversation(item: Event) { window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: item.id, title: item.title_zh } })); if (matchMedia("(max-width: 900px)").matches) closeAll(); }
+function attachArticle() {
+  if (!article.value) return;
+  const value = article.value;
+  window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: value.id, title: value.title, content_kind: "article", source_url: value.source_url, source_name: value.source_name } }));
+  closeAll();
+}
+function openArticleBody() { if (articleId.value) void router.push({ path: pagePath.value, query: { ...route.query, article_body: "1" } }); }
+function relatedEventHref(id: string) { return router.resolve({ path: pagePath.value, query: { ...baseQuery(), event: id } }).href; }
+function openRelatedEvent(event: MouseEvent, id: string) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  void router.push(relatedEventHref(id));
+}
 function closeAll() {
   void router.replace({ path: pagePath.value, query: baseQuery() });
 }
@@ -156,7 +195,7 @@ function closeFromBackdrop(event: MouseEvent, layer: "event" | "source" | "evide
   const surface = event.currentTarget as HTMLDialogElement;
   const rect = surface.getBoundingClientRect();
   const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
-  const top = layer === "evidence" ? Boolean(evidenceId.value) : layer === "source" ? Boolean(sourceKey.value && !evidenceId.value) : Boolean(eventLayer.value && !sourceKey.value && !evidenceId.value);
+  const top = articleId.value ? (layer === "source" ? articleBody.value : layer === "event" && !articleBody.value) : layer === "evidence" ? Boolean(evidenceId.value) : layer === "source" ? Boolean(sourceKey.value && !evidenceId.value) : Boolean(eventLayer.value && !sourceKey.value && !evidenceId.value);
   if (outside && top) moveToParent();
 }
 function rememberFocus(level: "source" | "evidence") {
@@ -202,8 +241,10 @@ function syncDialog(dialog: HTMLDialogElement | undefined, open: boolean) {
 function syncDialogs() {
   void nextTick(() => {
     syncDialog(eventDialog.value, eventLayer.value);
-    syncDialog(sourceDialog.value, Boolean(sourceKey.value));
-    syncDialog(evidenceDialog.value, Boolean(evidenceId.value));
+    syncDialog(sourceDialog.value, Boolean(sourceKey.value && !articleId.value));
+    syncDialog(evidenceDialog.value, Boolean(evidenceId.value && !articleId.value));
+    syncDialog(articleDialog.value, Boolean(articleId.value));
+    syncDialog(articleBodyDialog.value, articleBody.value);
   });
 }
 function lockScroll() {
@@ -271,10 +312,58 @@ async function loadEvent() {
   }
 }
 
+async function loadArticle() {
+  const id = articleId.value;
+  const current = ++articleGeneration;
+  articleController?.abort();
+  translationController?.abort();
+  article.value = undefined;
+  articleLoading.value = false;
+  articleError.value = undefined;
+  translationError.value = undefined;
+  translationLoading.value = false;
+  showTranslation.value = false;
+  if (!id) return;
+  articleController = new AbortController();
+  articleLoading.value = true;
+  try {
+    const value = await feed.one(id, articleController.signal);
+    if (current !== articleGeneration) return;
+    if (value.content_kind !== "article") throw { code: "NOT_FOUND", message: tr("未找到该文章", "Article not found"), status: 404 };
+    article.value = value;
+  } catch (cause) {
+    if (current === articleGeneration && (cause as Error).name !== "AbortError") articleError.value = err(cause);
+  } finally {
+    if (current === articleGeneration) articleLoading.value = false;
+  }
+}
+async function translateArticle() {
+  const value = article.value;
+  if (!value?.excerpt || translationLoading.value) return;
+  if (value.summary_translation) { showTranslation.value = !showTranslation.value; return; }
+  translationController?.abort();
+  translationController = new AbortController();
+  const current = articleGeneration;
+  translationLoading.value = true;
+  translationError.value = undefined;
+  try {
+    const result = await feed.translate(value.id, translationController.signal);
+    if (current === articleGeneration && article.value?.id === value.id) {
+      article.value = { ...article.value, summary_translation: result.summary_translation };
+      showTranslation.value = true;
+    }
+  } catch (cause) {
+    if (current === articleGeneration && (cause as Error).name !== "AbortError") translationError.value = err(cause);
+  } finally {
+    if (current === articleGeneration) translationLoading.value = false;
+  }
+}
+
 watch(eventId, loadEvent, { immediate: true });
-watch([eventLayer, sourceKey, evidenceId], syncDialogs, { immediate: true });
+watch(articleId, loadArticle, { immediate: true });
+watch([eventLayer, sourceKey, evidenceId, articleId, articleBody], syncDialogs, { immediate: true });
 watch(
-  eventLayer,
+  drawerLayer,
   async (next, previous) => {
     if (next && !previous) {
       if (outerExitTimer) { clearTimeout(outerExitTimer); outerExitTimer = undefined; }
@@ -305,6 +394,11 @@ watch(sourceKey, async (next, previous) => {
     window.setTimeout(() => { if(eventLayer.value && !sourceKey.value) sourceOpener?.focus({ preventScroll: true }); }, motionDuration("drawerExit"));
   }
 });
+watch(articleBody, async (next, previous) => {
+  if (!next && previous && articleId.value) {
+    window.setTimeout(() => { if(articleId.value && !articleBody.value) articleDialog.value?.querySelector<HTMLElement>("[data-testid=article-read-body]")?.focus({ preventScroll: true }); }, motionDuration("drawerExit"));
+  }
+});
 watch(evidenceId, async (next, previous) => {
   if (!next && previous) {
     window.setTimeout(() => { if(eventLayer.value && !evidenceId.value) evidenceOpener?.focus({ preventScroll: true }); }, motionDuration("drawerExit"));
@@ -312,7 +406,7 @@ watch(evidenceId, async (next, previous) => {
 });
 const onEscape = (event: KeyboardEvent) => {
   if (event.key === "Tab" && shieldVisible.value && matchMedia("(max-width:900px)").matches) {
-    const dialog = evidenceId.value ? evidenceDialog.value : sourceKey.value ? sourceDialog.value : eventDialog.value;
+    const dialog = articleId.value ? (articleBody.value ? articleBodyDialog.value : articleDialog.value) : evidenceId.value ? evidenceDialog.value : sourceKey.value ? sourceDialog.value : eventDialog.value;
     const nodes = [...(dialog?.querySelectorAll<HTMLElement>("button,a[href],summary,input,[tabindex='0']") || []), ...document.querySelectorAll<HTMLElement>("[data-testid='assistant-toggle']")].filter(n => n.getClientRects().length && !n.hasAttribute("disabled") && !n.closest("[inert]"));
     const first=nodes[0], last=nodes.at(-1);
     if(first && last && event.shiftKey && document.activeElement===first){event.preventDefault();last.focus();}
@@ -320,7 +414,7 @@ const onEscape = (event: KeyboardEvent) => {
   }
 
 
-  if (event.key === "Escape" && eventLayer.value && !event.defaultPrevented) { event.preventDefault(); moveToParent(); }
+  if (event.key === "Escape" && drawerLayer.value && !event.defaultPrevented) { event.preventDefault(); moveToParent(); }
 
 };
 
@@ -328,11 +422,14 @@ function backgroundInert(drawerOpen: boolean) {
   const assistantModal = document.documentElement.classList.contains("global-assistant-open") && matchMedia("(max-width: 900px)").matches;
   for (const node of document.querySelectorAll(".app-content main,.app-rail")) node.toggleAttribute("inert", drawerOpen || assistantModal);
 }
-onMounted(() => { syncMotionVariables(); document.addEventListener("keydown", onEscape); if(eventLayer.value) { shieldVisible.value = true; backgroundInert(true); } });
+onMounted(() => { syncMotionVariables(); document.addEventListener("keydown", onEscape); if(drawerLayer.value) { shieldVisible.value = true; backgroundInert(true); } });
 
 onBeforeUnmount(() => {
   generation++;
+  articleGeneration++;
   controller?.abort();
+  articleController?.abort();
+  translationController?.abort();
   if (outerExitTimer) clearTimeout(outerExitTimer);
   unlockScroll();
 
@@ -535,6 +632,82 @@ onBeforeUnmount(() => {
             </p>
           </template>
           <p v-else class="drawer-status">{{ tr("正在读取证据…", "Loading evidence…") }}</p>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      ref="articleDialog"
+      class="drawer-surface drawer-surface--event"
+      :class="{ 'drawer-surface--inactive': articleBody, 'drawer-surface--active': !articleBody }"
+      data-testid="drawer-article" :inert="articleBody"
+      aria-labelledby="drawer-article-title"
+      @click.capture="blockLeavingInteraction" @pointerdown.capture="blockLeavingInteraction" @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'event')"
+    >
+      <div class="drawer-shell">
+        <div class="drawer-header">
+          <button data-testid="drawer-back" :aria-label="tr('返回时间线', 'Back to timeline')" @click="closeAll"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>{{ tr("返回", "Back") }}</button>
+          <h2 id="drawer-article-title">{{ tr("收录文章", "Article") }}</h2>
+        </div>
+        <div class="drawer-body">
+          <p v-if="isDemo()" class="drawer-fixture">{{ tr("前端模拟数据：仅用于界面展示，不代表真实新闻或采集结果。", "Frontend simulation for interface preview only; it does not represent real news or collection results.") }}</p>
+          <p v-else-if="dataMode === 'fixture'" class="drawer-fixture">{{ tr("后端合成数据：仅用于界面展示，不代表真实新闻或采集结果。", "Backend fixture data for interface preview only; it does not represent real news or collection results.") }}</p>
+          <p v-if="articleLoading" class="drawer-status" aria-live="polite">{{ tr("正在读取文章详情…", "Loading article details…") }}</p>
+          <div v-else-if="articleError" class="drawer-error" role="alert"><p>{{ articleError.status === 404 ? tr("未找到这篇已收录文章。", "This recorded article was not found.") : articleError.message }}</p><button @click="loadArticle">{{ tr("重试", "Retry") }}</button></div>
+          <template v-else-if="article">
+            <section class="drawer-event-summary">
+              <h3 class="drawer-event-title">{{ article.title }}</h3>
+              <button class="drawer-attach" type="button" data-testid="attach-article" @click="attachArticle">{{ tr("加入当前对话", "Add to current conversation") }}</button>
+              <p class="meta tabular"><span v-if="article.source_name">{{ article.source_name }} · </span><span v-if="article.byline">{{ tr("作者", "By") }} {{ article.byline }} · </span>{{ article.published_at ? tr("发表 {date}", "Published {date}", { date: formatDate(article.published_at) }) : tr("发表时间未提供", "Publication date unavailable") }}<span v-if="article.ingested_at"> · {{ tr("收录 {date}", "Collected {date}", { date: formatDate(article.ingested_at) }) }}</span></p>
+              <p v-if="article.category" class="drawer-event-facts"><span class="pill">{{ categoryLabels(article.category) }}</span></p>
+              <div v-if="article.excerpt">
+                <h4>{{ showTranslation && article.summary_translation ? tr("摘要译文", "Translated summary") : tr("来源摘要", "Source summary") }}</h4>
+                <p class="muted">{{ showTranslation && article.summary_translation ? article.summary_translation : article.excerpt }}</p>
+                <button type="button" :disabled="translationLoading" @click="translateArticle">{{ translationLoading ? tr("正在翻译摘要…", "Translating summary…") : article.summary_translation ? showTranslation ? tr("查看原文摘要", "View source summary") : tr("查看摘要译文", "View translated summary") : tr("翻译摘要", "Translate summary") }}</button>
+                <p v-if="showTranslation && article.summary_translation" class="meta">{{ tr("机器翻译仅供阅读，请以来源原文为准。", "Machine translation is for reading; verify against the source.") }}</p>
+                <p v-if="translationError" class="drawer-error" role="alert">{{ tr("摘要翻译失败，仍可阅读来源摘要：{message}", "Summary translation failed; the source summary remains available: {message}", { message: translationError.message }) }}</p>
+              </div>
+              <p v-else class="drawer-status">{{ tr("来源没有提供摘要。", "The source did not provide a summary.") }}</p>
+            </section>
+            <section v-if="article.entities?.length"><h3>{{ tr("相关实体", "Related entities") }}</h3><p class="drawer-entities"><span v-for="entity in article.entities" :key="entity.id" class="pill">{{ entity.name }}</span></p></section>
+            <section v-if="article.tags?.length"><h3>{{ tr("标签", "Tags") }}</h3><p class="drawer-entities"><span v-for="tag in article.tags" :key="tag" class="pill">{{ tag }}</span></p></section>
+            <section v-if="article.related_events?.length"><h3>{{ tr("相关事件", "Related events") }}</h3><ul><li v-for="related in article.related_events" :key="related.id"><a :href="relatedEventHref(related.id)" @click="openRelatedEvent($event, related.id)">{{ related.title_zh }}</a></li></ul></section>
+            <section class="drawer-source">
+              <h3>{{ tr("原文与正文", "Source and article body") }}</h3>
+              <p v-if="safeUrl(article.source_url)"><a :href="article.source_url" target="_blank" rel="noopener noreferrer">{{ tr("打开原站", "Open source site") }}</a></p>
+              <p v-else class="drawer-status">{{ tr("这篇文章未提供可安全打开的原站链接。", "This article has no safely accessible source link.") }}</p>
+              <button class="drawer-source__open" type="button" data-testid="article-read-body" @click="openArticleBody">{{ tr("阅读已保存正文", "Read saved article body") }}</button>
+            </section>
+          </template>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      ref="articleBodyDialog"
+      class="drawer-surface drawer-surface--source"
+      :class="{ 'drawer-surface--active': articleBody }"
+      data-testid="drawer-article-body"
+      aria-labelledby="drawer-article-body-title"
+      @click.capture="blockLeavingInteraction" @pointerdown.capture="blockLeavingInteraction" @cancel.prevent="moveToParent" @click="closeFromBackdrop($event, 'source')"
+    >
+      <div class="drawer-shell">
+        <div class="drawer-header">
+          <button data-testid="drawer-back" :aria-label="tr('返回文章详情', 'Back to article details')" @click="moveToParent"><svg class="drawer-back-icon" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5 6 9l5.5 5.5M6.5 9h7" /></svg>{{ tr("返回", "Back") }}</button>
+          <h2 id="drawer-article-body-title">{{ tr("已保存正文", "Saved article body") }}</h2>
+        </div>
+        <div class="drawer-body">
+          <p v-if="articleLoading" class="drawer-status" aria-live="polite">{{ tr("正在读取正文…", "Loading article body…") }}</p>
+          <div v-else-if="articleError" class="drawer-error" role="alert"><p>{{ articleError.message }}</p><button @click="loadArticle">{{ tr("重试", "Retry") }}</button></div>
+          <template v-else-if="article">
+            <h3>{{ article.title }}</h3>
+            <p v-if="safeUrl(article.source_url)"><a :href="article.source_url" target="_blank" rel="noopener noreferrer">{{ tr("打开原站", "Open source site") }}</a></p>
+            <p v-if="!article.body_paragraphs?.length" class="drawer-status">{{ safeUrl(article.source_url) ? tr("尚未保存这篇文章的正文段落。请前往原站阅读完整内容。", "No body paragraphs were saved for this article. Read the full text at the source site.") : tr("尚未保存这篇文章的正文段落，原站链接也未提供。", "No body paragraphs or source link are available for this article.") }}</p>
+            <section v-for="(paragraph, index) in article.body_paragraphs" :key="paragraph.id" class="drawer-evidence">
+              <p class="meta">{{ tr("段落 {index}", "Paragraph {index}", { index: index + 1 }) }}</p>
+              <blockquote class="drawer-quote">{{ paragraph.text }}</blockquote>
+            </section>
+          </template>
         </div>
       </div>
     </dialog>

@@ -8,9 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from .admin_auth import require_admin
-from .feed_repository import FeedRepository
+from .feed_repository import FeedRepository, SummaryMissing, TranslationCooldown
 from .repository import InvalidCursor, RepositoryUnavailable
 from .schemas import Category, Filters
+from .summary_translation import (
+    TranslationProviderError, configured_endpoint, translate_summary,
+)
 
 router = APIRouter()
 
@@ -127,6 +130,41 @@ async def feed_detail(item_id: UUID, request: Request) -> dict[str, Any]:
             a.model_dump(mode="json") for a in await repository.articles_for(item_id)
         ]
     return {**item, "data_mode": "postgres"}
+
+
+@router.post("/api/v1/feed/{item_id}/translate")
+async def translate_feed_summary(item_id: UUID, request: Request) -> dict[str, Any]:
+    endpoint = configured_endpoint(request.app.state.settings)
+    if endpoint is None:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "TRANSLATION_UNAVAILABLE", "message": "Translation is unavailable"},
+        )
+    try:
+        result = await _repository(request).translate_article_summary(
+            item_id, lambda summary: translate_summary(endpoint, summary)
+        )
+    except SummaryMissing as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "SUMMARY_UNAVAILABLE", "message": "Article has no source summary"},
+        ) from exc
+    except TranslationCooldown as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "TRANSLATION_COOLDOWN", "message": "Translation is temporarily unavailable"},
+        ) from exc
+    except TranslationProviderError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "TRANSLATION_FAILED", "message": "Translation is temporarily unavailable"},
+        ) from exc
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "ITEM_NOT_FOUND", "message": "Feed item was not found"},
+        )
+    return result
 
 
 @router.get("/api/v1/admin/articles", dependencies=[Depends(require_admin)])

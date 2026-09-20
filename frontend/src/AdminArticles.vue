@@ -49,11 +49,10 @@ onMounted(() => void load());
 </script>
 
 <template>
-  <section class="card admin-articles">
-    <div class="admin-section-title">
-      <div><h2>{{ tr("最近收录", "Recent articles") }}</h2><p class="meta">{{ tr("可隐藏无关文章，也可在“已隐藏”中恢复。", "Hide irrelevant articles or restore them from Hidden.") }}</p></div>
-      <button type="button" class="admin-action" :disabled="loading || !!actionId" @click="load">{{ tr("刷新", "Refresh") }}</button>
-    </div>
+  <details class="card admin-articles" open>
+    <summary class="admin-articles__summary"><div><h2>{{ tr("最近收录", "Recent articles") }}</h2><p class="meta">{{ tr("可隐藏无关文章，也可在“已隐藏”中恢复。", "Hide irrelevant articles or restore them from Hidden.") }}</p></div></summary>
+    <div class="admin-articles__content">
+    <button type="button" class="admin-action" :disabled="loading || !!actionId" @click="load">{{ tr("刷新", "Refresh") }}</button>
     <div class="admin-articles__tabs" role="group" :aria-label="tr('文章状态', 'Article status')">
       <button type="button" :aria-pressed="status === 'published'" @click="select('published')">{{ tr("已收录", "Published") }}</button>
       <button type="button" :aria-pressed="status === 'hidden'" @click="select('hidden')">{{ tr("已隐藏", "Hidden") }}</button>
@@ -72,10 +71,22 @@ onMounted(() => void load());
         <button type="button" class="admin-action" :disabled="!!actionId" @click="change(row)">{{ actionId === row.id ? tr("保存中…", "Saving…") : row.status === "published" ? tr("隐藏", "Hide") : tr("恢复", "Restore") }}</button>
       </article>
     </template>
-  </section>
+    </div>
+  </details>
 </template>
 
 <style scoped>
+.admin-articles__summary { display:flex; align-items:start; justify-content:space-between; gap:16px; cursor:pointer; list-style:none; }
+.admin-articles__summary::-webkit-details-marker { display:none; }
+.admin-articles__summary::after { content:""; flex:none; width:8px; height:8px; margin:7px 3px 0 0; border-right:2px solid var(--muted); border-bottom:2px solid var(--muted); transform:rotate(45deg); transition:transform .16s ease; }
+.admin-articles[open] > .admin-articles__summary::after { transform:rotate(225deg); }
+.admin-articles__summary h2 { margin:0; font-size:20px; }
+.admin-articles__summary .meta { margin:4px 0 0; }
+.admin-articles[open] > .admin-articles__summary { padding-bottom:var(--s3); border-bottom:1px solid var(--line); margin-bottom:var(--s3); }
+.admin-articles__content > .admin-action { margin-bottom:var(--s3); }
+.admin-articles__summary:focus-visible { outline:2px solid var(--blue); outline-offset:4px; border-radius:4px; }
+@media (prefers-reduced-motion: reduce) { .admin-articles__summary::after { transition:none; } }
+
 .admin-articles__tabs { display:flex; gap:8px; margin:16px 0 12px; }
 .admin-articles__tabs button[aria-pressed="true"] { color:var(--blue); border-color:var(--blue); }
 .admin-articles__row { display:flex; align-items:start; justify-content:space-between; gap:16px; padding:12px 0; border-top:1px solid var(--line); }

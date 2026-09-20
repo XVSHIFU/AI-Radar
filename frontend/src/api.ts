@@ -86,6 +86,13 @@ export type FeedItem = {
   date_conflict?: boolean;
   date_basis?: Event["date_basis"];
 };
+export type FeedArticleDetail = Omit<FeedItem, "entities"> & {
+  body_paragraphs: { id: string; text: string }[];
+  entities: { id: string; name: string; type: string }[];
+  tags: string[];
+  related_events: { id: string; title_zh: string }[];
+  summary_translation: string | null;
+};
 export type FeedResult = Omit<EventResult, "items"> & { items: FeedItem[] };
 export type FeedStats = Stats & { total_items: number; total_articles: number };
 const demo = () =>
@@ -219,7 +226,8 @@ export const feed = {
   list: (q: EventQuery, signal?: AbortSignal) => demo()
     ? Promise.resolve({ ...filter(q), items: filter(q).items.map((item): FeedItem => ({ id: item.id, content_kind: "event", title: item.title_zh, excerpt: item.summary_zh, category: item.category, published_at: item.event_date, ingested_at: null, display_date: item.event_date, source_name: null, source_url: null, importance: item.importance, source_count: item.source_count, evidence_count: item.evidence_count, entities: item.entities, date_conflict: item.date_conflict, date_basis: item.date_basis })) })
     : api<FeedResult>("/api/v1/feed?" + new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined && v !== "") as [string, string][]), { signal }),
-  one: (id: string, signal?: AbortSignal) => api<FeedItem & { paragraphs?: Record<string, string> }>("/api/v1/feed/" + encodeURIComponent(id), { signal }),
+  one: (id: string, signal?: AbortSignal) => api<FeedArticleDetail>("/api/v1/feed/" + encodeURIComponent(id), { signal }),
+  translate: (id: string, signal?: AbortSignal) => api<{ summary_translation: string; cached: boolean }>("/api/v1/feed/" + encodeURIComponent(id) + "/translate", { method: "POST", signal }),
   stats: () => demo()
     ? stats().then((value): FeedStats => ({ ...value, total_items: value.total_events, total_articles: 0 }))
     : api<FeedStats>("/api/v1/feed/stats"),

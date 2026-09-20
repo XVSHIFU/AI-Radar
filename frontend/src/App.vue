@@ -60,13 +60,6 @@ const viewKey = computed(
       </nav>
       <div class="rail-footer">
       <ThemeWheel />
-      <RouterLink
-        v-if="!demoEnabled && !adminEnabled"
-        :to="route.path + '?demo=1'"
-        class="switch"
-        >{{ t("demo") }}</RouterLink
-      >
-      <RouterLink v-else-if="!adminEnabled" :to="route.path" class="switch">{{ t("service") }}</RouterLink>
       <div id="assistant-mobile-slot" aria-label="研究助手入口"></div>
       </div>
 

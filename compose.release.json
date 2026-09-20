@@ -183,7 +183,8 @@
         "ASSISTANT_OUTPUT_PER_DAY": "32000",
         "RADAR_TRUSTED_PROXY_IP": "${RADAR_GATEWAY_IP:-172.31.249.2}",
         "FETCH_DNS_MODE": "${FETCH_DNS_MODE:-system}",
-        "FETCH_INTERVAL_SECONDS": "${FETCH_INTERVAL_SECONDS:-10}"
+        "FETCH_INTERVAL_SECONDS": "${FETCH_INTERVAL_SECONDS:-10}",
+        "DEEPLX_ENDPOINT_FILE": "/var/lib/radar-model/deeplx_endpoint"
       },
       "secrets": [
         {

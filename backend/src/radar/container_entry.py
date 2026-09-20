@@ -98,6 +98,8 @@ def environment(role: str, inherited: Mapping[str, str]) -> dict[str, str]:
         result.update(
             {name: private_value(Path("/run/secrets") / file) for name, file in API_SECRETS.items()}
         )
+        if "DEEPLX_ENDPOINT_FILE" in inherited:
+            result["DEEPLX_ENDPOINT_FILE"] = inherited["DEEPLX_ENDPOINT_FILE"]
         result["RESEARCH_RUNTIME_URL"] = "http://pi-runtime:8081"
         result["SANDBOX_CONTROLLER_URL"] = "http://sandbox-controller:8092"
     else:

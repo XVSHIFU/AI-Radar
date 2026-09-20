@@ -2,7 +2,7 @@
 
 import hashlib
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Awaitable, Callable
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from sqlalchemy import (
@@ -25,8 +25,10 @@ from sqlalchemy.sql.selectable import Subquery
 from .cursor import decode_snapshot_cursor, encode_snapshot_cursor, filters_fingerprint
 from .models import (
     ArticleRow,
+    ArticleSummaryTranslationRow,
     ArticleVersionRow,
     EntityAliasRow,
+    EntityRow,
     EventArticleRow,
     EventEntityRow,
     EventRow,
@@ -36,6 +38,7 @@ from .models import (
 from .normalize import normalize_text
 from .repository import InvalidCursor, RepositoryUnavailable
 from .schemas import Category, Evidence, Filters
+from .summary_translation import TranslationProviderError
 
 
 def _like_term(value: str) -> str:
@@ -279,6 +282,18 @@ async def article_evidence(session: AsyncSession, article_id: UUID) -> list[Evid
     ]
 
 
+class SummaryMissing(Exception):
+    pass
+
+
+class TranslationCooldown(Exception):
+    pass
+
+
+def _summary_hash(summary: str) -> str:
+    return hashlib.sha256(summary.encode("utf-8")).hexdigest()
+
+
 class FeedRepository:
     def __init__(
         self,
@@ -388,11 +403,99 @@ class FeedRepository:
                     if article and article.current_version_id
                     else None
                 )
-                item["paragraphs"] = version.paragraphs if version else {}
+                paragraphs = version.paragraphs if version else {}
+                item["paragraphs"] = paragraphs
+                item["body_paragraphs"] = [
+                    {"id": paragraph_id, "text": paragraphs[paragraph_id]}
+                    for paragraph_id in sorted(paragraphs)
+                ]
+                related = (
+                    await session.execute(
+                        select(EventRow.id, EventRow.title_zh)
+                        .join(EventArticleRow, EventArticleRow.event_id == EventRow.id)
+                        .where(
+                            EventArticleRow.article_id == item_id,
+                            EventRow.status == "published",
+                            EventRow.merged_into_event_id.is_(None),
+                        )
+                        .order_by(EventRow.id)
+                    )
+                ).all()
+                item["related_events"] = [
+                    {"id": str(event_id), "title_zh": title} for event_id, title in related
+                ]
+                entities = (
+                    await session.execute(
+                        select(EntityRow.id, EntityRow.canonical_name, EntityRow.entity_type)
+                        .join(EventEntityRow, EventEntityRow.entity_id == EntityRow.id)
+                        .join(EventArticleRow, EventArticleRow.event_id == EventEntityRow.event_id)
+                        .join(EventRow, EventRow.id == EventArticleRow.event_id)
+                        .where(EventArticleRow.article_id == item_id, EventRow.status == "published")
+                        .distinct()
+                        .order_by(EntityRow.canonical_name)
+                    )
+                ).all()
+                item["entities"] = [
+                    {"id": str(entity_id), "name": name, "type": entity_type}
+                    for entity_id, name, entity_type in entities
+                ]
+                # RSS tags are not persisted on ArticleRow; do not infer labels.
+                item["tags"] = []
+                translation = await session.get(ArticleSummaryTranslationRow, item_id)
+                item["summary_translation"] = (
+                    translation.translated_text
+                    if translation and translation.summary_hash == _summary_hash(article.excerpt if article else "")
+                    else None
+                )
                 item["evidence"] = [
                     e.model_dump(mode="json") for e in await article_evidence(session, item_id)
                 ]
             return item
+
+    async def translate_article_summary(
+        self, item_id: UUID, translator: Callable[[str], Awaitable[str]]
+    ) -> dict[str, Any] | None:
+        failed = False
+        result: dict[str, Any] | None = None
+        async with self.sessions() as session, session.begin():
+            article = await session.scalar(
+                select(ArticleRow)
+                .where(
+                    ArticleRow.id == item_id,
+                    ArticleRow.status == "published",
+                    ArticleRow.duplicate_of_id.is_(None),
+                )
+                .with_for_update()
+            )
+            if article is None:
+                return None
+            summary = (article.excerpt or "").strip()
+            if not summary:
+                raise SummaryMissing
+            digest = _summary_hash(article.excerpt or "")
+            cached = await session.get(ArticleSummaryTranslationRow, item_id)
+            now = datetime.now(UTC)
+            if cached and cached.summary_hash == digest and cached.translated_text:
+                return {"summary_translation": cached.translated_text, "cached": True}
+            if cached and cached.summary_hash == digest and cached.retry_after:
+                if cached.retry_after > now:
+                    raise TranslationCooldown
+            try:
+                translated = await translator(summary)
+            except TranslationProviderError:
+                failed = True
+                translated = None
+            if cached is None:
+                cached = ArticleSummaryTranslationRow(article_id=item_id, summary_hash=digest)
+                session.add(cached)
+            cached.summary_hash = digest
+            cached.translated_text = translated
+            cached.retry_after = now + timedelta(seconds=60) if failed else None
+            if translated is not None:
+                result = {"summary_translation": translated, "cached": False}
+        if failed:
+            raise TranslationProviderError
+        return result
 
     async def stats(self) -> dict[str, Any]:
         async with self.sessions() as session:

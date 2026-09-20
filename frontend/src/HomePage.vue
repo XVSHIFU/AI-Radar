@@ -156,7 +156,15 @@ function directEventHref(id: string) {
     query: route.query.demo === "1" ? { demo: "1" } : {},
   }).href;
 }
-function safeSourceUrl(url: string | null) { return url && /^https?:\/\//i.test(url) ? url : null; }
+function articleHref(id: string) {
+  const drawerQuery = { ...route.query };
+  delete drawerQuery.event;
+  delete drawerQuery.source;
+  delete drawerQuery.evidence;
+  delete drawerQuery.article_body;
+  drawerQuery.article = id;
+  return router.resolve({ path: route.path, query: drawerQuery }).href;
+}
 function attachArticle(item: FeedItem) {
   window.dispatchEvent(new CustomEvent("attach-event", { detail: { id: item.id, title: item.title, content_kind: "article", source_url: item.source_url, source_name: item.source_name } }));
 }
@@ -175,8 +183,15 @@ function openEvent(event: MouseEvent, id: string) {
   const drawerQuery = { ...route.query };
   delete drawerQuery.source;
   delete drawerQuery.evidence;
+  delete drawerQuery.article;
+  delete drawerQuery.article_body;
   drawerQuery.event = id;
   void router.push({ path: route.path, query: drawerQuery });
+}
+function openArticle(event: MouseEvent, id: string) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  void router.push(articleHref(id));
 }
 watch(() => route.query, sync, { immediate: true });
 watch(timeline, (value) => {
@@ -312,8 +327,7 @@ onBeforeUnmount(() => {
                 <span class="pill">{{ item.content_kind === 'article' ? tx("收录文章", "Article") : tx("精选事件", "Curated event") }} · {{ itemCategory(item) }}</span>
                 <h2 class="timeline-event__title">
                   <a v-if="item.content_kind === 'event'" :href="directEventHref(item.id)" @click="openEvent($event, item.id)">{{ item.title }}</a>
-                  <a v-else-if="safeSourceUrl(item.source_url)" :href="safeSourceUrl(item.source_url)!" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>
-                  <span v-else>{{ item.title }}</span>
+                  <a v-else :href="articleHref(item.id)" @click="openArticle($event, item.id)">{{ item.title }}</a>
                 </h2>
                 <p v-if="item.excerpt" class="muted timeline-event__summary"><span v-if="item.content_kind === 'article'" class="timeline-event__excerpt-label">{{ tx("来源摘录：", "Source excerpt: ") }}</span>{{ item.excerpt }}</p>
                 <p v-if="item.content_kind === 'article'" class="meta tabular timeline-event__meta">
