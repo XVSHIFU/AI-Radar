@@ -11,14 +11,15 @@
     },
     "backend": {
       "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:backend-v0.1.0",
-      "digest": "sha256:2a9e66f719faa585752a74657883f7bae44e51177acf909ffe1388c365a23953",
-      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:2a9e66f719faa585752a74657883f7bae44e51177acf909ffe1388c365a23953",
-      "build_source_commit": "c26c4e6a3cc76dbac1f28d6120a285f0438f2181"
+      "digest": "sha256:0590bdf536073af731a72a712d1ba81cd1ac440b9db60aded3e119a1d5a1b4c3",
+      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:0590bdf536073af731a72a712d1ba81cd1ac440b9db60aded3e119a1d5a1b4c3",
+      "build_source_commit": "23a097f"
     },
     "gateway": {
       "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:gateway-v0.1.0",
-      "digest": "sha256:88f2a86d614ad740bac43e885588ec6958156d1819f10467d734ed1593963311",
-      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:88f2a86d614ad740bac43e885588ec6958156d1819f10467d734ed1593963311"
+      "digest": "sha256:215653681765f13034a83227a490a084633367b403c98ddacb24140a9d92dada",
+      "pinned": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker@sha256:215653681765f13034a83227a490a084633367b403c98ddacb24140a9d92dada",
+      "build_source_commit": "23a097f"
     },
     "pi": {
       "tag": "crpi-z2yvaep8ppb79obm.cn-hangzhou.personal.cr.aliyuncs.com/ai_radar_spec/ai_radar_docker:pi-v0.1.0",
